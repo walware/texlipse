@@ -1,5 +1,5 @@
 /*
- * $Id: MarkerHandler.java,v 1.9 2006/10/21 18:16:36 borisvl Exp $
+ * $Id: MarkerHandler.java,v 1.10 2008/09/20 18:04:14 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -57,7 +57,7 @@ public class MarkerHandler {
      * @param editor The editor to add the errors to
      * @param errors The errors to add as instances of <code>ParseErrorMessage</code>
      */
-	public void createErrorMarkers(ITextEditor editor, List<ParseErrorMessage> errors) {
+    public void createErrorMarkers(ITextEditor editor, List<ParseErrorMessage> errors) {
         createMarkers(editor, errors, IMarker.PROBLEM);
     }
 
@@ -67,7 +67,7 @@ public class MarkerHandler {
      * @param editor The editor to add the errors to
      * @param tasks The tasks to add as instances of <code>ParseErrorMessage</code>
      */
-	public void createTaskMarkers(ITextEditor editor, List<ParseErrorMessage> tasks) {
+    public void createTaskMarkers(ITextEditor editor, List<ParseErrorMessage> tasks) {
         createMarkers(editor, tasks, IMarker.TASK);
     }
     
@@ -78,25 +78,28 @@ public class MarkerHandler {
      * @param markers The markers to add as instances of <code>ParseErrorMessage</code>
      * @param markerType The type of the markers as <code>IMarker</code> types
      */
-	private void createMarkers(ITextEditor editor, List<ParseErrorMessage> markers, final String markerType) {
+    private void createMarkers(ITextEditor editor, List<ParseErrorMessage> markers, final String markerType) {
         IResource resource = (IResource) editor.getEditorInput().getAdapter(IResource.class);
         if (resource == null) return;
         //IResource resource = ((FileEditorInput)editor.getEditorInput()).getFile();
         IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
         
-		for (ParseErrorMessage msg : markers) {
+        for (ParseErrorMessage msg : markers) {
             try {
                 int beginOffset = document.getLineOffset(msg.getLine() - 1) + msg.getPos();
                 
-				Map<String, Object> map = new HashMap<String, Object>();
-                map.put(IMarker.LINE_NUMBER, new Integer(msg.getLine()));
-                map.put(IMarker.CHAR_START, new Integer(beginOffset));
-                map.put(IMarker.CHAR_END, new Integer(beginOffset + msg.getLength()));
+                Map<String, ? super Object> map = new HashMap<String, Object>();
+                map.put(IMarker.LINE_NUMBER, Integer.valueOf(msg.getLine()));
+                map.put(IMarker.CHAR_START, Integer.valueOf(beginOffset));
+                map.put(IMarker.CHAR_END, Integer.valueOf(beginOffset + msg.getLength()));
                 map.put(IMarker.MESSAGE, msg.getMsg());
                 
                 // we can do this since we're referring to a static field
                 if (IMarker.PROBLEM == markerType)
-                    map.put(IMarker.SEVERITY, new Integer(msg.getSeverity()));
+                    map.put(IMarker.SEVERITY, Integer.valueOf(msg.getSeverity()));
+                
+                if (IMarker.TASK == markerType)
+                    map.put(IMarker.PRIORITY, Integer.valueOf(msg.getSeverity()));
                 
                 MarkerUtilities.createMarker(resource, map, markerType);
             } catch (CoreException ce) {
@@ -113,22 +116,22 @@ public class MarkerHandler {
      * @param editor The editor to add the errors to
      * @param errors The errors to add as instances of <code>DocumentReference</code>
      */
-	public void createReferencingErrorMarkers(ITextEditor editor, List<DocumentReference> errors) {
+    public void createReferencingErrorMarkers(ITextEditor editor, List<DocumentReference> errors) {
         
         IResource resource = (IResource) editor.getEditorInput().getAdapter(IResource.class);
         if (resource == null) return;
         IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
         
-		for (DocumentReference msg : errors) {
+        for (DocumentReference msg : errors) {
             try {
                 int beginOffset = document.getLineOffset(msg.getLine() - 1) + msg.getPos();
                 
-				Map<String, Object> map = new HashMap<String, Object>();
-                map.put(IMarker.LINE_NUMBER, new Integer(msg.getLine()));
-                map.put(IMarker.CHAR_START, new Integer(beginOffset));
-                map.put(IMarker.CHAR_END, new Integer(beginOffset + msg.getLength()));
+                Map<String, ? super Object> map = new HashMap<String, Object>();
+                map.put(IMarker.LINE_NUMBER, Integer.valueOf(msg.getLine()));
+                map.put(IMarker.CHAR_START, Integer.valueOf(beginOffset));
+                map.put(IMarker.CHAR_END, Integer.valueOf(beginOffset + msg.getLength()));
                 map.put(IMarker.MESSAGE, "Key " + msg.getKey() + " is undefined");
-                map.put(IMarker.SEVERITY, new Integer(IMarker.SEVERITY_WARNING));
+                map.put(IMarker.SEVERITY, Integer.valueOf(IMarker.SEVERITY_WARNING));
                 
                 MarkerUtilities.createMarker(resource, map, IMarker.PROBLEM);
             } catch (CoreException ce) {
@@ -150,9 +153,9 @@ public class MarkerHandler {
         if (resource == null) return;
         //IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
         try {
-			Map<String, Object> map = new HashMap<String, Object>();
+            Map<String, Object> map = new HashMap<String, Object>();
             map.put(IMarker.MESSAGE, error);
-            map.put(IMarker.SEVERITY, new Integer(IMarker.SEVERITY_ERROR));
+            map.put(IMarker.SEVERITY, Integer.valueOf(IMarker.SEVERITY_ERROR));
             
             MarkerUtilities.createMarker(resource, map, IMarker.PROBLEM);
         } catch (CoreException ce) {
@@ -221,11 +224,11 @@ public class MarkerHandler {
      */
     public void createErrorMarker(IResource resource, String message, int lineNumber) {
         try {
-			Map<String, Object> map = new HashMap<String, Object>();
-            map.put(IMarker.LINE_NUMBER, new Integer(lineNumber));
+            Map<String, Object> map = new HashMap<String, Object>();
+            map.put(IMarker.LINE_NUMBER, Integer.valueOf(lineNumber));
             map.put(IMarker.MESSAGE, message);
             
-            map.put(IMarker.SEVERITY, new Integer(IMarker.SEVERITY_ERROR));
+            map.put(IMarker.SEVERITY, Integer.valueOf(IMarker.SEVERITY_ERROR));
             
             MarkerUtilities.createMarker(resource, map, IMarker.PROBLEM);
         } catch (CoreException ce) {

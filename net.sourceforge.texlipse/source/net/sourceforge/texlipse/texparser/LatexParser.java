@@ -1,5 +1,5 @@
 /*
- * $Id: LatexParser.java,v 1.16 2008/08/18 18:36:52 borisvl Exp $
+ * $Id: LatexParser.java,v 1.21 2010/01/30 19:09:35 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -20,39 +20,10 @@ import net.sourceforge.texlipse.TexlipsePlugin;
 import net.sourceforge.texlipse.model.DocumentReference;
 import net.sourceforge.texlipse.model.OutlineNode;
 import net.sourceforge.texlipse.model.ParseErrorMessage;
-import net.sourceforge.texlipse.model.ReferenceContainer;
 import net.sourceforge.texlipse.model.ReferenceEntry;
 import net.sourceforge.texlipse.model.TexCommandEntry;
 import net.sourceforge.texlipse.texparser.lexer.LexerException;
-import net.sourceforge.texlipse.texparser.node.EOF;
-import net.sourceforge.texlipse.texparser.node.TArgument;
-import net.sourceforge.texlipse.texparser.node.TCbegin;
-import net.sourceforge.texlipse.texparser.node.TCbib;
-import net.sourceforge.texlipse.texparser.node.TCbibstyle;
-import net.sourceforge.texlipse.texparser.node.TCchapter;
-import net.sourceforge.texlipse.texparser.node.TCcite;
-import net.sourceforge.texlipse.texparser.node.TCend;
-import net.sourceforge.texlipse.texparser.node.TCinclude;
-import net.sourceforge.texlipse.texparser.node.TCinput;
-import net.sourceforge.texlipse.texparser.node.TClabel;
-import net.sourceforge.texlipse.texparser.node.TCnew;
-import net.sourceforge.texlipse.texparser.node.TCommentline;
-import net.sourceforge.texlipse.texparser.node.TCparagraph;
-import net.sourceforge.texlipse.texparser.node.TCpart;
-import net.sourceforge.texlipse.texparser.node.TCpindex;
-import net.sourceforge.texlipse.texparser.node.TCref;
-import net.sourceforge.texlipse.texparser.node.TCsection;
-import net.sourceforge.texlipse.texparser.node.TCssection;
-import net.sourceforge.texlipse.texparser.node.TCsssection;
-import net.sourceforge.texlipse.texparser.node.TCword;
-import net.sourceforge.texlipse.texparser.node.TLBrace;
-import net.sourceforge.texlipse.texparser.node.TOptargument;
-import net.sourceforge.texlipse.texparser.node.TRBrace;
-import net.sourceforge.texlipse.texparser.node.TStar;
-import net.sourceforge.texlipse.texparser.node.TTaskcomment;
-import net.sourceforge.texlipse.texparser.node.TVtext;
-import net.sourceforge.texlipse.texparser.node.TWhitespace;
-import net.sourceforge.texlipse.texparser.node.Token;
+import net.sourceforge.texlipse.texparser.node.*;
 
 import org.eclipse.core.resources.IMarker;
 
@@ -62,19 +33,20 @@ import org.eclipse.core.resources.IMarker;
  * extracts useful data.
  * 
  * @author Oskar Ojala
+ * @author Boris von Loesch
  */
 public class LatexParser {
 
 //  These should be allocated between 1000-2000
     public static final int TYPE_LABEL = 1000;
     
-    private static final Pattern partRe = Pattern.compile("\\\\part(?:[^a-zA-Z]|$)");
-    private static final Pattern chapterRe = Pattern.compile("\\\\chapter(?:[^a-zA-Z]|$)");
-    private static final Pattern sectionRe = Pattern.compile("\\\\section(?:[^a-zA-Z]|$)");
-    private static final Pattern ssectionRe = Pattern.compile("\\\\subsection(?:[^a-zA-Z]|$)");
-    private static final Pattern sssectionRe = Pattern.compile("\\\\subsubsection(?:[^a-zA-Z]|$)");
-    private static final Pattern paragraphRe = Pattern.compile("\\\\paragraph(?:[^a-zA-Z]|$)");
-    private static final Pattern labelRe = Pattern.compile("\\\\label(?:[^a-zA-Z]|$)");
+    private static final Pattern PART_RE = Pattern.compile("\\\\part(?:[^a-zA-Z]|$)");
+    private static final Pattern CHAPTER_RE = Pattern.compile("\\\\chapter(?:[^a-zA-Z]|$)");
+    private static final Pattern SECTION_RE = Pattern.compile("\\\\section(?:[^a-zA-Z]|$)");
+    private static final Pattern SSECTION_RE = Pattern.compile("\\\\subsection(?:[^a-zA-Z]|$)");
+    private static final Pattern SSSECTION_RE = Pattern.compile("\\\\subsubsection(?:[^a-zA-Z]|$)");
+    private static final Pattern PARAGRAPH_RE = Pattern.compile("\\\\paragraph(?:[^a-zA-Z]|$)");
+    private static final Pattern LABEL_RE = Pattern.compile("\\\\label(?:[^a-zA-Z]|$)");
     
     /**
      * Defines a new stack implementation, which is unsynchronized and
@@ -83,10 +55,10 @@ public class LatexParser {
      * 
      * @author Oskar Ojala
      */
-    private final class StackUnsynch {
+    private final static class StackUnsynch<E> {
         
-        private static final int initialSize = 10;
-        private static final int growthFactor = 2;
+        private static final int INITIAL_SIZE = 10;
+        private static final int GROWTH_FACTOR = 2;
         private int capacity;
         private int size;
         private Object[] stack;
@@ -95,9 +67,9 @@ public class LatexParser {
          * Creates a new stack.
          */
         public StackUnsynch() {
-            stack = new Object[initialSize];
+            stack = new Object[INITIAL_SIZE];
             size = 0;
-            capacity = initialSize;
+            capacity = INITIAL_SIZE;
         }
         
         /**
@@ -110,8 +82,9 @@ public class LatexParser {
         /**
          * @return The item at the top of the stack
          */
-        public Object peek() {
-            return stack[size-1];
+        @SuppressWarnings("unchecked")
+        public E peek() {
+            return (E)(stack[size-1]);
         }
         
         /**
@@ -119,9 +92,10 @@ public class LatexParser {
          * 
          * @return The item at the top of the stack
          */
-        public Object pop() {
+        @SuppressWarnings("unchecked")
+        public E pop() {
             size--;
-            Object top = stack[size];
+            E top = (E) stack[size];
             stack[size] = null;
             return top;
         }
@@ -131,10 +105,10 @@ public class LatexParser {
          * 
          * @param item The item to push on the stack
          */
-        public void push(Object item) {
+        public void push(final E item) {
             // what if size would be where to put the next item?
             if (size >= capacity) {
-                capacity *= growthFactor;
+                capacity *= GROWTH_FACTOR;
                 Object[] newStack = new Object[capacity];
                 System.arraycopy(stack, 0, newStack, 0, stack.length);
                 stack = newStack;
@@ -154,9 +128,9 @@ public class LatexParser {
         }
     }
 
-    private ArrayList<ReferenceEntry> labels;
-    private ArrayList<DocumentReference> cites;
-    private ArrayList<DocumentReference> refs;
+    private List<ReferenceEntry> labels;
+    private List<DocumentReference> cites;
+    private List<DocumentReference> refs;
     private ArrayList<TexCommandEntry> commands;
     private List<ParseErrorMessage> tasks;
     
@@ -167,18 +141,12 @@ public class LatexParser {
     
     private ArrayList<OutlineNode> outlineTree;
     
-    private ArrayList<ParseErrorMessage> errors;
+    private List<ParseErrorMessage> errors;
     
     private OutlineNode documentEnv;
     
     private boolean index;
     private boolean fatalErrors;
-    
-    /**
-     * Creates new LaTeX parser.
-     */
-    public LatexParser() {
-    }
     
     /**
      * Initializes the internal datastructures that are exported after parsing.
@@ -213,11 +181,9 @@ public class LatexParser {
      * @throws IOException If the document is unreadable
      */
     public void parse(LatexLexer lex,
-            ReferenceContainer definedLabels,
-            ReferenceContainer definedBibs,
             boolean checkForMissingSections)
     throws LexerException, IOException {
-        parse(lex, definedLabels, definedBibs, null, checkForMissingSections);
+        parse(lex, null, checkForMissingSections);
     }
 
     /**
@@ -230,19 +196,18 @@ public class LatexParser {
      * @param definedBibs Defined bibliography entries, used to check for references to
      * nonexistant bibliography entries
      * @param preamble An <code>OutlineNode</code> containing the preamble, null if there is no preamble
+     * @param checkForMissingSections 
      * @throws LexerException If the given lexer cannot tokenize the document
      * @throws IOException If the document is unreadable
      */
 
-    public void parse(LatexLexer lexer,
-            ReferenceContainer definedLabels,
-            ReferenceContainer definedBibs,
-            OutlineNode preamble,
-            boolean checkForMissingSections)
+    public void parse(final LatexLexer lexer,
+            final OutlineNode preamble,
+            final boolean checkForMissingSections)
     throws LexerException, IOException {
         initializeDatastructs();
-        StackUnsynch blocks = new StackUnsynch();
-        StackUnsynch braces = new StackUnsynch();
+        StackUnsynch<OutlineNode> blocks = new StackUnsynch<OutlineNode>();
+        StackUnsynch<Token> braces = new StackUnsynch<Token>();
         
         boolean expectArg = false;
         boolean expectArg2 = false;
@@ -275,27 +240,34 @@ public class LatexParser {
                         l.startLine = t.getLine();
                         this.labels.add(l);
                         
-                    } else if (prevToken instanceof TCref) {
-                        // if it's not certain that it exists, add it (this could lead to erros if the corresponding
-                        // label was also removed)
-
-                        if (!definedLabels.binTest(t.getText())) {
-                            this.refs.add(new DocumentReference(t.getText(),
-                                    t.getLine(),
-                                    t.getPos(),
-                                    t.getText().length()));
-                            //  + accumulatedLength + t.getText().length())
+                        OutlineNode on = new OutlineNode(t.getText(),
+                                OutlineNode.TYPE_LABEL,
+                                t.getLine(),
+                                t.getPos(), t.getText().length());
+                        on.setEndLine(t.getLine());
+                        
+                        
+                        if (!blocks.empty()) {
+                            OutlineNode prev = blocks.peek();
+                            prev.addChild(on);
+                            on.setParent(prev);
+                        } else {
+                            outlineTree.add(on);
                         }
+                        
+                    } else if (prevToken instanceof TCref) {
+                        this.refs.add(new DocumentReference(t.getText(),
+                                t.getLine(),
+                                t.getPos(),
+                                t.getText().length()));
                     } else if (prevToken instanceof TCcite) {
                         if (!"*".equals(t.getText())) {
-                            String[] cs = t.getText().replaceAll("\\s","").split(",");
-                            for (int i=0; i < cs.length; i++) {
-                                // this is certain to be an error, since the BibTeX -keys are always up to date
-                                if (!definedBibs.binTest(cs[i])) {
-                                    this.cites.add(new DocumentReference(cs[i],
-                                            t.getLine(), t.getPos(), t.getText().length()));
-                                }
-                            }
+                            String[] cs = t.getText().split(",");
+                            for (String c : cs) {
+                            	//just add all citation and check for errors later, after updating the citation index
+                                this.cites.add(new DocumentReference(c.trim(),
+                                		t.getLine(), t.getPos(), t.getText().length()));								
+							}
                         }
                         
                     } else if (prevToken instanceof TCbegin) { // \begin{...}
@@ -304,13 +276,13 @@ public class LatexParser {
                                 t.getLine(), prevToken.getPos(),
                                 prevToken.getText().length() + accumulatedLength + t.getText().length());
                         
-                        if (preamble != null && "document".equals(t.getText())) {
-                            preamble.setEndLine(t.getLine());
+                        if ("document".equals(t.getText())) {
+                            if (preamble != null) preamble.setEndLine(t.getLine());
                             blocks.clear();
                             documentEnv = on;
                         } else {
                             if (!blocks.empty()) {
-                                OutlineNode prev = (OutlineNode) blocks.peek();
+                                OutlineNode prev = blocks.peek();
                                 prev.addChild(on);
                                 on.setParent(prev);
                             } else {
@@ -324,12 +296,12 @@ public class LatexParser {
                         OutlineNode prev = null;
 
                         // check if the document ends
-                        if (preamble != null && "document".equals(t.getText())) {
+                        if ("document".equals(t.getText())) {
                             documentEnv.setEndLine(endLine + 1);
                             
                             // terminate open blocks here; check for errors
                             while (!blocks.empty()) {
-                                prev = (OutlineNode) blocks.pop();
+                                prev = blocks.pop();
                                 prev.setEndLine(endLine);
                                 if (prev.getType() == OutlineNode.TYPE_ENVIRONMENT) {
                                     errors.add(new ParseErrorMessage(prevToken.getLine(),
@@ -345,17 +317,12 @@ public class LatexParser {
                             boolean traversing = true;
                             if (!blocks.empty()) {
                                 while (traversing && !blocks.empty()) {
-                                    prev = (OutlineNode) blocks.peek();
-                                    switch (prev.getType()) {
-                                    case OutlineNode.TYPE_ENVIRONMENT:
+                                    prev = blocks.pop();
+                                    if (prev.getType() == OutlineNode.TYPE_ENVIRONMENT) {
                                         prev.setEndLine(endLine + 1);
-                                    blocks.pop();
-                                    traversing = false;
-                                    break;
-                                    default:
+                                        traversing = false;                                        
+                                    } else {
                                         prev.setEndLine(endLine);
-                                    blocks.pop();
-                                    break;
                                     }
                                 }
                             }
@@ -389,17 +356,14 @@ public class LatexParser {
                         if (!blocks.empty()) {
                             boolean traversing = true;
                             while (traversing && !blocks.empty()) {
-                                OutlineNode prev = (OutlineNode) blocks.peek();
-                                switch (prev.getType()) {
-                                case OutlineNode.TYPE_ENVIRONMENT:
+                                OutlineNode prev = blocks.peek();
+                                if (prev.getType() == OutlineNode.TYPE_ENVIRONMENT) {
                                     prev.addChild(on);
-                                on.setParent(prev);
-                                traversing = false;
-                                break;
-                                default:
+                                    on.setParent(prev);
+                                    traversing = false;                                    
+                                } else {
                                     prev.setEndLine(startLine);
-                                blocks.pop();
-                                break;
+                                    blocks.pop();                                    
                                 }
                             }
                         }
@@ -417,7 +381,7 @@ public class LatexParser {
                         if (!blocks.empty()) {
                             boolean traversing = true;
                             while (traversing && !blocks.empty()) {
-                                OutlineNode prev = (OutlineNode) blocks.peek();
+                                OutlineNode prev = blocks.peek();
                                 switch (prev.getType()) {
                                 case OutlineNode.TYPE_PART:
                                 case OutlineNode.TYPE_ENVIRONMENT:
@@ -447,7 +411,7 @@ public class LatexParser {
                         if (!blocks.empty()) {
                             boolean traversing = true;
                             while (traversing && !blocks.empty()) {
-                                OutlineNode prev = (OutlineNode) blocks.peek();
+                                OutlineNode prev = blocks.peek();
                                 switch (prev.getType()) {
                                 case OutlineNode.TYPE_PART:
                                 case OutlineNode.TYPE_CHAPTER:
@@ -479,11 +443,11 @@ public class LatexParser {
                         if (!blocks.empty()) {
                             boolean traversing = true;
                             while (traversing && !blocks.empty()) {
-                                OutlineNode prev = (OutlineNode) blocks.peek();
+                                OutlineNode prev = blocks.peek();
                                 switch (prev.getType()) {
                                 case OutlineNode.TYPE_ENVIRONMENT:
                                 case OutlineNode.TYPE_SECTION:
-                                    foundSection = true;                                
+                                    foundSection = true;
                                 case OutlineNode.TYPE_PART:
                                 case OutlineNode.TYPE_CHAPTER:
                                     prev.addChild(on);
@@ -520,7 +484,7 @@ public class LatexParser {
                         if (!blocks.empty()) {
                             boolean traversing = true;
                             while (traversing && !blocks.empty()) {
-                                OutlineNode prev = (OutlineNode) blocks.peek();
+                                OutlineNode prev = blocks.peek();
                                 switch (prev.getType()) {
                                 case OutlineNode.TYPE_ENVIRONMENT:
                                 case OutlineNode.TYPE_SUBSECTION:
@@ -564,7 +528,7 @@ public class LatexParser {
                         if (!blocks.empty()) {
                             boolean traversing = true;
                             while (traversing && !blocks.empty()) {
-                                OutlineNode prev = (OutlineNode) blocks.peek();
+                                OutlineNode prev = blocks.peek();
                                 switch (prev.getType()) {
                                 case OutlineNode.TYPE_ENVIRONMENT:
                                 case OutlineNode.TYPE_SUBSUBSECTION:
@@ -599,9 +563,12 @@ public class LatexParser {
 
                     } else if (prevToken instanceof TCbib) {
                         bibs = t.getText().split(",");
+                        for (int i = 0; i < bibs.length; i++) {
+							bibs[i] = bibs[i].trim();
+						}
                         int startLine = prevToken.getLine();
                         while (!blocks.empty()) {
-                            OutlineNode prev = (OutlineNode) blocks.pop();
+                            OutlineNode prev = blocks.pop();
                             if (prev.getType() == OutlineNode.TYPE_ENVIRONMENT) { // this is an error...
                                 blocks.push(prev);
                                 break;
@@ -612,7 +579,7 @@ public class LatexParser {
                         this.bibstyle = t.getText();
                         int startLine = prevToken.getLine();
                         while (!blocks.empty()) {
-                            OutlineNode prev = (OutlineNode) blocks.pop();
+                            OutlineNode prev = blocks.pop();
                             if (prev.getType() == OutlineNode.TYPE_ENVIRONMENT) { // this is an error...
                                 blocks.push(prev);
                                 break;
@@ -623,7 +590,7 @@ public class LatexParser {
                             || prevToken instanceof TCinclude) {
                         //inputs.add(t.getText());
                         if (!blocks.empty()) {
-                            OutlineNode prev = (OutlineNode) blocks.peek();
+                            OutlineNode prev = blocks.peek();
                             OutlineNode on = new OutlineNode(t.getText(), OutlineNode.TYPE_INPUT, t.getLine(), prev);
                             on.setEndLine(t.getLine());
                             prev.addChild(on);
@@ -634,6 +601,7 @@ public class LatexParser {
                             outlineTree.add(on);
                             inputs.add(on);
                         }
+                        
                     
                     } else if (prevToken instanceof TCnew) {
                         //currentCommand = new CommandEntry(t.getText().substring(1));
@@ -683,25 +651,25 @@ public class LatexParser {
                 if (t instanceof TArgument) {
                     currentCommand.info = t.getText();
                     commands.add(currentCommand);
-                    if (partRe.matcher(currentCommand.info).find())
+                    if (PART_RE.matcher(currentCommand.info).find())
                         sectioning.put("\\" + currentCommand.key, OutlineNode.TYPE_PART);
                     //else if (currentCommand.info.indexOf("\\chapter") != -1)
-                    else if (chapterRe.matcher(currentCommand.info).find())
+                    else if (CHAPTER_RE.matcher(currentCommand.info).find())
                         sectioning.put("\\" + currentCommand.key, OutlineNode.TYPE_CHAPTER);
                     //else if (currentCommand.info.indexOf("\\section") != -1)
-                    else if (sectionRe.matcher(currentCommand.info).find())
+                    else if (SECTION_RE.matcher(currentCommand.info).find())
                         sectioning.put("\\" + currentCommand.key, OutlineNode.TYPE_SECTION);
                     //else if (currentCommand.info.indexOf("\\subsection") != -1)
-                    else if (ssectionRe.matcher(currentCommand.info).find())
+                    else if (SSECTION_RE.matcher(currentCommand.info).find())
                         sectioning.put("\\" + currentCommand.key, OutlineNode.TYPE_SUBSECTION);
                     //else if (currentCommand.info.indexOf("\\subsubsection") != -1)
-                    else if (sssectionRe.matcher(currentCommand.info).find())
+                    else if (SSSECTION_RE.matcher(currentCommand.info).find())
                         sectioning.put("\\" + currentCommand.key, OutlineNode.TYPE_SUBSUBSECTION);
                     //else if (currentCommand.info.indexOf("\\paragraph") != -1)
-                    else if (paragraphRe.matcher(currentCommand.info).find())
+                    else if (PARAGRAPH_RE.matcher(currentCommand.info).find())
                         sectioning.put("\\" + currentCommand.key, OutlineNode.TYPE_PARAGRAPH);
                     //else if (currentCommand.info.indexOf("\\label") != -1)
-                    else if (labelRe.matcher(currentCommand.info).find())  
+                    else if (LABEL_RE.matcher(currentCommand.info).find())  
                         sectioning.put("\\" + currentCommand.key, LatexParser.TYPE_LABEL);
 
                     argCount = 0;
@@ -775,11 +743,17 @@ public class LatexParser {
                 } else if (t instanceof TCpindex) {
                     this.index = true;
                 } else if (t instanceof TTaskcomment) {
-                    // TODO the severity option is redundant here
-                    int start = t.getText().indexOf("TODO");
-                    String taskText = t.getText().substring(start + 4).trim();
-                    
-                    tasks.add(new ParseErrorMessage(t.getLine(), t.getPos(), taskText.length(), taskText, IMarker.SEVERITY_INFO));
+                    int severity = IMarker.PRIORITY_HIGH;
+                    int start = t.getText().indexOf("FIXME");
+                    if (start == -1) {
+                        severity = IMarker.PRIORITY_NORMAL;
+                        start = t.getText().indexOf("TODO");
+                        if (start == -1) {
+                            start = t.getText().indexOf("XXX");
+                        }
+                    }
+                    String taskText = t.getText().substring(start).trim();                    
+                    tasks.add(new ParseErrorMessage(t.getLine(), t.getPos(), taskText.length(), taskText, severity));
                 } else if (t instanceof TVtext) {
                     // Fold
                     OutlineNode on = new OutlineNode(t.getText(),
@@ -792,24 +766,25 @@ public class LatexParser {
                     on.setEndLine(t.getLine() + lines.length);
                     
                     if (!blocks.empty()) {
-                        OutlineNode prev = (OutlineNode) blocks.peek();
+                        OutlineNode prev = blocks.peek();
                         prev.addChild(on);
                         on.setParent(prev);
                     } else {
                         outlineTree.add(on);
                     }
-                } else if (t instanceof TLBrace) {
-                    braces.push(t);
-                } else if (t instanceof TRBrace) {
-                    if (braces.empty()) {
-                        //There is an opening brace missing
-                        errors.add(new ParseErrorMessage(t.getLine(), t.getPos()-1, 1, 
-                                TexlipsePlugin.getResourceString("parseErrorMissingLBrace"),
-                                IMarker.SEVERITY_ERROR));
-                    }
-                    else {
-                        braces.pop();
-                    }
+                }
+            }
+            if (t instanceof TLBrace) {
+                braces.push(t);
+            } else if (t instanceof TRBrace) {
+                if (braces.empty()) {
+                    //There is an opening brace missing
+                    errors.add(new ParseErrorMessage(t.getLine(), t.getPos()-1, 1, 
+                            TexlipsePlugin.getResourceString("parseErrorMissingLBrace"),
+                            IMarker.SEVERITY_ERROR));
+                }
+                else {
+                    braces.pop();
                 }
             }
         }
@@ -823,7 +798,7 @@ public class LatexParser {
 
         int endLine = t.getLine() + 1; //endline is exclusive
         while (!blocks.empty()) {
-            OutlineNode prev = (OutlineNode) blocks.pop();
+            OutlineNode prev = blocks.pop();
             prev.setEndLine(endLine);
             if (prev.getType() == OutlineNode.TYPE_ENVIRONMENT) {
                 fatalErrors = true;
@@ -844,14 +819,14 @@ public class LatexParser {
     }
     
     /**
-     * @return The BibTeX citations which weren't defined
+     * @return The BibTeX citations
      */
     public List<DocumentReference> getCites() {
         return this.cites;
     }
     
     /**
-     * @return The refencing commands for which no label was found
+     * @return The refencing commands
      */
     public List<DocumentReference> getRefs() {
         return this.refs;

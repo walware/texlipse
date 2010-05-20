@@ -1,5 +1,5 @@
 /*
- * $Id: TexCompletionProcessor.java,v 1.21 2008/02/27 17:53:55 borisvl Exp $
+ * $Id: TexCompletionProcessor.java,v 1.24 2010/02/21 19:20:58 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -22,9 +22,11 @@ import net.sourceforge.texlipse.model.TexStyleCompletionManager;
 import net.sourceforge.texlipse.spelling.SpellChecker;
 import net.sourceforge.texlipse.templates.TexContextType;
 import net.sourceforge.texlipse.templates.TexTemplateCompletion;
+import net.sourceforge.texlipse.texparser.LatexParserUtils;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ContextInformation;
@@ -293,14 +295,52 @@ public class TexCompletionProcessor implements IContentAssistProcessor {
 
         ICompletionProposal[] result = new ICompletionProposal[refEntries.length];
         
-        for (int i=0; i < refEntries.length; i++) {         
+        for (int i=0; i < refEntries.length; i++) {
+        	
+        	String infoText = null;
+        	
+        	if (refEntries[i].info != null) {
+    			infoText = (refEntries[i].info.length() > assistLineLength)?
+            			wrapString(refEntries[i].info, assistLineLength)
+    					: refEntries[i].info;
+        	}
+
             result[i] = new CompletionProposal(refEntries[i].key,
                     offset - replacementLength, replacementLength,
-                    refEntries[i].key.length(), null, refEntries[i].key, null, null);
+                    refEntries[i].key.length(), null, refEntries[i].key, null, 
+                    infoText);
         }
         return result;        
     }
 
+    /**
+     * Returns a replacement String for an ICompleteProposal if there is an open
+     * environment
+     * @param doc IDocument.get()
+     * @param offset current offset
+     * @return null if no open environment was found, else end{+name+}
+     */
+    static String environmentEnd(String doc, int offset) {
+        int o = offset;
+        while ((o=doc.lastIndexOf("\\begin", o)) >= 0) {
+            IRegion r = LatexParserUtils.getCommand(doc, o+1);
+            if (r != null) {
+                String command = doc.substring(r.getOffset(), r.getOffset() + r.getLength());
+                if ("\\begin".equals(command)) {
+                    IRegion r2 = LatexParserUtils.getCommandArgument(doc, o);
+                    if (r2 != null) {
+                        String envName = doc.substring(r2.getOffset(), r2.getOffset() + r2.getLength());
+                        if (TexAutoIndentStrategy.needsEnd(envName, doc, r.getOffset())) {
+                            return "end{"+envName+"}";
+                        }
+                    }
+                }
+            }
+            o--;
+        }
+        return null;
+    }
+    
     /**
      * Computes and returns command-proposals
      * 
@@ -313,11 +353,31 @@ public class TexCompletionProcessor implements IContentAssistProcessor {
         TexCommandEntry[] comEntries = refManager.getCompletionsCom(prefix, TexCommandEntry.NORMAL_CONTEXT);
         if (comEntries == null)
             return null;
-
-        ICompletionProposal[] result = new ICompletionProposal[comEntries.length];
-
+        
+        CompletionProposal cp = null;
+        if ("\\".equals(prefix) || "end".startsWith(prefix)) {
+            String endString = environmentEnd(fviewer.getDocument().get(), offset);
+            if (endString != null) {
+                cp = new CompletionProposal(endString, 
+                        offset - replacementLength, 
+                        replacementLength, endString.length());
+            }
+        }
+        
+        int start;
+        ICompletionProposal[] result;
+        if (cp == null) {
+            result = new ICompletionProposal[comEntries.length];
+            start = 0;
+        } else {
+            result = new ICompletionProposal[comEntries.length+1];
+            result[0] = cp;
+            start = 1;
+        }
+        
+        
         for (int i=0; i < comEntries.length; i++) {
-            result[i] = new TexCompletionProposal(comEntries[i],
+            result[i+start] = new TexCompletionProposal(comEntries[i],
                     offset - replacementLength, 
                     replacementLength,
                     fviewer);
@@ -334,9 +394,11 @@ public class TexCompletionProcessor implements IContentAssistProcessor {
      * @return An array of completion proposals to use directly
      */
     private ICompletionProposal[] computeTemplateCompletions(int offset, String lineStart, ITextViewer viewer) {
-        String replacement = lineStart.indexOf(' ') == -1 ? lineStart : lineStart.substring(lineStart.lastIndexOf(' ') + 1);
+        int t = lineStart.lastIndexOf(' ');
+        if (t < lineStart.lastIndexOf('\t')) t = lineStart.lastIndexOf('\t');
+        String replacement = lineStart.substring(t + 1);
         
-        ArrayList returnProposals = templatesCompletion.addTemplateProposals(viewer, offset, replacement);
+        ArrayList<ICompletionProposal> returnProposals = templatesCompletion.addTemplateProposals(viewer, offset, replacement);
         ICompletionProposal[] proposals = new ICompletionProposal[returnProposals.size()];
         
         returnProposals.toArray(proposals);

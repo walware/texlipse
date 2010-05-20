@@ -1,5 +1,5 @@
 /*
- * $Id: ViewerAttributeRegistry.java,v 1.8 2008/02/24 21:43:08 borisvl Exp $
+ * $Id: ViewerAttributeRegistry.java,v 1.9 2009/05/04 21:12:38 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -244,6 +244,7 @@ public class ViewerAttributeRegistry implements Cloneable {
             }
         } else if (list != null && list.length() > 0) {
             activeViewer = list;
+            allViewers = new String[]{list};
             setCommand(pref.getString(list + ATTRIBUTE_COMMAND));
             setArguments(pref.getString(list + ATTRIBUTE_ARGUMENTS));
             setDDEViewCommand(pref.getString(list + ATTRIBUTE_DDE_VIEW_COMMAND));

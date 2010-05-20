@@ -1,5 +1,5 @@
 /*
- * $Id: HardLineWrap.java,v 1.8 2008/07/18 20:55:38 borisvl Exp $
+ * $Id: HardLineWrap.java,v 1.11 2009/05/28 17:18:00 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -89,6 +89,29 @@ public class HardLineWrap {
     }
     
     /**
+     * Finds the best position in the given String to make a line break
+     * @param line
+     * @param MAX_LENGTH
+     * @return
+     */
+    private static int getLineBreakPosition(String line, int MAX_LENGTH) {
+    	int offset = 0;
+    	//Ignore indentation
+    	while (offset < line.length() && (line.charAt(offset) == ' ' || line.charAt(offset) == '\t')) {
+    		offset++;
+    	}
+    	
+    	int breakOffset = -1;
+    	while (offset < line.length()) {
+    		if (offset > MAX_LENGTH && breakOffset != -1) break;
+    		if (line.charAt(offset) == ' ' || line.charAt(offset) == '\t') {
+    			breakOffset = offset;
+    		}
+    		offset++;
+    	}
+    	return breakOffset;
+    }
+    /**
      * New line wrapping strategy.    
      * The actual wrapping method. Based on the <code>IDocument d</code>
      * and <code>DocumentCommand c</code> the method determines how the
@@ -115,17 +138,21 @@ public class HardLineWrap {
                     c.text.indexOf("\n") >= 0 || c.text.indexOf("\r") >= 0) return;
             
             String line = d.get(commandRegion.getOffset(), commandRegion.getLength());
-
-            //Special case if there are white spaces at the end of the line
-            if (trimEnd(line).length() + c.text.length() <= MAX_LENGTH) return; 
-
             
-            if (line.indexOf(' ') == -1) {
-                //There is no whitespace
-                return;
-            }
-
             int lineNr = d.getLineOfOffset(c.offset);
+            final int cursorOnLine = c.offset - commandRegion.getOffset();
+            
+            //Create the newLine, we rewrite the whole currentline
+            StringBuffer newLineBuf = new StringBuffer();
+            
+            newLineBuf.append(line.substring(0, cursorOnLine));
+            newLineBuf.append (c.text);
+            newLineBuf.append(trimEnd(line.substring(cursorOnLine)));
+            
+            //Special case if there are white spaces at the end of the line
+            if (trimEnd(newLineBuf.toString()).length() <= MAX_LENGTH) return;
+            
+
             String delim = d.getLineDelimiter(lineNr);
             boolean isLastLine = false;
             if (delim == null) {
@@ -140,16 +167,10 @@ public class HardLineWrap {
             }
             //String indent = tools.getIndentation(d, c); // TODO check if inside comment
             String indent = tools.getIndentationWithComment(line);
-            String nextline = tools.getStringAt(d, c, false, 1);
-            final int cursorOnLine = c.offset - commandRegion.getOffset();
-            
-            //Create the newLine, we rewrite the whole currentline
-            StringBuffer newLineBuf = new StringBuffer();
+
             int length = line.length();
-            
-            newLineBuf.append(line.substring(0, cursorOnLine));
-            newLineBuf.append (c.text);
-            newLineBuf.append(trimEnd(line.substring(cursorOnLine)));
+
+            String nextline = tools.getStringAt(d, c, false, 1);
             String nextTrimLine = nextline.trim(); 
             boolean isWithNextline = false;
             if (!isSingleLine(nextTrimLine) && indent.indexOf('%') == -1) {
@@ -164,18 +185,18 @@ public class HardLineWrap {
             if (!isLastLine) length += delim.length(); //delim.length();
             String newLine = newLineBuf.toString();
 
+            
+            int breakpos = getLineBreakPosition(newLine, MAX_LENGTH);
+            if (breakpos < 0) return;
+
             c.length = length;
             
-            int breakpos = tools.getLastWSPosition(newLine, MAX_LENGTH);
-            if (breakpos == -1) {
-                breakpos = tools.getFirstWSPosition(newLine, MAX_LENGTH);
-            }
             c.shiftsCaret = false;
             c.caretOffset = c.offset + c.text.length() + indent.length();
-            if (breakpos > cursorOnLine + c.text.length()){ 
+            if (breakpos >= cursorOnLine + c.text.length()){ 
                 c.caretOffset -= indent.length();
             }
-            if (breakpos <= cursorOnLine + c.text.length()){
+            if (breakpos < cursorOnLine + c.text.length()){
                 //Line delimiter - one white space
                 c.caretOffset += delim.length() - 1;
             }

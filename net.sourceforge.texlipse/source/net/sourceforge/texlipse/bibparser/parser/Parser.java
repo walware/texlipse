@@ -14,6 +14,7 @@ import net.sourceforge.texlipse.bibparser.analysis.*;
 import net.sourceforge.texlipse.bibparser.lexer.*;
 import net.sourceforge.texlipse.bibparser.node.*;
 
+@SuppressWarnings("nls")
 public class Parser
 {
     public final Analysis ignoredTokens = new AnalysisAdapter();
@@ -22,7 +23,6 @@ public class Parser
 
     private final Lexer lexer;
     private final ListIterator stack = new LinkedList().listIterator();
-    private int last_shift;
     private int last_pos;
     private int last_line;
     private Token last_token;
@@ -34,22 +34,23 @@ public class Parser
     private final static int ACCEPT = 2;
     private final static int ERROR = 3;
 
-    public Parser(Lexer lexer)
+    public Parser(@SuppressWarnings("hiding") Lexer lexer)
     {
         this.lexer = lexer;
     }
 
+    @SuppressWarnings({"unchecked","unused"})
     private void push(int numstate, ArrayList listNode) throws ParserException, LexerException, IOException
     {
-	this.nodeList = listNode;
+        this.nodeList = listNode;
 
-        if(!stack.hasNext())
+        if(!this.stack.hasNext())
         {
-            stack.add(new State(numstate, this.nodeList));
+            this.stack.add(new State(numstate, this.nodeList));
             return;
         }
 
-        State s = (State) stack.next();
+        State s = (State) this.stack.next();
         s.state = numstate;
         s.nodes = this.nodeList;
     }
@@ -85,88 +86,88 @@ public class Parser
 
     private int state()
     {
-        State s = (State) stack.previous();
-        stack.next();
+        State s = (State) this.stack.previous();
+        this.stack.next();
         return s.state;
     }
 
     private ArrayList pop()
     {
-        return (ArrayList) ((State) stack.previous()).nodes;
+        return ((State) this.stack.previous()).nodes;
     }
 
     private int index(Switchable token)
     {
-        converter.index = -1;
-        token.apply(converter);
-        return converter.index;
+        this.converter.index = -1;
+        token.apply(this.converter);
+        return this.converter.index;
     }
 
+    @SuppressWarnings("unchecked")
     public Start parse() throws ParserException, LexerException, IOException
     {
         push(0, null);
-        List ign = null;
+        List<Node> ign = null;
         while(true)
         {
-            while(index(lexer.peek()) == -1)
+            while(index(this.lexer.peek()) == -1)
             {
                 if(ign == null)
                 {
-                    ign = new TypedLinkedList(NodeCast.instance);
+                    ign = new LinkedList<Node>();
                 }
 
-                ign.add(lexer.next());
+                ign.add(this.lexer.next());
             }
 
             if(ign != null)
             {
-                ignoredTokens.setIn(lexer.peek(), ign);
+                this.ignoredTokens.setIn(this.lexer.peek(), ign);
                 ign = null;
             }
 
-            last_pos = lexer.peek().getPos();
-            last_line = lexer.peek().getLine();
-            last_token = lexer.peek();
+            this.last_pos = this.lexer.peek().getPos();
+            this.last_line = this.lexer.peek().getLine();
+            this.last_token = this.lexer.peek();
 
-            int index = index(lexer.peek());
-            action[0] = actionTable[state()][0][1];
-            action[1] = actionTable[state()][0][2];
+            int index = index(this.lexer.peek());
+            this.action[0] = Parser.actionTable[state()][0][1];
+            this.action[1] = Parser.actionTable[state()][0][2];
 
             int low = 1;
-            int high = actionTable[state()].length - 1;
+            int high = Parser.actionTable[state()].length - 1;
 
             while(low <= high)
             {
                 int middle = (low + high) / 2;
 
-                if(index < actionTable[state()][middle][0])
+                if(index < Parser.actionTable[state()][middle][0])
                 {
                     high = middle - 1;
                 }
-                else if(index > actionTable[state()][middle][0])
+                else if(index > Parser.actionTable[state()][middle][0])
                 {
                     low = middle + 1;
                 }
                 else
                 {
-                    action[0] = actionTable[state()][middle][1];
-                    action[1] = actionTable[state()][middle][2];
+                    this.action[0] = Parser.actionTable[state()][middle][1];
+                    this.action[1] = Parser.actionTable[state()][middle][2];
                     break;
                 }
             }
 
-            switch(action[0])
+            switch(this.action[0])
             {
                 case SHIFT:
 		    {
 		        ArrayList list = new ArrayList();
-		        list.add(lexer.next());
-                        push(action[1], list);
-                        last_shift = action[1];
+		        list.add(this.lexer.next());
+                        push(this.action[1], list);
                     }
 		    break;
                 case REDUCE:
-                    switch(action[1])
+                    switch(this.action[1])
                     {
                     case 0: /* reduce AAbibtex1Bibtex */
 		    {
@@ -364,29 +365,32 @@ public class Parser
                     break;
                 case ACCEPT:
                     {
-                        EOF node2 = (EOF) lexer.next();
-                        PBibtex node1 = (PBibtex) ((ArrayList)pop()).get(0);
+                        EOF node2 = (EOF) this.lexer.next();
+                        PBibtex node1 = (PBibtex) pop().get(0);
                         Start node = new Start(node1, node2);
                         return node;
                     }
                 case ERROR:
-                    throw new ParserException(last_token,
-                        "[" + last_line + "," + last_pos + "] " +
-                        errorMessages[errors[action[1]]]);
+                    throw new ParserException(this.last_token,
+                        "[" + this.last_line + "," + this.last_pos + "] " +
+                        Parser.errorMessages[Parser.errors[this.action[1]]]);
             }
         }
     }
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new0() /* reduce AAbibtex1Bibtex */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
         PBibtex pbibtexNode1;
         {
-        TypedLinkedList listNode2 = new TypedLinkedList();
+            // Block
+        LinkedList listNode2 = new LinkedList();
         {
+            // Block
         }
 
         pbibtexNode1 = new ABibtex(listNode2);
@@ -397,17 +401,20 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new1() /* reduce AAbibtex2Bibtex */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PBibtex pbibtexNode1;
         {
-        TypedLinkedList listNode3 = new TypedLinkedList();
+            // Block
+        LinkedList listNode3 = new LinkedList();
         {
-        TypedLinkedList listNode2 = new TypedLinkedList();
-        listNode2 = (TypedLinkedList)nodeArrayList1.get(0);
+            // Block
+        LinkedList listNode2 = new LinkedList();
+        listNode2 = (LinkedList)nodeArrayList1.get(0);
 	if(listNode2 != null)
 	{
 	  listNode3.addAll(listNode2);
@@ -422,13 +429,15 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new2() /* reduce ABibstreBibEntry */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PBibEntry pbibentryNode1;
         {
+            // Block
         PStringEntry pstringentryNode2;
         pstringentryNode2 = (PStringEntry)nodeArrayList1.get(0);
 
@@ -440,13 +449,15 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new3() /* reduce ABibeBibEntry */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PBibEntry pbibentryNode1;
         {
+            // Block
         PEntry pentryNode2;
         pentryNode2 = (PEntry)nodeArrayList1.get(0);
 
@@ -458,13 +469,15 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new4() /* reduce ABibtaskBibEntry */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PBibEntry pbibentryNode1;
         {
+            // Block
         TTaskcomment ttaskcommentNode2;
         ttaskcommentNode2 = (TTaskcomment)nodeArrayList1.get(0);
 
@@ -476,18 +489,20 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new5() /* reduce AAstrbracestringentry1StringEntry */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList6 = (ArrayList) pop();
-        ArrayList nodeArrayList5 = (ArrayList) pop();
-        ArrayList nodeArrayList4 = (ArrayList) pop();
-        ArrayList nodeArrayList3 = (ArrayList) pop();
-        ArrayList nodeArrayList2 = (ArrayList) pop();
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList6 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList5 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList4 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList3 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList2 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PStringEntry pstringentryNode1;
         {
+            // Block
         TIdentifier tidentifierNode2;
         TStringLiteral tstringliteralNode3;
         tidentifierNode2 = (TIdentifier)nodeArrayList3.get(0);
@@ -501,19 +516,21 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new6() /* reduce AAstrbracestringentry2StringEntry */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList7 = (ArrayList) pop();
-        ArrayList nodeArrayList6 = (ArrayList) pop();
-        ArrayList nodeArrayList5 = (ArrayList) pop();
-        ArrayList nodeArrayList4 = (ArrayList) pop();
-        ArrayList nodeArrayList3 = (ArrayList) pop();
-        ArrayList nodeArrayList2 = (ArrayList) pop();
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList7 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList6 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList5 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList4 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList3 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList2 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PStringEntry pstringentryNode1;
         {
+            // Block
         TIdentifier tidentifierNode2;
         TStringLiteral tstringliteralNode3;
         tidentifierNode2 = (TIdentifier)nodeArrayList3.get(0);
@@ -527,19 +544,21 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new7() /* reduce AAstrbracestringentry3StringEntry */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList7 = (ArrayList) pop();
-        ArrayList nodeArrayList6 = (ArrayList) pop();
-        ArrayList nodeArrayList5 = (ArrayList) pop();
-        ArrayList nodeArrayList4 = (ArrayList) pop();
-        ArrayList nodeArrayList3 = (ArrayList) pop();
-        ArrayList nodeArrayList2 = (ArrayList) pop();
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList7 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList6 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList5 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList4 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList3 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList2 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PStringEntry pstringentryNode1;
         {
+            // Block
         TIdentifier tidentifierNode2;
         TStringLiteral tstringliteralNode3;
         tidentifierNode2 = (TIdentifier)nodeArrayList3.get(0);
@@ -553,20 +572,22 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new8() /* reduce AAstrbracestringentry4StringEntry */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList8 = (ArrayList) pop();
-        ArrayList nodeArrayList7 = (ArrayList) pop();
-        ArrayList nodeArrayList6 = (ArrayList) pop();
-        ArrayList nodeArrayList5 = (ArrayList) pop();
-        ArrayList nodeArrayList4 = (ArrayList) pop();
-        ArrayList nodeArrayList3 = (ArrayList) pop();
-        ArrayList nodeArrayList2 = (ArrayList) pop();
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList8 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList7 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList6 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList5 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList4 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList3 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList2 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PStringEntry pstringentryNode1;
         {
+            // Block
         TIdentifier tidentifierNode2;
         TStringLiteral tstringliteralNode3;
         tidentifierNode2 = (TIdentifier)nodeArrayList3.get(0);
@@ -580,18 +601,20 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new9() /* reduce AAstrparenstringentry1StringEntry */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList6 = (ArrayList) pop();
-        ArrayList nodeArrayList5 = (ArrayList) pop();
-        ArrayList nodeArrayList4 = (ArrayList) pop();
-        ArrayList nodeArrayList3 = (ArrayList) pop();
-        ArrayList nodeArrayList2 = (ArrayList) pop();
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList6 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList5 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList4 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList3 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList2 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PStringEntry pstringentryNode1;
         {
+            // Block
         TIdentifier tidentifierNode2;
         TStringLiteral tstringliteralNode3;
         tidentifierNode2 = (TIdentifier)nodeArrayList3.get(0);
@@ -605,19 +628,21 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new10() /* reduce AAstrparenstringentry2StringEntry */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList7 = (ArrayList) pop();
-        ArrayList nodeArrayList6 = (ArrayList) pop();
-        ArrayList nodeArrayList5 = (ArrayList) pop();
-        ArrayList nodeArrayList4 = (ArrayList) pop();
-        ArrayList nodeArrayList3 = (ArrayList) pop();
-        ArrayList nodeArrayList2 = (ArrayList) pop();
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList7 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList6 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList5 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList4 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList3 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList2 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PStringEntry pstringentryNode1;
         {
+            // Block
         TIdentifier tidentifierNode2;
         TStringLiteral tstringliteralNode3;
         tidentifierNode2 = (TIdentifier)nodeArrayList3.get(0);
@@ -631,19 +656,21 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new11() /* reduce AAstrparenstringentry3StringEntry */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList7 = (ArrayList) pop();
-        ArrayList nodeArrayList6 = (ArrayList) pop();
-        ArrayList nodeArrayList5 = (ArrayList) pop();
-        ArrayList nodeArrayList4 = (ArrayList) pop();
-        ArrayList nodeArrayList3 = (ArrayList) pop();
-        ArrayList nodeArrayList2 = (ArrayList) pop();
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList7 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList6 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList5 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList4 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList3 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList2 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PStringEntry pstringentryNode1;
         {
+            // Block
         TIdentifier tidentifierNode2;
         TStringLiteral tstringliteralNode3;
         tidentifierNode2 = (TIdentifier)nodeArrayList3.get(0);
@@ -657,20 +684,22 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new12() /* reduce AAstrparenstringentry4StringEntry */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList8 = (ArrayList) pop();
-        ArrayList nodeArrayList7 = (ArrayList) pop();
-        ArrayList nodeArrayList6 = (ArrayList) pop();
-        ArrayList nodeArrayList5 = (ArrayList) pop();
-        ArrayList nodeArrayList4 = (ArrayList) pop();
-        ArrayList nodeArrayList3 = (ArrayList) pop();
-        ArrayList nodeArrayList2 = (ArrayList) pop();
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList8 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList7 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList6 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList5 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList4 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList3 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList2 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PStringEntry pstringentryNode1;
         {
+            // Block
         TIdentifier tidentifierNode2;
         TStringLiteral tstringliteralNode3;
         tidentifierNode2 = (TIdentifier)nodeArrayList3.get(0);
@@ -684,26 +713,29 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new13() /* reduce AAentrybraceentry1Entry */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList5 = (ArrayList) pop();
-        ArrayList nodeArrayList4 = (ArrayList) pop();
-        ArrayList nodeArrayList3 = (ArrayList) pop();
-        ArrayList nodeArrayList2 = (ArrayList) pop();
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList5 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList4 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList3 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList2 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PEntry pentryNode1;
         {
+            // Block
         PEntryDef pentrydefNode2;
         TIdentifier tidentifierNode3;
-        TypedLinkedList listNode5 = new TypedLinkedList();
+        LinkedList listNode5 = new LinkedList();
         TRBrace trbraceNode6;
         pentrydefNode2 = (PEntryDef)nodeArrayList1.get(0);
         tidentifierNode3 = (TIdentifier)nodeArrayList3.get(0);
         {
-        TypedLinkedList listNode4 = new TypedLinkedList();
-        listNode4 = (TypedLinkedList)nodeArrayList4.get(0);
+            // Block
+        LinkedList listNode4 = new LinkedList();
+        listNode4 = (LinkedList)nodeArrayList4.get(0);
 	if(listNode4 != null)
 	{
 	  listNode5.addAll(listNode4);
@@ -719,27 +751,30 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new14() /* reduce AAentrybraceentry2Entry */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList6 = (ArrayList) pop();
-        ArrayList nodeArrayList5 = (ArrayList) pop();
-        ArrayList nodeArrayList4 = (ArrayList) pop();
-        ArrayList nodeArrayList3 = (ArrayList) pop();
-        ArrayList nodeArrayList2 = (ArrayList) pop();
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList6 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList5 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList4 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList3 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList2 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PEntry pentryNode1;
         {
+            // Block
         PEntryDef pentrydefNode2;
         TIdentifier tidentifierNode3;
-        TypedLinkedList listNode5 = new TypedLinkedList();
+        LinkedList listNode5 = new LinkedList();
         TRBrace trbraceNode6;
         pentrydefNode2 = (PEntryDef)nodeArrayList1.get(0);
         tidentifierNode3 = (TIdentifier)nodeArrayList3.get(0);
         {
-        TypedLinkedList listNode4 = new TypedLinkedList();
-        listNode4 = (TypedLinkedList)nodeArrayList4.get(0);
+            // Block
+        LinkedList listNode4 = new LinkedList();
+        listNode4 = (LinkedList)nodeArrayList4.get(0);
 	if(listNode4 != null)
 	{
 	  listNode5.addAll(listNode4);
@@ -755,26 +790,29 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new15() /* reduce AAentryparenentry1Entry */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList5 = (ArrayList) pop();
-        ArrayList nodeArrayList4 = (ArrayList) pop();
-        ArrayList nodeArrayList3 = (ArrayList) pop();
-        ArrayList nodeArrayList2 = (ArrayList) pop();
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList5 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList4 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList3 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList2 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PEntry pentryNode1;
         {
+            // Block
         PEntryDef pentrydefNode2;
         TIdentifier tidentifierNode3;
-        TypedLinkedList listNode5 = new TypedLinkedList();
+        LinkedList listNode5 = new LinkedList();
         TRParen trparenNode6;
         pentrydefNode2 = (PEntryDef)nodeArrayList1.get(0);
         tidentifierNode3 = (TIdentifier)nodeArrayList3.get(0);
         {
-        TypedLinkedList listNode4 = new TypedLinkedList();
-        listNode4 = (TypedLinkedList)nodeArrayList4.get(0);
+            // Block
+        LinkedList listNode4 = new LinkedList();
+        listNode4 = (LinkedList)nodeArrayList4.get(0);
 	if(listNode4 != null)
 	{
 	  listNode5.addAll(listNode4);
@@ -790,27 +828,30 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new16() /* reduce AAentryparenentry2Entry */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList6 = (ArrayList) pop();
-        ArrayList nodeArrayList5 = (ArrayList) pop();
-        ArrayList nodeArrayList4 = (ArrayList) pop();
-        ArrayList nodeArrayList3 = (ArrayList) pop();
-        ArrayList nodeArrayList2 = (ArrayList) pop();
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList6 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList5 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList4 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList3 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList2 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PEntry pentryNode1;
         {
+            // Block
         PEntryDef pentrydefNode2;
         TIdentifier tidentifierNode3;
-        TypedLinkedList listNode5 = new TypedLinkedList();
+        LinkedList listNode5 = new LinkedList();
         TRParen trparenNode6;
         pentrydefNode2 = (PEntryDef)nodeArrayList1.get(0);
         tidentifierNode3 = (TIdentifier)nodeArrayList3.get(0);
         {
-        TypedLinkedList listNode4 = new TypedLinkedList();
-        listNode4 = (TypedLinkedList)nodeArrayList4.get(0);
+            // Block
+        LinkedList listNode4 = new LinkedList();
+        listNode4 = (LinkedList)nodeArrayList4.get(0);
 	if(listNode4 != null)
 	{
 	  listNode5.addAll(listNode4);
@@ -826,13 +867,15 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new17() /* reduce AEntryDef */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PEntryDef pentrydefNode1;
         {
+            // Block
         TEntryName tentrynameNode2;
         tentrynameNode2 = (TEntryName)nodeArrayList1.get(0);
 
@@ -844,22 +887,25 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new18() /* reduce AAkeyvaldecl1KeyvalDecl */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList4 = (ArrayList) pop();
-        ArrayList nodeArrayList3 = (ArrayList) pop();
-        ArrayList nodeArrayList2 = (ArrayList) pop();
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList4 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList3 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList2 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PKeyvalDecl pkeyvaldeclNode1;
         {
+            // Block
         TIdentifier tidentifierNode2;
         PValOrSid pvalorsidNode3;
-        TypedLinkedList listNode4 = new TypedLinkedList();
+        LinkedList listNode4 = new LinkedList();
         tidentifierNode2 = (TIdentifier)nodeArrayList2.get(0);
         pvalorsidNode3 = (PValOrSid)nodeArrayList4.get(0);
         {
+            // Block
         }
 
         pkeyvaldeclNode1 = new AKeyvalDecl(tidentifierNode2, pvalorsidNode3, listNode4);
@@ -870,25 +916,28 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new19() /* reduce AAkeyvaldecl2KeyvalDecl */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList5 = (ArrayList) pop();
-        ArrayList nodeArrayList4 = (ArrayList) pop();
-        ArrayList nodeArrayList3 = (ArrayList) pop();
-        ArrayList nodeArrayList2 = (ArrayList) pop();
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList5 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList4 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList3 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList2 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PKeyvalDecl pkeyvaldeclNode1;
         {
+            // Block
         TIdentifier tidentifierNode2;
         PValOrSid pvalorsidNode3;
-        TypedLinkedList listNode5 = new TypedLinkedList();
+        LinkedList listNode5 = new LinkedList();
         tidentifierNode2 = (TIdentifier)nodeArrayList2.get(0);
         pvalorsidNode3 = (PValOrSid)nodeArrayList4.get(0);
         {
-        TypedLinkedList listNode4 = new TypedLinkedList();
-        listNode4 = (TypedLinkedList)nodeArrayList5.get(0);
+            // Block
+        LinkedList listNode4 = new LinkedList();
+        listNode4 = (LinkedList)nodeArrayList5.get(0);
 	if(listNode4 != null)
 	{
 	  listNode5.addAll(listNode4);
@@ -903,13 +952,15 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new20() /* reduce AValueBValOrSid */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PValOrSid pvalorsidNode1;
         {
+            // Block
         TStringLiteral tstringliteralNode2;
         tstringliteralNode2 = (TStringLiteral)nodeArrayList1.get(0);
 
@@ -921,15 +972,17 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new21() /* reduce AAvalueqvalorsid1ValOrSid */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList2 = (ArrayList) pop();
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList2 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PValOrSid pvalorsidNode1;
         {
-        Object nullNode2 = null;
+            // Block
+        @SuppressWarnings("unused") Object nullNode2 = null;
 
         pvalorsidNode1 = new AValueQValOrSid(null);
         }
@@ -939,15 +992,17 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new22() /* reduce AAvalueqvalorsid2ValOrSid */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList3 = (ArrayList) pop();
-        ArrayList nodeArrayList2 = (ArrayList) pop();
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList3 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList2 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PValOrSid pvalorsidNode1;
         {
+            // Block
         TStringLiteral tstringliteralNode2;
         tstringliteralNode2 = (TStringLiteral)nodeArrayList2.get(0);
 
@@ -959,13 +1014,15 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new23() /* reduce ANumValOrSid */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PValOrSid pvalorsidNode1;
         {
+            // Block
         TNumber tnumberNode2;
         tnumberNode2 = (TNumber)nodeArrayList1.get(0);
 
@@ -977,13 +1034,15 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new24() /* reduce AIdValOrSid */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PValOrSid pvalorsidNode1;
         {
+            // Block
         TIdentifier tidentifierNode2;
         tidentifierNode2 = (TIdentifier)nodeArrayList1.get(0);
 
@@ -995,14 +1054,16 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new25() /* reduce AConcat */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList2 = (ArrayList) pop();
-        ArrayList nodeArrayList1 = (ArrayList) pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList2 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
         PConcat pconcatNode1;
         {
+            // Block
         PValOrSid pvalorsidNode2;
         pvalorsidNode2 = (PValOrSid)nodeArrayList2.get(0);
 
@@ -1014,13 +1075,15 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new26() /* reduce ATerminal$BibEntry */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList1 = (ArrayList) pop();
-        TypedLinkedList listNode2 = new TypedLinkedList();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
+        LinkedList listNode2 = new LinkedList();
         {
+            // Block
         PBibEntry pbibentryNode1;
         pbibentryNode1 = (PBibEntry)nodeArrayList1.get(0);
 	if(pbibentryNode1 != null)
@@ -1034,17 +1097,19 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new27() /* reduce ANonTerminal$BibEntry */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList2 = (ArrayList) pop();
-        ArrayList nodeArrayList1 = (ArrayList) pop();
-        TypedLinkedList listNode3 = new TypedLinkedList();
+        @SuppressWarnings("unused") ArrayList nodeArrayList2 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
+        LinkedList listNode3 = new LinkedList();
         {
-        TypedLinkedList listNode1 = new TypedLinkedList();
+            // Block
+        LinkedList listNode1 = new LinkedList();
         PBibEntry pbibentryNode2;
-        listNode1 = (TypedLinkedList)nodeArrayList1.get(0);
+        listNode1 = (LinkedList)nodeArrayList1.get(0);
         pbibentryNode2 = (PBibEntry)nodeArrayList2.get(0);
 	if(listNode1 != null)
 	{
@@ -1061,13 +1126,15 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new28() /* reduce ATerminal$KeyvalDecl */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList1 = (ArrayList) pop();
-        TypedLinkedList listNode2 = new TypedLinkedList();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
+        LinkedList listNode2 = new LinkedList();
         {
+            // Block
         PKeyvalDecl pkeyvaldeclNode1;
         pkeyvaldeclNode1 = (PKeyvalDecl)nodeArrayList1.get(0);
 	if(pkeyvaldeclNode1 != null)
@@ -1081,17 +1148,19 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new29() /* reduce ANonTerminal$KeyvalDecl */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList2 = (ArrayList) pop();
-        ArrayList nodeArrayList1 = (ArrayList) pop();
-        TypedLinkedList listNode3 = new TypedLinkedList();
+        @SuppressWarnings("unused") ArrayList nodeArrayList2 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
+        LinkedList listNode3 = new LinkedList();
         {
-        TypedLinkedList listNode1 = new TypedLinkedList();
+            // Block
+        LinkedList listNode1 = new LinkedList();
         PKeyvalDecl pkeyvaldeclNode2;
-        listNode1 = (TypedLinkedList)nodeArrayList1.get(0);
+        listNode1 = (LinkedList)nodeArrayList1.get(0);
         pkeyvaldeclNode2 = (PKeyvalDecl)nodeArrayList2.get(0);
 	if(listNode1 != null)
 	{
@@ -1108,13 +1177,15 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new30() /* reduce ATerminal$Concat */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList1 = (ArrayList) pop();
-        TypedLinkedList listNode2 = new TypedLinkedList();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
+        LinkedList listNode2 = new LinkedList();
         {
+            // Block
         PConcat pconcatNode1;
         pconcatNode1 = (PConcat)nodeArrayList1.get(0);
 	if(pconcatNode1 != null)
@@ -1128,17 +1199,19 @@ public class Parser
 
 
 
+    @SuppressWarnings("unchecked")
     ArrayList new31() /* reduce ANonTerminal$Concat */
     {
-        ArrayList nodeList = new ArrayList();
+        @SuppressWarnings("hiding") ArrayList nodeList = new ArrayList();
 
-        ArrayList nodeArrayList2 = (ArrayList) pop();
-        ArrayList nodeArrayList1 = (ArrayList) pop();
-        TypedLinkedList listNode3 = new TypedLinkedList();
+        @SuppressWarnings("unused") ArrayList nodeArrayList2 = pop();
+        @SuppressWarnings("unused") ArrayList nodeArrayList1 = pop();
+        LinkedList listNode3 = new LinkedList();
         {
-        TypedLinkedList listNode1 = new TypedLinkedList();
+            // Block
+        LinkedList listNode1 = new LinkedList();
         PConcat pconcatNode2;
-        listNode1 = (TypedLinkedList)nodeArrayList1.get(0);
+        listNode1 = (LinkedList)nodeArrayList1.get(0);
         pconcatNode2 = (PConcat)nodeArrayList2.get(0);
 	if(listNode1 != null)
 	{
@@ -1275,16 +1348,16 @@ public class Parser
 
             // read actionTable
             int length = s.readInt();
-            actionTable = new int[length][][];
-            for(int i = 0; i < actionTable.length; i++)
+            Parser.actionTable = new int[length][][];
+            for(int i = 0; i < Parser.actionTable.length; i++)
             {
                 length = s.readInt();
-                actionTable[i] = new int[length][3];
-                for(int j = 0; j < actionTable[i].length; j++)
+                Parser.actionTable[i] = new int[length][3];
+                for(int j = 0; j < Parser.actionTable[i].length; j++)
                 {
                 for(int k = 0; k < 3; k++)
                 {
-                    actionTable[i][j][k] = s.readInt();
+                    Parser.actionTable[i][j][k] = s.readInt();
                 }
                 }
             }

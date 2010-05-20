@@ -1,5 +1,5 @@
 /*
- * $Id: LatexLexer.java,v 1.6 2006/04/28 17:26:27 oskarojala Exp $
+ * $Id: LatexLexer.java,v 1.7 2009/05/15 20:04:31 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -181,12 +181,6 @@ public class LatexLexer extends Lexer {
                         startChar = '\0';
                         argStart = null;
                     }
-                }
-                token = null;
-            } else if (token instanceof TWhitespace) {
-                if (argStart == null) {
-                    throw new LexerException("[" + token.getLine() + 
-                            "," + token.getPos() + "] Terminator for verb can't be whitespace");
                 }
                 token = null;
             } else if (token instanceof EOF) {

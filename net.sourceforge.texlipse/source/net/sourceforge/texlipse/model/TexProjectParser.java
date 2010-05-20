@@ -1,5 +1,5 @@
 /*
- * $Id: TexProjectParser.java,v 1.10 2006/05/18 20:07:42 oskarojala Exp $
+ * $Id: TexProjectParser.java,v 1.13 2009/05/26 17:06:04 borisvl Exp $
  *
  * Copyright (c) 2006 by the TeXlipse team.
  * All rights reserved. This program and the accompanying materials
@@ -15,19 +15,24 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
 
+import net.sourceforge.texlipse.TexlipsePlugin;
+import net.sourceforge.texlipse.builder.KpsewhichRunner;
 import net.sourceforge.texlipse.editor.TexDocumentParseException;
 import net.sourceforge.texlipse.texparser.TexParser;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 
 
 /**
  * A parser interface for finding and parsing files in a LaTeX-project.
  * 
  * @author Oskar Ojala
+ * @author Boris von Loesch
  */
 public class TexProjectParser {
 
@@ -36,10 +41,7 @@ public class TexProjectParser {
     private IFile file;
     
     private TexParser parser;
-    
-    private ReferenceContainer labels;
-    private ReferenceContainer bibs;
-    
+        
     private static final String TEX_FILE_ENDING = ".tex";
 
     /**
@@ -49,22 +51,34 @@ public class TexProjectParser {
      * @param labels The label container for this project
      * @param bibs The BibTeX container for this project
      */
-    public TexProjectParser(IProject currentProject, 
-            ReferenceContainer labels, ReferenceContainer bibs) {
+    public TexProjectParser(IProject currentProject) {
         this.currentProject = currentProject;
-        this.labels = labels;
-        this.bibs = bibs;
     }
 
     /**
      * Finds the given file from the project and returns it or null
-     * if such a file wasn't found.
+     * if such a file wasn't found. If the file was found in a path outside
+     * the project, a link to the file is created.
      * 
      * @param fileName The name of the file to look for
      * @param referringFile The file referring to this file (used for paths)
      * @return The found file or null if it wasn't found
      */
     public IFile findIFile(String fileName, IFile referringFile) {
+        return findIFile(fileName, referringFile, currentProject);
+    }
+    
+    /**
+     * Finds the given file from the project and returns it or null
+     * if such a file wasn't found. If the file was found in a path outside
+     * the project, a link to the file is created.
+     * 
+     * @param fileName The name of the file to look for
+     * @param referringFile The file referring to this file (used for paths)
+     * @param currentProject
+     * @return The found file or null if it wasn't found
+     */
+    public static IFile findIFile(String fileName, IFile referringFile, IProject currentProject) {
 
         // Append default ending
         if (fileName.indexOf('.') == -1
@@ -73,8 +87,21 @@ public class TexProjectParser {
         }
         IPath path = referringFile.getFullPath();
         path = path.removeFirstSegments(1).removeLastSegments(1).append(fileName);
-        file = currentProject.getFile(path);
-
+        IFile file = currentProject.getFile(path);
+        if (!file.exists()) {
+            //Try Kpsewhich
+            KpsewhichRunner filesearch = new KpsewhichRunner();
+            try {
+                String fName = filesearch.getFile(currentProject, fileName, "latex");
+                if (fName.length() > 0) {
+                    //Create a link
+                    IPath p = new Path(fName);
+                    file.createLink(p, IResource.NONE, null);
+                }
+            } catch (CoreException e) {
+                TexlipsePlugin.log("Can't run Kpathsea", e);
+            }
+        }
         return file.exists() ? file : null;
     }
     
@@ -122,7 +149,7 @@ public class TexProjectParser {
         if (this.parser == null) {
             this.parser = new TexParser(null);
         }
-        this.parser.parseDocument(labels, bibs, input, false);
+        this.parser.parseDocument(input, false);
     }
 
     /**

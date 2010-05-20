@@ -1,5 +1,5 @@
 /*
- * $Id: TexlipseProperties.java,v 1.21 2008/07/26 12:30:04 borisvl Exp $
+ * $Id: TexlipseProperties.java,v 1.26 2010/04/02 20:14:57 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -16,6 +16,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import net.sourceforge.texlipse.TexlipsePlugin;
@@ -93,6 +94,7 @@ public class TexlipseProperties {
 
     public static final String INDENTATION = "indent";
     public static final String INDENTATION_LEVEL = "indentLevel";
+    public static final String INDENTATION_TABS = "indentTabs";
     public static final String INDENTATION_ENVS = "indentEnvs";
      
     public static final String WORDWRAP_TYPE = "wrapType";
@@ -143,6 +145,7 @@ public class TexlipseProperties {
     public static final String BUILDER_CONSOLE_OUTPUT = "builderConsole";
     public static final String BUILD_BEFORE_VIEW = "buildBeforeView";
     public static final String BUILDER_RETURN_FOCUS = "returnFocusOnPreivew";
+    public static final String BUILDER_PARSE_AUX_FILES = "builderParseAuxFiles";
     
     public static final String OUTPUT_FORMAT = "outputFormat";
     public static final String OUTPUT_FORMAT_AUX = "aux";
@@ -164,6 +167,13 @@ public class TexlipseProperties {
     // attribute for session properties to hold the viewer process object
     public static final String SESSION_ATTRIBUTE_VIEWER = "active.viewer";
     public static final String SESSION_PROJECT_FULLOUTLINE = "project.fullTexParser";
+    
+    public static final String ECLIPSE_BUILDIN_SPELLCHECKER = "eclipseBuildInSpellChecker";
+    public static final String SPELLCHECKER_DICT_DIR = "spellcheckerDictDir";
+    public static final String SPELLCHECKER_CUSTOM_DICT_DIR = "spellcheckerCustomDictDir";
+    public static final String SPELLCHECKER_IGNORE_COMMENTS = "spellcheckerIgnoreComments"; 
+    public static final String SPELLCHECKER_IGNORE_MATH = "spellcheckerIgnoreMath"; 
+    public static final String SPELLCHECKER_IGNORE_MIXED_CASE = "spellcheckerIgnoreMixedCase"; 
     
     /**
        * A named preference that controls whether bracket matching highlighting is turned on or off.
@@ -249,9 +259,9 @@ public class TexlipseProperties {
      * @return list of IResource objects representing the files under
      *         the given directory and its subdirectories
      */
-    public static ArrayList getAllMemberFiles(IContainer dir, String[] exts) {
+    public static List<IResource> getAllMemberFiles(IContainer dir, String[] exts) {
         
-        ArrayList list = new ArrayList();
+        List<IResource> list = new ArrayList<IResource>();
         
         IResource[] arr = null;
         try {
@@ -397,7 +407,7 @@ public class TexlipseProperties {
             return;
         }
         
-        setSessionProperty(project, SESSION_PROPERTIES_LOAD, new Long(System.currentTimeMillis()));
+        setSessionProperty(project, SESSION_PROPERTIES_LOAD, Long.valueOf(System.currentTimeMillis()));
         setProjectProperty(project, MAINFILE_PROPERTY, prop.getProperty(MAINFILE_PROPERTY, ""));
         setProjectProperty(project, OUTPUTFILE_PROPERTY, prop.getProperty(OUTPUTFILE_PROPERTY, ""));
         setProjectProperty(project, SOURCE_DIR_PROPERTY, prop.getProperty(SOURCE_DIR_PROPERTY, ""));

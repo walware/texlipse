@@ -58,6 +58,25 @@ import de.walware.ecommons.text.ui.OperatorRule;
 public class TexFastPartitionScanner implements IPartitionTokenScanner {
 	
 	
+	private static final String[] MATHENV = {
+			"equation", "eqnarray", "align", "alignat", "flalign", "multline", "gather",
+			"equation*", "eqnarray*", "align*", "alignat*", "flalign*", "multline*", "gather*",
+			"math", "displaymath",
+	};
+	
+    /**
+     * 
+     * @param envName Name of the environment
+     * @return true, if the given name denotes a math environment
+     */
+    public final static boolean isMathEnv(String envName) {
+        for (String st : MATHENV) {
+            if (st.equals(envName)) return true;
+        }
+        return false;
+    }
+	
+	
 	/**
 	 * Enum of states of the scanner.
 	 * Note: id is index in array of tokens
@@ -190,16 +209,9 @@ public class TexFastPartitionScanner implements IPartitionTokenScanner {
 		addEnvRule("verbatim*", S_VERBATIM_ENV);
 		addEnvRule("lstlisting", S_VERBATIM_ENV);
 		
-		addEnvRule("equation", S_MATH_ENV);
-		addEnvRule("eqnarray", S_MATH_ENV);
-		addEnvRule("math", S_MATH_ENV);
-		addEnvRule("displaymath", S_MATH_ENV);
-		//AMSMath environments
-		addEnvRule("align", S_MATH_ENV);
-		addEnvRule("alignat", S_MATH_ENV);
-		addEnvRule("flalign", S_MATH_ENV);
-		addEnvRule("multline", S_MATH_ENV);
-		addEnvRule("gather", S_MATH_ENV);
+		for (String envName : MATHENV) {
+			addEnvRule(envName, S_MATH_ENV);
+		}
 	}
 	
 	public void setRange(final IDocument document, final int offset, final int length) {

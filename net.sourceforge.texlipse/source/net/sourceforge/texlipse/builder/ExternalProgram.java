@@ -23,6 +23,7 @@ import net.sourceforge.texlipse.TexlipsePlugin;
 import net.sourceforge.texlipse.properties.TexlipseProperties;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.debug.core.DebugPlugin;
 
 import de.walware.ecommons.debug.ui.LaunchConfigUtil;
 

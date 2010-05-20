@@ -1,5 +1,5 @@
 /*
- * $Id: PsBuilder.java,v 1.2 2006/04/04 22:14:05 borisvl Exp $
+ * $Id: PsBuilder.java,v 1.3 2008/08/23 15:44:08 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials

@@ -1,5 +1,5 @@
 /*
- * $Id: TexSourceViewerConfiguration.java,v 1.11 2006/05/12 21:38:33 oskarojala Exp $
+ * $Id: TexSourceViewerConfiguration.java,v 1.17 2010/02/27 20:58:04 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -17,6 +17,7 @@ import net.sourceforge.texlipse.editor.scanner.TexMathScanner;
 import net.sourceforge.texlipse.editor.scanner.TexScanner;
 import net.sourceforge.texlipse.properties.TexlipseProperties;
 
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IAutoEditStrategy;
 import org.eclipse.jface.text.IDocument;
@@ -30,18 +31,23 @@ import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
+import org.eclipse.jface.text.reconciler.IReconciler;
+import org.eclipse.jface.text.reconciler.IReconcilingStrategy;
+import org.eclipse.jface.text.reconciler.MonoReconciler;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
 import org.eclipse.jface.text.rules.RuleBasedScanner;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.text.source.ISourceViewer;
-import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.editors.text.EditorsUI;
+import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
+import org.eclipse.ui.texteditor.spelling.SpellingService;
 
 
 /**
@@ -51,7 +57,7 @@ import org.eclipse.swt.widgets.Shell;
  * @author Oskar Ojala
  * @author Antti Pirinen
  */
-public class TexSourceViewerConfiguration extends SourceViewerConfiguration {
+public class TexSourceViewerConfiguration extends TextSourceViewerConfiguration {
 
     private TexEditor editor;
     private TexMathScanner mathScanner;
@@ -65,18 +71,44 @@ public class TexSourceViewerConfiguration extends SourceViewerConfiguration {
     private ITextDoubleClickStrategy doubleClickStrategy;
     private TexAutoIndentStrategy indentStrategy;
 
+    // FIXME check this
+    private IAutoEditStrategy autoIndentStrategy;
+    
+    /**
+     * @see org.eclipse.jface.text.source.SourceViewerConfiguration#getReconciler(org.eclipse.jface.text.source.ISourceViewer)
+     */
+    @Override
+    public IReconciler getReconciler(ISourceViewer sourceViewer) {
+        if (fPreferenceStore == null || !fPreferenceStore.getBoolean(SpellingService.PREFERENCE_SPELLING_ENABLED))
+            return null;
+        if (!TexlipsePlugin.getDefault().getPreferenceStore().getBoolean(TexlipseProperties.ECLIPSE_BUILDIN_SPELLCHECKER))
+            return null;
+        //Set TeXlipse spelling Engine as default
+        fPreferenceStore.setValue(SpellingService.PREFERENCE_SPELLING_ENGINE, 
+                "net.sourceforge.texlipse.LaTeXSpellEngine");
+        SpellingService spellingService = new SpellingService(fPreferenceStore);
+        if (spellingService.getActiveSpellingEngineDescriptor(fPreferenceStore) == null)
+            return null;
+        IReconcilingStrategy strategy= new TeXSpellingReconcileStrategy(sourceViewer, spellingService);
+        
+        MonoReconciler reconciler= new MonoReconciler(strategy, true);
+        reconciler.setDelay(500);
+        reconciler.setProgressMonitor(new NullProgressMonitor());
+        return reconciler;
+    }
+    
     /**
      * Creates a new source viewer configuration.
      * 
      * @param te The editor that this configuration is associated to
      */
-    public TexSourceViewerConfiguration(TexEditor te) {
-        super();
-        this.editor = te;
+    public TexSourceViewerConfiguration(TexEditor editor) {
+        super(EditorsUI.getPreferenceStore());
+        this.editor = editor;
         this.colorManager = TexlipsePlugin.getDefault().getColorManager();
-        this.annotationHover = new TexAnnotationHover(editor);
-        
-        // Adds a listener for changing content assistan properties if
+        this.annotationHover = new TexAnnotationHover();
+
+        // Adds a listener for changing content assistant properties if
         // these are changed in the preferences
         TexlipsePlugin.getDefault().getPreferenceStore().addPropertyChangeListener(new  
                 IPropertyChangeListener() {
@@ -116,10 +148,11 @@ public class TexSourceViewerConfiguration extends SourceViewerConfiguration {
     }
     
     public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
-        if (indentStrategy == null) {
-            indentStrategy = new TexAutoIndentStrategy(editor.getPreferences());
+        //return super.getAutoEditStrategies(sourceViewer, contentType);
+        if (autoIndentStrategy == null) {
+            autoIndentStrategy = new TexAutoIndentStrategy();
         }
-        return new IAutoEditStrategy[] {indentStrategy};
+        return new IAutoEditStrategy[] {autoIndentStrategy};
     }
 
     /**
@@ -168,7 +201,7 @@ public class TexSourceViewerConfiguration extends SourceViewerConfiguration {
 
         assistant.setContentAssistProcessor(tcp, IDocument.DEFAULT_CONTENT_TYPE);
         assistant.setContentAssistProcessor(tmcp, ITexDocumentConstants.TEX_MATH_CONTENT_TYPE);
-        
+
         assistant.enableAutoActivation(TexlipsePlugin.getDefault().getPreferenceStore().getBoolean(TexlipseProperties.TEX_COMPLETION));
         assistant.enableAutoInsert(true);
         assistant.setAutoActivationDelay(TexlipsePlugin.getDefault().getPreferenceStore().getInt(TexlipseProperties.TEX_COMPLETION_DELAY));
@@ -207,7 +240,7 @@ public class TexSourceViewerConfiguration extends SourceViewerConfiguration {
     
     
     /**
-     * Defines a default partition skanner and sets the default
+     * Defines a default partition scanner and sets the default
      * color for it
      * @return 	a scanner to find default partitions.
      */
@@ -219,7 +252,7 @@ public class TexSourceViewerConfiguration extends SourceViewerConfiguration {
     }
     
     /**
-     * Defines a math partition skanner and sets the default
+     * Defines a math partition scanner and sets the default
      * color for it.
      * @return a scanner to detect math partitions
      */
@@ -231,12 +264,12 @@ public class TexSourceViewerConfiguration extends SourceViewerConfiguration {
     }
     
     /**
-     * Defines a comment skanner and sets the default color for it
+     * Defines a comment scanner and sets the default color for it
      * @return a scanner to detect comment partitions
      */
     protected TexCommentScanner getTexCommentScanner() {
         if (commentScanner == null) {
-            commentScanner = new TexCommentScanner(colorManager,editor);
+            commentScanner = new TexCommentScanner(colorManager);
             commentScanner.setDefaultReturnToken(
                     new Token(
                             new TextAttribute(
@@ -249,7 +282,7 @@ public class TexSourceViewerConfiguration extends SourceViewerConfiguration {
     
     /**
      * Defines a verbatim scanner and sets the default color for it
-     * @return a scanner to detect varbatim style partitions
+     * @return a scanner to detect verbatim style partitions
      */
     protected RuleBasedScanner getTexVerbatimScanner() {
         if (verbatimScanner == null) {

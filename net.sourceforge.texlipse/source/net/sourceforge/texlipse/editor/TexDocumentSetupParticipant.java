@@ -1,5 +1,5 @@
 /*
- * $Id: TexDocumentSetupParticipant.java,v 1.2 2006/05/02 18:35:48 borisvl Exp $
+ * $Id: TexDocumentSetupParticipant.java,v 1.3 2009/05/13 20:48:47 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials

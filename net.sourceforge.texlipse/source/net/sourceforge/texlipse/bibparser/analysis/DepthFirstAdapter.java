@@ -2,6 +2,9 @@
 
 package net.sourceforge.texlipse.bibparser.analysis;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.sourceforge.texlipse.bibparser.node.*;
 
 public class DepthFirstAdapter extends AnalysisAdapter
@@ -16,14 +19,17 @@ public class DepthFirstAdapter extends AnalysisAdapter
         defaultOut(node);
     }
 
-    public void defaultIn(Node node)
+    public void defaultIn(@SuppressWarnings("unused") Node node)
     {
+        // Do nothing
     }
 
-    public void defaultOut(Node node)
+    public void defaultOut(@SuppressWarnings("unused") Node node)
     {
+        // Do nothing
     }
 
+    @Override
     public void caseStart(Start node)
     {
         inStart(node);
@@ -42,14 +48,15 @@ public class DepthFirstAdapter extends AnalysisAdapter
         defaultOut(node);
     }
 
+    @Override
     public void caseABibtex(ABibtex node)
     {
         inABibtex(node);
         {
-            Object temp[] = node.getBibEntry().toArray();
-            for(int i = 0; i < temp.length; i++)
+            List<PBibEntry> copy = new ArrayList<PBibEntry>(node.getBibEntry());
+            for(PBibEntry e : copy)
             {
-                ((PBibEntry) temp[i]).apply(this);
+                e.apply(this);
             }
         }
         outABibtex(node);
@@ -65,6 +72,7 @@ public class DepthFirstAdapter extends AnalysisAdapter
         defaultOut(node);
     }
 
+    @Override
     public void caseABibstreBibEntry(ABibstreBibEntry node)
     {
         inABibstreBibEntry(node);
@@ -85,6 +93,7 @@ public class DepthFirstAdapter extends AnalysisAdapter
         defaultOut(node);
     }
 
+    @Override
     public void caseABibeBibEntry(ABibeBibEntry node)
     {
         inABibeBibEntry(node);
@@ -105,6 +114,7 @@ public class DepthFirstAdapter extends AnalysisAdapter
         defaultOut(node);
     }
 
+    @Override
     public void caseABibtaskBibEntry(ABibtaskBibEntry node)
     {
         inABibtaskBibEntry(node);
@@ -125,6 +135,7 @@ public class DepthFirstAdapter extends AnalysisAdapter
         defaultOut(node);
     }
 
+    @Override
     public void caseAStrbraceStringEntry(AStrbraceStringEntry node)
     {
         inAStrbraceStringEntry(node);
@@ -149,6 +160,7 @@ public class DepthFirstAdapter extends AnalysisAdapter
         defaultOut(node);
     }
 
+    @Override
     public void caseAStrparenStringEntry(AStrparenStringEntry node)
     {
         inAStrparenStringEntry(node);
@@ -173,6 +185,7 @@ public class DepthFirstAdapter extends AnalysisAdapter
         defaultOut(node);
     }
 
+    @Override
     public void caseAEntrybraceEntry(AEntrybraceEntry node)
     {
         inAEntrybraceEntry(node);
@@ -185,10 +198,10 @@ public class DepthFirstAdapter extends AnalysisAdapter
             node.getIdentifier().apply(this);
         }
         {
-            Object temp[] = node.getKeyvalDecl().toArray();
-            for(int i = 0; i < temp.length; i++)
+            List<PKeyvalDecl> copy = new ArrayList<PKeyvalDecl>(node.getKeyvalDecl());
+            for(PKeyvalDecl e : copy)
             {
-                ((PKeyvalDecl) temp[i]).apply(this);
+                e.apply(this);
             }
         }
         if(node.getRBrace() != null)
@@ -208,6 +221,7 @@ public class DepthFirstAdapter extends AnalysisAdapter
         defaultOut(node);
     }
 
+    @Override
     public void caseAEntryparenEntry(AEntryparenEntry node)
     {
         inAEntryparenEntry(node);
@@ -220,10 +234,10 @@ public class DepthFirstAdapter extends AnalysisAdapter
             node.getIdentifier().apply(this);
         }
         {
-            Object temp[] = node.getKeyvalDecl().toArray();
-            for(int i = 0; i < temp.length; i++)
+            List<PKeyvalDecl> copy = new ArrayList<PKeyvalDecl>(node.getKeyvalDecl());
+            for(PKeyvalDecl e : copy)
             {
-                ((PKeyvalDecl) temp[i]).apply(this);
+                e.apply(this);
             }
         }
         if(node.getRParen() != null)
@@ -243,6 +257,7 @@ public class DepthFirstAdapter extends AnalysisAdapter
         defaultOut(node);
     }
 
+    @Override
     public void caseAEntryDef(AEntryDef node)
     {
         inAEntryDef(node);
@@ -263,6 +278,7 @@ public class DepthFirstAdapter extends AnalysisAdapter
         defaultOut(node);
     }
 
+    @Override
     public void caseAKeyvalDecl(AKeyvalDecl node)
     {
         inAKeyvalDecl(node);
@@ -275,10 +291,10 @@ public class DepthFirstAdapter extends AnalysisAdapter
             node.getValOrSid().apply(this);
         }
         {
-            Object temp[] = node.getConcat().toArray();
-            for(int i = 0; i < temp.length; i++)
+            List<PConcat> copy = new ArrayList<PConcat>(node.getConcat());
+            for(PConcat e : copy)
             {
-                ((PConcat) temp[i]).apply(this);
+                e.apply(this);
             }
         }
         outAKeyvalDecl(node);
@@ -294,6 +310,7 @@ public class DepthFirstAdapter extends AnalysisAdapter
         defaultOut(node);
     }
 
+    @Override
     public void caseAConcat(AConcat node)
     {
         inAConcat(node);
@@ -314,6 +331,7 @@ public class DepthFirstAdapter extends AnalysisAdapter
         defaultOut(node);
     }
 
+    @Override
     public void caseAValueBValOrSid(AValueBValOrSid node)
     {
         inAValueBValOrSid(node);
@@ -334,6 +352,7 @@ public class DepthFirstAdapter extends AnalysisAdapter
         defaultOut(node);
     }
 
+    @Override
     public void caseAValueQValOrSid(AValueQValOrSid node)
     {
         inAValueQValOrSid(node);
@@ -354,6 +373,7 @@ public class DepthFirstAdapter extends AnalysisAdapter
         defaultOut(node);
     }
 
+    @Override
     public void caseANumValOrSid(ANumValOrSid node)
     {
         inANumValOrSid(node);
@@ -374,6 +394,7 @@ public class DepthFirstAdapter extends AnalysisAdapter
         defaultOut(node);
     }
 
+    @Override
     public void caseAIdValOrSid(AIdValOrSid node)
     {
         inAIdValOrSid(node);

@@ -1,5 +1,5 @@
 /*
- * $Id: BuilderRegistry.java,v 1.3 2005/10/30 15:11:34 kimmok Exp $
+ * $Id: BuilderRegistry.java,v 1.5 2008/08/23 15:44:08 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -26,6 +26,7 @@ import org.eclipse.ui.console.MessageConsoleStream;
  * Implemented using the Singleton pattern.
  * 
  * @author Kimmo Karlsson
+ * @author Boris von Loesch
  */
 public class BuilderRegistry {
 
@@ -172,7 +173,8 @@ public class BuilderRegistry {
                 new DvipsRunner(),
                 new DvipdfRunner(),
                 new Ps2pdfRunner(),
-                new MakeindexNomenclRunner()
+                new MakeindexNomenclRunner(),
+                new KpsewhichRunner()
         };
     }
 
@@ -263,16 +265,14 @@ public class BuilderRegistry {
     public static int getNumberOfRunners() {
         return instance.runnerList.length;
     }
-        
+    
 	public static ProgramRunner getRunner(String id) {
 		for (ProgramRunner runner : instance.runnerList) {
 			if (runner.getId().equals(id)) {
 				return runner;
-            }
-        }
-        
-        return null;
-    }
+			}
+		}
+		return null;
+	}
 }
-
 

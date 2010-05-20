@@ -1,5 +1,5 @@
 /*
- * $Id: TexlipsePreferenceInitializer.java,v 1.15 2008/07/19 16:01:51 borisvl Exp $
+ * $Id: TexlipsePreferenceInitializer.java,v 1.19 2010/04/02 20:14:57 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -70,7 +70,8 @@ public class TexlipsePreferenceInitializer extends
         pref.setDefault(TexlipseProperties.BIB_DIR, "");
         pref.setDefault(TexlipseProperties.OUTPUT_FORMAT, TexlipseProperties.OUTPUT_FORMAT_DVI);
         pref.setDefault(TexlipseProperties.BUILDER_NUMBER, 0);
-        pref.setDefault(TexlipseProperties.BUILDER_CONSOLE_OUTPUT, false);
+        pref.setDefault(TexlipseProperties.BUILDER_CONSOLE_OUTPUT, true);
+        pref.setDefault(TexlipseProperties.BUILDER_PARSE_AUX_FILES, true);
         pref.setDefault(TexlipseProperties.BUILD_BEFORE_VIEW, false);
         pref.setDefault(TexlipseProperties.FILE_LOCATION_PORT, FileLocationClient.DEFAULT_PORTNUMBER);
         
@@ -115,6 +116,7 @@ public class TexlipsePreferenceInitializer extends
         
         pref.setDefault(TexlipseProperties.INDENTATION, true);
         pref.setDefault(TexlipseProperties.INDENTATION_LEVEL, 2);
+        pref.setDefault(TexlipseProperties.INDENTATION_TABS, false);
         pref.setDefault(TexlipseProperties.INDENTATION_ENVS, "list,enumerate,itemize");
         pref.setDefault(TexlipseProperties.WORDWRAP_LENGTH, 80);
         pref.setDefault(TexlipseProperties.WORDWRAP_TYPE, TexlipseProperties.WORDWRAP_TYPE_HARD);
@@ -139,5 +141,10 @@ public class TexlipsePreferenceInitializer extends
         pref.setDefault(TexlipseProperties.OUTLINE_SUBSUBSECTION, true);
         pref.setDefault(TexlipseProperties.OUTLINE_PARAGRAPH, true);
         pref.setDefault(TexlipseProperties.OUTLINE_ENVS, "list,enumerate,itemize,figure,table,tabular");
+        
+        pref.setDefault(TexlipseProperties.ECLIPSE_BUILDIN_SPELLCHECKER, true);
+        pref.setDefault(TexlipseProperties.SPELLCHECKER_IGNORE_COMMENTS, true);
+        pref.setDefault(TexlipseProperties.SPELLCHECKER_IGNORE_MATH, false);
+        pref.setDefault(TexlipseProperties.SPELLCHECKER_IGNORE_MIXED_CASE, true);
     }
 }

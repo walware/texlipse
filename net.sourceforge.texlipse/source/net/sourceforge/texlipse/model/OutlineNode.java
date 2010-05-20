@@ -1,5 +1,5 @@
 /*
- * $Id: OutlineNode.java,v 1.7 2006/04/30 07:05:04 oskarojala Exp $
+ * $Id: OutlineNode.java,v 1.8 2010/01/30 16:25:22 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -37,6 +37,7 @@ public class OutlineNode {
         
     public static final int TYPE_ENVIRONMENT = 13;
     public static final int TYPE_PREAMBLE = 14;
+    public static final int TYPE_LABEL = 20;
     //public static final int TYPE_ERROR = 99;
     public static final int TYPE_INPUT = 45;
     
@@ -109,7 +110,7 @@ public class OutlineNode {
      */
     public void addChild(OutlineNode child, int index) {
         if (this.children == null)
-            this.children = new ArrayList();
+            this.children = new ArrayList<OutlineNode>();
         this.children.add(index, child);
     }
     
@@ -134,6 +135,14 @@ public class OutlineNode {
     public void setChildren(List<OutlineNode> children) {
         this.children = children;
     }
+    
+    /**
+     * @return true, if the node has at least one children
+     */
+    public boolean hasChildren() {
+        return (this.children != null && this.children.size() > 0);
+    }
+    
     /**
      * @return Returns the name.
      */
