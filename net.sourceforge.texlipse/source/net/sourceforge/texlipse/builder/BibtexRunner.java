@@ -1,5 +1,5 @@
 /*
- * $Id: BibtexRunner.java,v 1.6 2008/08/03 16:22:00 borisvl Exp $
+ * $Id: BibtexRunner.java,v 1.7 2009/05/19 16:28:59 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -155,7 +155,9 @@ public class BibtexRunner extends AbstractProgramRunner {
         if (sourceDir == null) {
             sourceDir = project;
         }
-        IResource bibResource = null;
+        //Initialize bibResource with origResource so that all errors are at least
+        //displayed even if no valid bib file was found
+        IResource bibResource = origResource;
         
         boolean errorsFound = false;
         StringTokenizer st = new StringTokenizer(output, "\r\n");

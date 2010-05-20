@@ -1,5 +1,5 @@
 /*
- * $Id: BuilderSettingsPreferencePage.java,v 1.1 2005/03/16 12:22:11 kimmok Exp $
+ * $Id: BuilderSettingsPreferencePage.java,v 1.2 2010/02/21 19:20:57 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -47,6 +47,9 @@ public class BuilderSettingsPreferencePage extends PreferencePage
     
     // checkbox for enabling console output
     private Button consoleOutputCheckBox;
+
+    // checkbox for enabling console output
+    private Button auxParserCheckBox;
 
     // field for browsing to tex distribution install dir
     private Text texDirField;
@@ -104,7 +107,8 @@ public class BuilderSettingsPreferencePage extends PreferencePage
         addTexInstallDir(contents);
         TexlipsePreferencePage.addSpacer(2, false, contents);
         addConsoleCheckBox(contents);
-        TexlipsePreferencePage.addSpacer(2, true, contents);
+        //TexlipsePreferencePage.addSpacer(1, true, contents);
+        addAuxParserCheckBox(contents);
         
         return contents;
 	}
@@ -225,6 +229,25 @@ public class BuilderSettingsPreferencePage extends PreferencePage
     }
 
     /**
+     * Add "Parse .aux files" -checkbox.
+     * @param contents parent component
+     */
+    private void addAuxParserCheckBox(Composite contents) {
+        Composite checkField = new Composite(contents, SWT.NULL);
+        GridData checkData = new GridData(GridData.FILL_HORIZONTAL);
+        checkData.horizontalSpan = 2;
+        checkField.setLayoutData(checkData);
+        GridLayout checkLay = new GridLayout();
+        checkLay.numColumns = 2;
+        checkField.setLayout(checkLay);
+        
+        auxParserCheckBox = new Button(checkField, SWT.CHECK);
+        auxParserCheckBox.setLayoutData(new GridData());
+        auxParserCheckBox.setText(TexlipsePlugin.getResourceString("preferenceBuilderAuxParser"));
+        auxParserCheckBox.setSelection(getPreferenceStore().getBoolean(TexlipseProperties.BUILDER_PARSE_AUX_FILES));
+    }
+
+    /**
      * Called when ok-button (or apply-button) is pressed.
      * Saves all the field editor values to preferences.
      * @return true
@@ -232,6 +255,7 @@ public class BuilderSettingsPreferencePage extends PreferencePage
     public boolean performOk() {
         boolean ok = super.performOk();
         getPreferenceStore().setValue(TexlipseProperties.BUILDER_CONSOLE_OUTPUT, consoleOutputCheckBox.getSelection());
+        getPreferenceStore().setValue(TexlipseProperties.BUILDER_PARSE_AUX_FILES, auxParserCheckBox.getSelection());
         changeTexDistribution();
         texDirField.setText("");
         builderList.setItems(getBuilderItems());
@@ -246,6 +270,7 @@ public class BuilderSettingsPreferencePage extends PreferencePage
     public void performDefaults() {
         super.performDefaults();
         consoleOutputCheckBox.setSelection(getPreferenceStore().getDefaultBoolean(TexlipseProperties.BUILDER_CONSOLE_OUTPUT));
+        auxParserCheckBox.setSelection(getPreferenceStore().getDefaultBoolean(TexlipseProperties.BUILDER_PARSE_AUX_FILES));
     }
     
     /**

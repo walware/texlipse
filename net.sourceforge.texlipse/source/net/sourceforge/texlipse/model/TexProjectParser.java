@@ -1,5 +1,5 @@
 /*
- * $Id: TexProjectParser.java,v 1.12 2009/05/04 20:34:10 borisvl Exp $
+ * $Id: TexProjectParser.java,v 1.13 2009/05/26 17:06:04 borisvl Exp $
  *
  * Copyright (c) 2006 by the TeXlipse team.
  * All rights reserved. This program and the accompanying materials
@@ -39,10 +39,7 @@ public class TexProjectParser {
     private IFile file;
     
     private TexParser parser;
-    
-    private ReferenceContainer labels;
-    private ReferenceContainer bibs;
-    
+        
     private static final String TEX_FILE_ENDING = ".tex";
 
     /**
@@ -52,11 +49,8 @@ public class TexProjectParser {
      * @param labels The label container for this project
      * @param bibs The BibTeX container for this project
      */
-    public TexProjectParser(IProject currentProject, 
-            ReferenceContainer labels, ReferenceContainer bibs) {
+    public TexProjectParser(IProject currentProject) {
         this.currentProject = currentProject;
-        this.labels = labels;
-        this.bibs = bibs;
     }
 
     /**
@@ -153,7 +147,7 @@ public class TexProjectParser {
         if (this.parser == null) {
             this.parser = new TexParser(null);
         }
-        this.parser.parseDocument(labels, bibs, input, false);
+        this.parser.parseDocument(input, false);
     }
 
     /**

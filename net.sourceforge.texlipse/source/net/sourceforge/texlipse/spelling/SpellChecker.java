@@ -1,5 +1,5 @@
 /*
- * $Id: SpellChecker.java,v 1.18 2008/07/19 14:18:20 borisvl Exp $
+ * $Id: SpellChecker.java,v 1.21 2010/02/27 20:58:04 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -13,7 +13,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,7 +33,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -66,8 +67,7 @@ public class SpellChecker implements IPropertyChangeListener {
     public static final String SPELL_CHECKER_COMMAND = "spellCmd";
     public static final String SPELL_CHECKER_ARGUMENTS = "spellArgs";
     public static final String SPELL_CHECKER_ENV = "spellEnv";
-    private static final String SPELL_CHECKER_ENCODING = "spellEnc";
-    private static final String encoding = ResourcesPlugin.getEncoding();
+    private static final String ASPELL_ENCODING = "UTF-8";
 
     // These two strings have to have multiple words, because otherwise
     // they may come up in aspells proposals.
@@ -75,11 +75,11 @@ public class SpellChecker implements IPropertyChangeListener {
     // The values are resource bundle entry IDs at startup.
     // They are converted to actual strings in the constructor.
     public static String SPELL_CHECKER_IGNORE = "spellCheckerIgnoreWord";
-
+    
     /**
      * A Spell-checker job.
      */
-    class SpellCheckJob extends WorkspaceJob {
+    static class SpellCheckJob extends WorkspaceJob {
 
         // the document to check for spelling
         private IDocument document;
@@ -156,7 +156,6 @@ public class SpellChecker implements IPropertyChangeListener {
         prefs.setDefault(SPELL_CHECKER_ENV, "");
         prefs.setDefault(SPELL_CHECKER_ARGUMENTS,
             "-a -t --lang=%language --encoding=%encoding");
-        prefs.setDefault(SPELL_CHECKER_ENCODING, encoding);
         prefs.addPropertyChangeListener(instance);
         instance.readSettings();
     }
@@ -166,19 +165,6 @@ public class SpellChecker implements IPropertyChangeListener {
      * @param word word to add
      */
     public static void addWordToAspell(String word) {
-/*        String path = TexlipsePlugin.getPreference(SPELL_CHECKER_COMMAND);
-        if (path == null || path.length() == 0) {
-            return;
-        }
-
-        File f = new File(path);
-        if (!f.exists() || f.isDirectory()) {
-            return;
-        }
-
-        String args = "--encoding=" + encoding
-                    + " --lang=" + instance.language + " -a";*/
-        //String cmd = f.getAbsolutePath() + " " + args;
         //patch 1537979 by daniel309
         if (instance.command == null) instance.readSettings();
         String cmd = instance.command;
@@ -189,7 +175,8 @@ public class SpellChecker implements IPropertyChangeListener {
                 SPELL_CHECKER_ENV);
         try {
             Process p = Runtime.getRuntime().exec(cmd, environp);
-            PrintWriter w = new PrintWriter(p.getOutputStream());
+            PrintWriter w = new PrintWriter(new
+                        OutputStreamWriter(p.getOutputStream(), ASPELL_ENCODING));
             w.println("*" + word);
             w.println("#");
             w.flush();
@@ -224,13 +211,8 @@ public class SpellChecker implements IPropertyChangeListener {
         
         String args = TexlipsePlugin.getPreference(SPELL_CHECKER_ARGUMENTS);
         
-        String encoding = TexlipsePlugin.getPreference(SPELL_CHECKER_ENCODING).toLowerCase();
-        args = args.replaceAll("%encoding", encoding);
+        args = args.replaceAll("%encoding", ASPELL_ENCODING);
 
-        // Aspell only responds to the name "iso8859-*". And since Eclipse uses
-        // the "right" name we need to rename before passing it on to Aspell
-        args = args.replaceAll("iso-8859", "iso8859"); 
-        
         args = args.replaceAll("%language", language);
         
         command = f.getAbsolutePath() + " " + args;
@@ -247,13 +229,19 @@ public class SpellChecker implements IPropertyChangeListener {
             pLang = TexlipseProperties.getProjectProperty(prj, TexlipseProperties.LANGUAGE_PROPERTY);
         }
         
+        boolean restart = false;
         if (pLang != null && pLang.length() > 0) {
             if (!pLang.equals(language)) {
-                // current project is different language than currently running process, so change
+                // current project is different language 
+                //than currently running process, so change
                 language = pLang;
-                stopProgram();
-                readSettings();
+                restart = true;
             }
+        }
+
+        if (restart) {
+            stopProgram();
+            readSettings();
         }
     }
 
@@ -301,12 +289,21 @@ public class SpellChecker implements IPropertyChangeListener {
             return false;
         }
         
-        // get output stream
-        output = new PrintWriter(spellProgram.getOutputStream());
+        // get output and input stream
+        try {
+            output = new PrintWriter(new
+                    OutputStreamWriter(spellProgram.getOutputStream(), ASPELL_ENCODING));
+            input = new BufferedReader(new
+                    InputStreamReader(spellProgram.getInputStream(), ASPELL_ENCODING));
+        }
+        catch (UnsupportedEncodingException e1) {
+            spellProgram = null;
+            input = null;
+            output = null;
+            BuilderRegistry.printToConsole("Unsupported encoding");
+            return false;
+        }
         
-        // get input stream
-        input = new BufferedReader(new InputStreamReader(spellProgram
-                        .getInputStream()));
         // read the version info
         try {
             String message = input.readLine();
@@ -318,6 +315,7 @@ public class SpellChecker implements IPropertyChangeListener {
                 } else {
                     BuilderRegistry.printToConsole("aspell> " + message.trim());
                 }
+                error.close();
                 return false;
             }
             BuilderRegistry.printToConsole("aspell> " + message.trim());
@@ -340,15 +338,6 @@ public class SpellChecker implements IPropertyChangeListener {
             spellProgram.destroy();
             spellProgram = null;
         }
-    }
-
-    /**
-     * Set the spell checker encoding.
-     * @param enc encoding to use
-     */
-    public static void setEncoding(String enc) {
-        TexlipsePlugin.getDefault().getPreferenceStore().setValue(SPELL_CHECKER_ENCODING, enc);
-        // don't stop program yet, because the given encoding might not be different from current setting
     }
 
     /**
@@ -438,6 +427,72 @@ public class SpellChecker implements IPropertyChangeListener {
     }
 
     /**
+     * Replaces all Latex coded umlauts like \"a, "a or \ss by the correct
+     * character in ISO-8859-1
+     * @param line
+     * @return
+     */
+    private static String replaceUmlauts(String line) {
+        //FIXME: replacement of "a or "o is missing
+        StringBuilder out = new StringBuilder();
+        int addWS = 0;
+        for (int i=0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (addWS > 0 && Character.isWhitespace(c)) {
+                //Correct position by adding whitespaces
+                for (int j = 0; j < addWS; j++) out.append(' ');
+                addWS = 0;
+            }
+            if (c == '\\') {
+                if (i+2 < line.length() && line.charAt(i+1) == 's' && line.charAt(i+2) == 's') {
+                    if (i+3 == line.length() || Character.isWhitespace(line.charAt(i+3)) 
+                            || line.charAt(i+3) == '\\' || line.charAt(i+3) == '}') {
+                        out.append('ß');
+                        i = i+2;
+                        addWS = 2;
+                        continue;
+                    }
+                }
+                if (i+1 < line.length() && line.charAt(i+1) == '"') {
+                    if (i+2 < line.length()) {
+                        char c2 = line.charAt(i+2);
+                        i = i+2;
+                        addWS = 2;
+                        switch (c2) {
+                        case 'a':
+                            out.append('ä');
+                            break;
+                        case 'u':
+                            out.append('ü');
+                            break;
+                        case 'o':
+                            out.append('ö');
+                            break;
+                        case 'A':
+                            out.append('Ä');
+                            break;
+                        case 'U':
+                            out.append('Ü');
+                            break;
+                        case 'O':
+                            out.append('Ö');
+                            break;
+                        default:
+                            i = i-2;
+                            addWS = 0;
+                            out.append('\\');
+                            break;
+                        }
+                        continue;
+                    }
+                }
+            }
+            out.append(c);
+        }
+        return out.toString();
+    }
+    
+    /**
      * Check spelling of a single line.
      * This method parses ispell-style spelling error proposals.
      * 
@@ -460,21 +515,7 @@ public class SpellChecker implements IPropertyChangeListener {
         // give the speller something to parse
         String lineToPost = line;
         if (language.equals("de")) {
-            // from Boris Brodski:
-            // This is very usefull for german texts
-            // It's not a clean solution.
-            // TODO The problem: if ASpell found a error in the word with \"... command
-            // a marker will set wrong.
-            // This is ISO-8859-1
-            lineToPost = lineToPost.replace("\\\"a", "ä");
-            lineToPost = lineToPost.replace("\\\"u", "ü");
-            lineToPost = lineToPost.replace("\\\"o", "ö");
-            lineToPost = lineToPost.replace("\\\"A", "Ä");
-            lineToPost = lineToPost.replace("\\\"U", "Ü");
-            lineToPost = lineToPost.replace("\\\"O", "Ö");
-            lineToPost = lineToPost.replace("\\ss ", "ß");
-            lineToPost = lineToPost.replace("\\ss\\\\", "ß\\");
-            //lineToPost = lineToPost.replaceAll("\\ss[^a-zA-Z]", "ß");
+            lineToPost = replaceUmlauts(line);
         }
         
         /*
@@ -519,7 +560,8 @@ public class SpellChecker implements IPropertyChangeListener {
             // are matches, else 2)
             // we have to subtract 1 since the first char is always "^"
             int column = Integer.valueOf(error[error.length - 1]).intValue() - 1;
-
+            
+            /*
             // if we have multi byte chars (e.g. umlauts in utf-8), then aspell
             // returns them as multiple columns. computing the difference
             // between byte-length and String-length:
@@ -530,7 +572,8 @@ public class SpellChecker implements IPropertyChangeListener {
             }
             int difference = column - (new String(before)).length();
             column -= difference;
-
+            */
+            
             // list of proposals starts after the colon
             String[] options;
             if (tmp.length > 1) {
@@ -542,8 +585,10 @@ public class SpellChecker implements IPropertyChangeListener {
             } else {
                 options = new String[2];
             }
-            options[options.length - 2] = SPELL_CHECKER_IGNORE;
-            options[options.length - 1] = SPELL_CHECKER_ADD;
+            options[options.length - 2] = MessageFormat.format(SPELL_CHECKER_IGNORE,
+                    new Object[] { word });
+            options[options.length - 1] = MessageFormat.format(SPELL_CHECKER_ADD, 
+                    new Object[] { word });
 
             createMarker(file, options, offset + column, word,
                     lineNumber);
@@ -560,11 +605,11 @@ public class SpellChecker implements IPropertyChangeListener {
      */
     private void createMarker(IResource file, String[] proposals, int charBegin, String word, int lineNumber) {
         
-        Map attributes = new HashMap();
-        attributes.put(IMarker.CHAR_START, new Integer(charBegin));
-        attributes.put(IMarker.CHAR_END, new Integer(charBegin+word.length()));
-        attributes.put(IMarker.LINE_NUMBER, new Integer(lineNumber));
-        attributes.put(IMarker.SEVERITY, new Integer(IMarker.SEVERITY_WARNING));
+        Map<String, ? super Object> attributes = new HashMap<String, Object>();
+        attributes.put(IMarker.CHAR_START, Integer.valueOf(charBegin));
+        attributes.put(IMarker.CHAR_END, Integer.valueOf(charBegin+word.length()));
+        attributes.put(IMarker.LINE_NUMBER, Integer.valueOf(lineNumber));
+        attributes.put(IMarker.SEVERITY, Integer.valueOf(IMarker.SEVERITY_WARNING));
         attributes.put(IMarker.MESSAGE, 
             MessageFormat.format(TexlipsePlugin.getResourceString("spellMarkerMessage"),
                 new Object[] { word }));

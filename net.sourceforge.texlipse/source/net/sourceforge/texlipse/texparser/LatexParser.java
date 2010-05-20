@@ -1,5 +1,5 @@
 /*
- * $Id: LatexParser.java,v 1.18 2008/09/20 18:04:14 borisvl Exp $
+ * $Id: LatexParser.java,v 1.21 2010/01/30 19:09:35 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -19,7 +19,6 @@ import net.sourceforge.texlipse.TexlipsePlugin;
 import net.sourceforge.texlipse.model.DocumentReference;
 import net.sourceforge.texlipse.model.OutlineNode;
 import net.sourceforge.texlipse.model.ParseErrorMessage;
-import net.sourceforge.texlipse.model.ReferenceContainer;
 import net.sourceforge.texlipse.model.ReferenceEntry;
 import net.sourceforge.texlipse.model.TexCommandEntry;
 import net.sourceforge.texlipse.texparser.lexer.LexerException;
@@ -128,9 +127,9 @@ public class LatexParser {
         }
     }
 
-    private ArrayList<ReferenceEntry> labels;
-    private ArrayList<DocumentReference> cites;
-    private ArrayList<DocumentReference> refs;
+    private List<ReferenceEntry> labels;
+    private List<DocumentReference> cites;
+    private List<DocumentReference> refs;
     private ArrayList<TexCommandEntry> commands;
     private List<ParseErrorMessage> tasks;
     
@@ -181,11 +180,9 @@ public class LatexParser {
      * @throws IOException If the document is unreadable
      */
     public void parse(LatexLexer lex,
-            ReferenceContainer definedLabels,
-            ReferenceContainer definedBibs,
             boolean checkForMissingSections)
     throws LexerException, IOException {
-        parse(lex, definedLabels, definedBibs, null, checkForMissingSections);
+        parse(lex, null, checkForMissingSections);
     }
 
     /**
@@ -204,8 +201,6 @@ public class LatexParser {
      */
 
     public void parse(final LatexLexer lexer,
-            final ReferenceContainer definedLabels,
-            final ReferenceContainer definedBibs,
             final OutlineNode preamble,
             final boolean checkForMissingSections)
     throws LexerException, IOException {
@@ -245,28 +240,34 @@ public class LatexParser {
                         l.startLine = t.getLine();
                         this.labels.add(l);
                         
-                    } else if (prevToken instanceof TCref) {
-                        // if it's not certain that it exists, add it 
-                        //(this could lead to errors if the corresponding
-                        // label was also removed)
-
-                        if (!definedLabels.binTest(t.getText())) {
-                            this.refs.add(new DocumentReference(t.getText(),
-                                    t.getLine(),
-                                    t.getPos(),
-                                    t.getText().length()));
-                            //  + accumulatedLength + t.getText().length())
+                        OutlineNode on = new OutlineNode(t.getText(),
+                                OutlineNode.TYPE_LABEL,
+                                t.getLine(),
+                                t.getPos(), t.getText().length());
+                        on.setEndLine(t.getLine());
+                        
+                        
+                        if (!blocks.empty()) {
+                            OutlineNode prev = blocks.peek();
+                            prev.addChild(on);
+                            on.setParent(prev);
+                        } else {
+                            outlineTree.add(on);
                         }
+                        
+                    } else if (prevToken instanceof TCref) {
+                        this.refs.add(new DocumentReference(t.getText(),
+                                t.getLine(),
+                                t.getPos(),
+                                t.getText().length()));
                     } else if (prevToken instanceof TCcite) {
                         if (!"*".equals(t.getText())) {
-                            String[] cs = t.getText().replaceAll("\\s", "").split(",");
-                            for (int i = 0; i < cs.length; i++) {
-                                // this is certain to be an error, since the BibTeX -keys are always up to date
-                                if (!definedBibs.binTest(cs[i])) {
-                                    this.cites.add(new DocumentReference(cs[i],
-                                            t.getLine(), t.getPos(), t.getText().length()));
-                                }
-                            }
+                            String[] cs = t.getText().split(",");
+                            for (String c : cs) {
+                            	//just add all citation and check for errors later, after updating the citation index
+                                this.cites.add(new DocumentReference(c.trim(),
+                                		t.getLine(), t.getPos(), t.getText().length()));								
+							}
                         }
                         
                     } else if (prevToken instanceof TCbegin) { // \begin{...}
@@ -562,6 +563,9 @@ public class LatexParser {
 
                     } else if (prevToken instanceof TCbib) {
                         bibs = t.getText().split(",");
+                        for (int i = 0; i < bibs.length; i++) {
+							bibs[i] = bibs[i].trim();
+						}
                         int startLine = prevToken.getLine();
                         while (!blocks.empty()) {
                             OutlineNode prev = blocks.pop();
@@ -810,21 +814,21 @@ public class LatexParser {
     /**
      * @return The labels defined in this document
      */
-    public ArrayList<ReferenceEntry> getLabels() {
+    public List<ReferenceEntry> getLabels() {
         return this.labels;
     }
     
     /**
-     * @return The BibTeX citations which weren't defined
+     * @return The BibTeX citations
      */
-    public ArrayList<DocumentReference> getCites() {
+    public List<DocumentReference> getCites() {
         return this.cites;
     }
     
     /**
-     * @return The refencing commands for which no label was found
+     * @return The refencing commands
      */
-    public ArrayList<DocumentReference> getRefs() {
+    public List<DocumentReference> getRefs() {
         return this.refs;
     }
     

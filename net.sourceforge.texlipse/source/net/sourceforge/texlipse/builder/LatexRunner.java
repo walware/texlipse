@@ -1,5 +1,5 @@
 /*
- * $Id: LatexRunner.java,v 1.20 2009/05/16 12:17:00 borisvl Exp $
+ * $Id: LatexRunner.java,v 1.24 2010/02/17 22:22:33 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -21,6 +21,8 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 
 
 /**
@@ -32,7 +34,10 @@ import org.eclipse.core.resources.IResource;
  */
 public class LatexRunner extends AbstractProgramRunner {
     
-    private Stack<String> parsingStack;
+    private static final int MAX_LINE_LENGTH = 79;
+	
+	private Stack<String> parsingStack;
+    private boolean alreadyShowError;
     
     /**
      * Create a new ProgramRunner.
@@ -88,14 +93,28 @@ public class LatexRunner extends AbstractProgramRunner {
     private void addProblemMarker(String error, String causingSourceFile,
             int linenr, int severity, IResource resource, boolean layout) {
         
-        IProject project = resource.getProject();
+        
+    	IProject project = resource.getProject();
         IContainer sourceDir = TexlipseProperties.getProjectSourceDir(project);
-
+        
         IResource extResource = null;
         if (causingSourceFile != null) {
-            extResource = sourceDir.findMember(causingSourceFile);
+        	IPath p = new Path(causingSourceFile);
+        	
+        	if (p.isAbsolute()) {
+        		//Make absolute path relative to source directory
+        		//or to the directory of the resource
+        		if (sourceDir.getLocation().isPrefixOf(p)) {
+        			p = p.makeRelativeTo(sourceDir.getLocation());
+        		}
+        		else if (resource.getParent().getLocation().isPrefixOf(p)) {
+        			p = p.makeRelativeTo(resource.getParent().getLocation());
+        		}
+        	}
+
+        	extResource = sourceDir.findMember(p);
             if (extResource == null) {
-                extResource = resource.getParent().findMember(causingSourceFile);
+                extResource = resource.getParent().findMember(p);
             }
         }
         if (extResource == null)
@@ -127,9 +146,11 @@ public class LatexRunner extends AbstractProgramRunner {
         parsingStack.clear();
         boolean errorsFound = false;
         boolean citeNotfound = false;
+        alreadyShowError = false;
         StringTokenizer st = new StringTokenizer(output, "\r\n");
 
         final Pattern LATEXERROR = Pattern.compile("^! LaTeX Error: (.*)$");
+        final Pattern LATEXCERROR = Pattern.compile("^(.+?\\.\\w{3}):(\\d+): (.+)$");
         final Pattern TEXERROR = Pattern.compile("^!\\s+(.*)$");
         final Pattern FULLBOX = Pattern.compile("^(?:Over|Under)full \\\\[hv]box .* at lines? (\\d+)-?-?(\\d+)?");
         final Pattern WARNING = Pattern.compile("^.+[Ww]arning.*: (.*)$");
@@ -147,8 +168,25 @@ public class LatexRunner extends AbstractProgramRunner {
         
         while (st.hasMoreTokens()) {
             line = st.nextToken();
+            //Add more lines if line length is a multiple of 79 and
+            //it does not end with ...
+            while (!line.endsWith("...") && st.hasMoreTokens() 
+            		&& line.length() % MAX_LINE_LENGTH == 0) {
+            	line = line + st.nextToken();
+            }
             line = line.replaceAll(" {2,}", " ").trim();
-            Matcher m = TEXERROR.matcher(line);
+            Matcher m = LATEXCERROR.matcher(line);
+            if (m.matches()) {
+                //C-Style LaTeX error
+                addProblemMarker(m.group(3), m.group(1), Integer.parseInt(m.group(2)), IMarker.SEVERITY_ERROR, resource, false);
+                //Maybe parsingStack is empty...
+                if (parsingStack.isEmpty()) {
+                    //Add the file to the stack
+                    parsingStack.push("(" + m.group(1));
+                }
+                continue;
+            }
+            m = TEXERROR.matcher(line);
             if (m.matches() && line.toLowerCase().indexOf("warning") == -1) {
                 if (hasProblem) {
                     // We have a not reported problem
@@ -334,7 +372,8 @@ public class LatexRunner extends AbstractProgramRunner {
                 i = j - 1;
             } else if (logLine.charAt(i) == ')' && !parsingStack.isEmpty()) {
                 parsingStack.pop();
-            } else if (logLine.charAt(i) == ')') {
+            } else if (logLine.charAt(i) == ')' && !alreadyShowError) {
+                alreadyShowError = true;
                 // There was a parsing error, this is very rare
                 TexlipsePlugin.log("Error while parsing the LaTeX output. " +
                         "Please consult the console output", null);

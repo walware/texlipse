@@ -1,5 +1,5 @@
 /*
- * $Id: SpellCheckAction.java,v 1.3 2005/04/24 14:40:56 kimmok Exp $
+ * $Id: SpellCheckAction.java,v 1.4 2010/02/17 21:23:08 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -10,7 +10,6 @@
 package net.sourceforge.texlipse.spelling;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelection;
@@ -47,15 +46,6 @@ public class SpellCheckAction implements IEditorActionDelegate {
         IEditorInput input = textEditor.getEditorInput();
         
         IFile file = ((FileEditorInput) input).getFile();
-        
-        // read encoding from the file
-        if (input instanceof FileEditorInput) {
-            try {
-                String enc = file.getCharset();
-                SpellChecker.setEncoding(enc);
-            } catch (CoreException e) {
-            }
-        }
         
         SpellChecker.checkSpelling(textEditor.getDocumentProvider().getDocument(input), file);
 	}

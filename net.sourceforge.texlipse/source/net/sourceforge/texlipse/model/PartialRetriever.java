@@ -1,5 +1,5 @@
 /*
- * $Id: PartialRetriever.java,v 1.5 2008/08/18 18:36:58 borisvl Exp $
+ * $Id: PartialRetriever.java,v 1.6 2010/01/30 18:16:08 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -103,6 +103,7 @@ public abstract class PartialRetriever {
         int[] bounds = new int[] {-1,-1};
         int left = initBounds[0], right = initBounds[1] - 1;
         int middle = right/2;
+        if (left > right) return bounds;
         
         if (entries[left].key.startsWith(start))
             right = middle = left;

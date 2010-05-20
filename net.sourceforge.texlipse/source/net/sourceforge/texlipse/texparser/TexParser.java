@@ -1,5 +1,5 @@
 /*
- * $Id: TexParser.java,v 1.16 2008/09/20 18:04:14 borisvl Exp $
+ * $Id: TexParser.java,v 1.19 2010/02/21 19:20:58 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -18,7 +18,6 @@ import java.util.List;
 import net.sourceforge.texlipse.model.DocumentReference;
 import net.sourceforge.texlipse.model.OutlineNode;
 import net.sourceforge.texlipse.model.ParseErrorMessage;
-import net.sourceforge.texlipse.model.ReferenceContainer;
 import net.sourceforge.texlipse.model.ReferenceEntry;
 import net.sourceforge.texlipse.model.TexCommandEntry;
 import net.sourceforge.texlipse.texparser.lexer.LexerException;
@@ -86,10 +85,10 @@ public class TexParser {
     }
     
     static String extractLaTeXPreamble(String input) {
-        if (LatexParserUtils.findCommand(input, "\\documentclass", 0) == -1
+        /*if (LatexParserUtils.findCommand(input, "\\documentclass", 0) == -1
                 && LatexParserUtils.findCommand(input, "\\documentstyle", 0) == -1) {
             return null;
-        }
+        }*/
         
         IRegion region = LatexParserUtils.findBeginEnvironment(input, "document", 0);
         if (region != null) {
@@ -138,10 +137,8 @@ public class TexParser {
      * 
      * @throws IOException
      */
-    public void parseDocument(ReferenceContainer labels,
-            ReferenceContainer bibs,
-            boolean checkForMissingSections) throws IOException {
-        parseDocument(labels, bibs, inputDoc.get(), checkForMissingSections);
+    public void parseDocument(boolean checkForMissingSections) throws IOException {
+        parseDocument(inputDoc.get(), checkForMissingSections);
     }
     
     /**
@@ -149,10 +146,7 @@ public class TexParser {
      * 
      * @throws IOException
      */
-    public void parseDocument(ReferenceContainer labels,
-            ReferenceContainer bibs,
-            String input,
-            boolean checkForMissingSections) throws IOException {
+    public void parseDocument(String input, boolean checkForMissingSections) throws IOException {
         
         // remove trailing ws (this is because a discrepancy in the lexer's 
         // and IDocument's line counting for trailing whitespace)
@@ -168,9 +162,9 @@ public class TexParser {
                 OutlineNode on = new OutlineNode("Preamble",
                         OutlineNode.TYPE_PREAMBLE,
                         1, null);
-                lparser.parse(lexer, labels, bibs, on, checkForMissingSections);
+                lparser.parse(lexer, on, checkForMissingSections);
             } else {
-                lparser.parse(lexer, labels, bibs, checkForMissingSections);
+                lparser.parse(lexer, checkForMissingSections);
             }
             this.errors = lparser.getErrors();
             this.fatalErrors = lparser.isFatalErrors();
@@ -201,14 +195,20 @@ public class TexParser {
     /**
      * @return The labels <code>ArrayList<ReferenceEntry></code>
      */
-    public ArrayList<ReferenceEntry> getLabels() {
-        return lparser.getLabels();
+    public List<ReferenceEntry> getLabels() {
+    	List<ReferenceEntry> labels = lparser.getLabels();
+    	for (ReferenceEntry label : labels) {
+    		label.setLabelInfo(inputDoc.get());
+    	}
+        return labels;
     }
+    
+
 
     /**
      * @return The cite-references
      */
-    public ArrayList<DocumentReference> getCites() {
+    public List<DocumentReference> getCites() {
         return lparser.getCites();
     }
     
@@ -255,9 +255,9 @@ public class TexParser {
     }
     
     /**
-     * @return Get the \ref -references that were invalid
+     * @return Get all \ref -references
      */
-    public ArrayList<DocumentReference> getRefs() {
+    public List<DocumentReference> getRefs() {
         return lparser.getRefs();
     }
     

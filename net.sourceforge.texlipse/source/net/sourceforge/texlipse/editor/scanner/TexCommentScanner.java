@@ -1,5 +1,5 @@
 /*
- * $Id: TexCommentScanner.java,v 1.2 2009/05/13 20:48:47 borisvl Exp $
+ * $Id: TexCommentScanner.java,v 1.3 2009/05/20 19:28:17 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.sourceforge.texlipse.editor.ColorManager;
-import net.sourceforge.texlipse.editor.TexEditor;
 
 import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.RuleBasedScanner;
@@ -32,9 +31,8 @@ public class TexCommentScanner extends RuleBasedScanner {
     /**
      * A default constructor. 
      * @param manager
-     * @param editor
      */
-    public TexCommentScanner(ColorManager manager, TexEditor editor) {					
+    public TexCommentScanner(ColorManager manager) {					
         List<IRule> rules = new ArrayList<IRule>();
         rules.add(new WhitespaceRule(new WhitespaceDetector()));		
         IRule[] result = new IRule[rules.size()];

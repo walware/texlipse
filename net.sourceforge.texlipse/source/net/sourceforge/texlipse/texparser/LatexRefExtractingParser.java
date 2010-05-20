@@ -1,5 +1,5 @@
 /*
- * $Id: LatexRefExtractingParser.java,v 1.5 2008/04/27 09:54:20 borisvl Exp $
+ * $Id: LatexRefExtractingParser.java,v 1.6 2010/02/21 19:20:58 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -102,6 +102,7 @@ public class LatexRefExtractingParser {
                             ReferenceEntry l = new ReferenceEntry(t.getText());
                             l.setPosition(t.getPos(), t.getText().length());
                             l.startLine = t.getLine();
+                            l.setLabelInfo(input);
                             this.labels.add(l);
                         } else if (prevToken instanceof TCbib) {
                             bibs = t.getText().split(",");

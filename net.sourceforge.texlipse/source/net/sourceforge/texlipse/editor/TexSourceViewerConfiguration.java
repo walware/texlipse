@@ -1,5 +1,5 @@
 /*
- * $Id: TexSourceViewerConfiguration.java,v 1.14 2009/05/16 14:47:45 borisvl Exp $
+ * $Id: TexSourceViewerConfiguration.java,v 1.17 2010/02/27 20:58:04 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -16,6 +16,7 @@ import net.sourceforge.texlipse.editor.scanner.TexMathScanner;
 import net.sourceforge.texlipse.editor.scanner.TexScanner;
 import net.sourceforge.texlipse.properties.TexlipseProperties;
 
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IAutoEditStrategy;
 import org.eclipse.jface.text.IDocument;
@@ -31,6 +32,7 @@ import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.reconciler.IReconciler;
 import org.eclipse.jface.text.reconciler.IReconcilingStrategy;
 import org.eclipse.jface.text.reconciler.MonoReconciler;
+import org.eclipse.jface.text.reconciler.Reconciler;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
 import org.eclipse.jface.text.rules.RuleBasedScanner;
 import org.eclipse.jface.text.rules.Token;
@@ -78,14 +80,17 @@ public class TexSourceViewerConfiguration extends TextSourceViewerConfiguration 
             return null;
         if (!TexlipsePlugin.getDefault().getPreferenceStore().getBoolean(TexlipseProperties.ECLIPSE_BUILDIN_SPELLCHECKER))
             return null;
-        
-        SpellingService spellingService= EditorsUI.getSpellingService();
+        //Set TeXlipse spelling Engine as default
+        fPreferenceStore.setValue(SpellingService.PREFERENCE_SPELLING_ENGINE, 
+                "net.sourceforge.texlipse.LaTeXSpellEngine");
+        SpellingService spellingService = new SpellingService(fPreferenceStore);
         if (spellingService.getActiveSpellingEngineDescriptor(fPreferenceStore) == null)
             return null;
-        
         IReconcilingStrategy strategy= new TeXSpellingReconcileStrategy(sourceViewer, spellingService);
-        MonoReconciler reconciler= new MonoReconciler(strategy, false);
+        
+        MonoReconciler reconciler= new MonoReconciler(strategy, true);
         reconciler.setDelay(500);
+        reconciler.setProgressMonitor(new NullProgressMonitor());
         return reconciler;
     }
     
@@ -94,11 +99,11 @@ public class TexSourceViewerConfiguration extends TextSourceViewerConfiguration 
      * 
      * @param te The editor that this configuration is associated to
      */
-    public TexSourceViewerConfiguration(TexEditor te) {        
+    public TexSourceViewerConfiguration(TexEditor editor) {        
         super(EditorsUI.getPreferenceStore());
-        this.editor = te;
+        this.editor = editor;
         this.colorManager = new ColorManager();
-        this.annotationHover = new TexAnnotationHover(editor);
+        this.annotationHover = new TexAnnotationHover();
 
         // Adds a listener for changing content assistant properties if
         // these are changed in the preferences
@@ -132,21 +137,14 @@ public class TexSourceViewerConfiguration extends TextSourceViewerConfiguration 
         return annotationHover;
     }
     
-    // the deprecated interface must be used as a return value, since the extended class hasn't been
-    // updated to reflect the change
-//    public IAutoIndentStrategy getAutoIndentStrategy(ISourceViewer sourceViewer, String contentType) {
-//        return new TexAutoIndentStrategy(editor.getPreferences());
-//    }
-    
     
     /* (non-Javadoc)
      * @see org.eclipse.jface.text.source.SourceViewerConfiguration#getAutoEditStrategies(org.eclipse.jface.text.source.ISourceViewer, java.lang.String)
      */
     public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
-        // TODO Auto-generated method stub
         //return super.getAutoEditStrategies(sourceViewer, contentType);
         if (autoIndentStrategy == null) {
-            autoIndentStrategy = new TexAutoIndentStrategy(editor.getPreferences());
+            autoIndentStrategy = new TexAutoIndentStrategy();
         }
         return new IAutoEditStrategy[] {autoIndentStrategy};
     }
@@ -241,7 +239,7 @@ public class TexSourceViewerConfiguration extends TextSourceViewerConfiguration 
      */
     protected TexScanner getTexScanner() {
         if (scanner == null) {
-            scanner = new TexScanner(colorManager, editor);
+            scanner = new TexScanner(colorManager);
             scanner.setDefaultReturnToken(
                     new Token(
                             new TextAttribute(
@@ -259,7 +257,7 @@ public class TexSourceViewerConfiguration extends TextSourceViewerConfiguration 
      */
     protected TexMathScanner getTeXMathScanner() {
         if (mathScanner == null) {
-            mathScanner = new TexMathScanner(colorManager, editor);
+            mathScanner = new TexMathScanner(colorManager);
             mathScanner.setDefaultReturnToken(
                     new Token(
                             new TextAttribute(
@@ -276,7 +274,7 @@ public class TexSourceViewerConfiguration extends TextSourceViewerConfiguration 
      */
     protected TexCommentScanner getTexCommentScanner() {
         if (commentScanner == null) {
-            commentScanner = new TexCommentScanner(colorManager,editor);
+            commentScanner = new TexCommentScanner(colorManager);
             commentScanner.setDefaultReturnToken(
                     new Token(
                             new TextAttribute(
