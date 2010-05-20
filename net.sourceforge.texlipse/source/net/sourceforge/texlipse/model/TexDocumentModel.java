@@ -1,5 +1,5 @@
 /*
- * $Id: TexDocumentModel.java,v 1.22 2008/01/20 15:33:45 borisvl Exp $
+ * $Id: TexDocumentModel.java,v 1.28 2009/05/16 10:18:17 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -9,10 +9,11 @@
  */
 package net.sourceforge.texlipse.model;
 
+import java.io.File;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 import net.sourceforge.texlipse.TexlipsePlugin;
@@ -25,15 +26,17 @@ import net.sourceforge.texlipse.properties.TexlipseProperties;
 import net.sourceforge.texlipse.texparser.LatexRefExtractingParser;
 import net.sourceforge.texlipse.texparser.TexParser;
 import net.sourceforge.texlipse.treeview.views.TexOutlineTreeView;
+import net.sourceforge.texlipse.builder.KpsewhichRunner;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.ILock;
 import org.eclipse.core.runtime.jobs.Job;
@@ -46,6 +49,7 @@ import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.progress.WorkbenchJob;
@@ -143,7 +147,7 @@ public class TexDocumentModel implements IDocumentListener {
     private class PostParseJob extends WorkbenchJob {
         
         private ArrayList rootNodes;
-        private List fullOutlineNodes;
+        private List<OutlineNode> fullOutlineNodes;
 
         /**
          * 
@@ -163,7 +167,7 @@ public class TexDocumentModel implements IDocumentListener {
         /**
          * @param rootNodes
          */
-        public void setFONodes(List rootNodes) {
+        public void setFONodes(List<OutlineNode> rootNodes) {
             this.fullOutlineNodes = rootNodes;
         }
 
@@ -411,7 +415,7 @@ public class TexDocumentModel implements IDocumentListener {
      * 
      * @throws TexDocumentParseException
      */
-    private ArrayList doParse(IProgressMonitor monitor) throws TexDocumentParseException {
+    private ArrayList<OutlineNode> doParse(IProgressMonitor monitor) throws TexDocumentParseException {
         
         if (this.parser == null) {
             this.parser = new TexParser(editor.getDocumentProvider().getDocument(editor.getEditorInput()));
@@ -429,9 +433,9 @@ public class TexDocumentModel implements IDocumentListener {
         pollCancel(monitor);
 
         List<ParseErrorMessage> errors = parser.getErrors();
-        List tasks = parser.getTasks();
+        List<ParseErrorMessage> tasks = parser.getTasks();
         MarkerHandler marker = MarkerHandler.getInstance();
-
+        
         // somewhat inelegantly ensures that errors marked in createProjectDatastructs()
         // aren't removed immediately
         if (!firstRun) {
@@ -441,17 +445,20 @@ public class TexDocumentModel implements IDocumentListener {
             firstRun = false;
         }
 
+
         if (editor.getProject() != null && editor.getFullOutline() != null) {
             IResource res = (IResource) editor.getEditorInput().getAdapter(IResource.class);
             String fileName = res.getProjectRelativePath().toString();
             projectOutline.addOutline(parser.getOutlineTree(), fileName);
             
-            List fo = projectOutline.getFullOutline();
+            List<OutlineNode> fo = projectOutline.getFullOutline();
             postParseJob.setFONodes(fo);
         } else {
             postParseJob.setFONodes(null);
         }
         pollCancel(monitor);
+        
+        processIncludes(parser.getInputs(), editor.getEditorInput());
         
         if (errors.size() > 0) {
             marker.createErrorMarkers(editor, errors);
@@ -465,8 +472,8 @@ public class TexDocumentModel implements IDocumentListener {
         
         updateReferences(monitor);
         
-        ArrayList bibErrors = parser.getCites();
-        ArrayList refErrors = parser.getRefs();
+        ArrayList<DocumentReference> bibErrors = parser.getCites();
+        ArrayList<DocumentReference> refErrors = parser.getRefs();
         if (bibErrors.size() > 0) {
             marker.createReferencingErrorMarkers(editor, bibErrors);
         }
@@ -508,8 +515,8 @@ public class TexDocumentModel implements IDocumentListener {
         
         // add new positions for nodes and their children
         int maxDepth = 0;
-        for (Iterator iter = rootNodes.iterator(); iter.hasNext(); ) {
-            OutlineNode node = (OutlineNode) iter.next();
+        for (Iterator<OutlineNode> iter = rootNodes.iterator(); iter.hasNext(); ) {
+            OutlineNode node = iter.next();
             int localDepth = addNodePosition(node, document, 0, newOutlineInput); 
             
             if (localDepth > maxDepth) {
@@ -561,11 +568,11 @@ public class TexDocumentModel implements IDocumentListener {
         newOutlineInput.addNode(node);
         
         // iterate through the children
-        List children = node.getChildren();
+        List<OutlineNode> children = node.getChildren();
         int maxDepth = parentDepth + 1;
         if (children != null) {
-            for (Iterator iter = children.iterator(); iter.hasNext();) {
-                int localDepth = addNodePosition((OutlineNode) iter.next(), document, parentDepth + 1, newOutlineInput);
+            for (Iterator<OutlineNode> iter = children.iterator(); iter.hasNext();) {
+                int localDepth = addNodePosition(iter.next(), document, parentDepth + 1, newOutlineInput);
                 if (localDepth > maxDepth) {
                     maxDepth = localDepth;
                 }
@@ -589,9 +596,7 @@ public class TexDocumentModel implements IDocumentListener {
         pollCancel(monitor);
         
         String[] bibs = parser.getBibs();
-        if (bibs != null) {
-            this.updateBibs(bibs, ((FileEditorInput)editor.getEditorInput()).getFile());
-        }
+        this.updateBibs(bibs, ((FileEditorInput)editor.getEditorInput()).getFile());
         // After here we just store those fun properties...
         
         pollCancel(monitor);
@@ -653,23 +658,65 @@ public class TexDocumentModel implements IDocumentListener {
         if (!path.isEmpty())
             path = path.addTrailingSeparator();
         
-        for (String name : newBibs) {
-            IResource res = project.findMember(path + name);
-            if (res != null) {
-                BibParser parser = new BibParser(res.getLocation().toOSString());
-                try {
-                    List bibEntriesList = parser.getEntries();
-                    if (bibEntriesList != null && bibEntriesList.size() > 0) {
-                        bibContainer.addRefSource(path + name, bibEntriesList);
-                    } else if (bibEntriesList == null) {
-                        MarkerHandler marker = MarkerHandler.getInstance();
-                        marker.addFatalError(editor, "The BibTeX file " + res.getFullPath() + " contains fatal errors, parsing aborted.");
-                        continue;
-                    }
-                } catch (IOException ioe) {
-                    TexlipsePlugin.log("Can't read BibTeX file " + res.getFullPath(), ioe);
-                }
-            }
+        KpsewhichRunner filesearch = new KpsewhichRunner();
+                
+        for (Iterator<String> iter = newBibs.iterator(); iter.hasNext();) {
+        	String name = iter.next();
+        	try {
+        	    String filepath = "";
+        	    //First try local search
+        	    IResource res = project.findMember(path + name);
+        	    if (res != null) {
+        	        filepath = res.getLocation().toOSString();
+        	    }
+        	    else {
+        	        //Try Kpsewhich
+        	        filepath = filesearch.getFile(resource, name, "bibtex");
+        	        if (filepath.length() > 0 && !(new File(filepath).isAbsolute())) {
+        	            //filepath is a local path
+        	            res = project.findMember(path + filepath);
+        	            if (res != null) {
+        	                filepath = res.getLocation().toOSString();
+        	            }
+        	            else {
+        	                filepath = "";
+        	            }
+        	        }
+        	        else if (filepath.length() > 0) {
+        	            //Create a link to resource
+                        IPath p = new Path(filepath);
+                        if (name.indexOf('/') >= 0) {
+                            //Remove path from name
+                            name = name.substring(name.lastIndexOf('/') + 1);
+                        }
+                        IFile f = project.getFile(path + name);
+                        if (f != null && !f.exists()) {
+                            f.createLink(p, IResource.NONE, null);
+                        }
+        	        }
+        	    }
+        		if (filepath.length() > 0) {
+        			BibParser parser = new BibParser(filepath);
+        			try {
+        				List<ReferenceEntry> bibEntriesList = parser.getEntries();
+        				if (bibEntriesList != null && bibEntriesList.size() > 0) {
+        					bibContainer.addRefSource(path + name, bibEntriesList);
+        				} else if (bibEntriesList == null) {
+        					MarkerHandler marker = MarkerHandler.getInstance();
+        					marker.addFatalError(editor, "The BibTeX file " + filepath + " contains fatal errors, parsing aborted.");
+        					continue;
+        				}
+        			} catch (IOException ioe) {
+        				TexlipsePlugin.log("Can't read BibTeX file " + filepath, ioe);
+        			}
+        		} else {
+        			MarkerHandler marker = MarkerHandler.getInstance();
+        			marker.addFatalError(editor, "The BibTeX file " +name+ " not found.");
+        		}
+
+        	} catch (CoreException ce) {
+        		TexlipsePlugin.log("Can't run Kpathsea", ce);
+        	}
         }
         bibContainer.organize();
     }
@@ -689,11 +736,33 @@ public class TexDocumentModel implements IDocumentListener {
      * Updates the commands.
      * @param commands
      */
-    private void updateCommands(ArrayList commands) {
+    private void updateCommands(ArrayList<TexCommandEntry> commands) {
         IResource resource = getFile();
         if (resource == null) return;
         if (commandContainer.addRefSource(resource.getProjectRelativePath().toString(), commands))
             commandContainer.organize();
+    }
+    
+    /**
+     * Checks whether all includes exists, if they are outside of the
+     * project, add a link to the file to the project 
+     * @param includes
+     */
+    private void processIncludes(List<OutlineNode> includes, IEditorInput input) {
+        IProject project = getCurrentProject();
+        if (project == null) return;
+        IFile referFile = (IFile) input.getAdapter(IFile.class);
+        if (referFile == null) return;
+        for (OutlineNode node : includes) {
+            IFile f = TexProjectParser.findIFile(node.getName(), referFile, project);
+            if (f == null) {
+                MarkerHandler marker = MarkerHandler.getInstance();
+                String errorMsg = MessageFormat.format(
+                        TexlipsePlugin.getResourceString("parseErrorIncludeNotFound"),
+                        new Object[] { node.getName() });
+                marker.createErrorMarker(referFile, errorMsg, node.getBeginLine());
+            }
+        }
     }
     
     /**
@@ -781,7 +850,7 @@ public class TexDocumentModel implements IDocumentListener {
                         if (labels.size() > 0) {
                             labelContainer.addRefSource(files[i].getProjectRelativePath().toString(), labels);
                         }
-                        ArrayList commands = lrep.getCommands();
+                        ArrayList<TexCommandEntry> commands = lrep.getCommands();
                         if (commands.size() > 0) {
                             commandContainer.addRefSource(files[i].getProjectRelativePath().toString(), commands);
                         }

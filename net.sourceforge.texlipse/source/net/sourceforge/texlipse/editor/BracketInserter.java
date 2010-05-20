@@ -1,5 +1,5 @@
 /*
- * $Id: BracketInserter.java,v 1.9 2008/07/18 21:24:56 borisvl Exp $
+ * $Id: BracketInserter.java,v 1.10 2009/05/16 13:35:26 borisvl Exp $
  *
  * Copyright (c) 2006 by the TeXlipse team.
  * All rights reserved. This program and the accompanying materials
@@ -15,14 +15,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.texlipse.TexlipsePlugin;
+import net.sourceforge.texlipse.editor.partitioner.FastLaTeXPartitionScanner;
 import net.sourceforge.texlipse.properties.TexlipseProperties;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.BadPartitioningException;
 import org.eclipse.jface.text.BadPositionCategoryException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentExtension;
+import org.eclipse.jface.text.IDocumentExtension3;
 import org.eclipse.jface.text.IPositionUpdater;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Position;
@@ -348,13 +351,24 @@ public class BracketInserter implements VerifyKeyListener, ILinkedModeListener {
             return;
         }
         IDocument document = sourceViewer.getDocument();
-        
         final Point selection = sourceViewer.getSelectedRange();
         final int offset = selection.x;
         final int length = selection.y;
         
         final char character = event.character;
         try {
+            if (document instanceof IDocumentExtension3) {
+                try {
+                    String contentType = ((IDocumentExtension3) document).getContentType(
+                            TexEditor.TEX_PARTITIONING, offset, false);
+                    if (FastLaTeXPartitionScanner.TEX_VERBATIM.equals(contentType)) {
+                        //No features inside verbatim environments
+                        return;
+                    }
+                } catch (BadPartitioningException e) {
+                    TexlipsePlugin.log("Bad partitioning", e);
+                }
+            }
             char next = ' ';
             char last = ' ';
             try {

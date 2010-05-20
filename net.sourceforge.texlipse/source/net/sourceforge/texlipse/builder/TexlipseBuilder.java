@@ -1,5 +1,5 @@
 /*
- * $Id: TexlipseBuilder.java,v 1.17 2008/07/26 12:30:04 borisvl Exp $
+ * $Id: TexlipseBuilder.java,v 1.22 2009/05/16 15:14:58 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -9,9 +9,12 @@
  */
 package net.sourceforge.texlipse.builder;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -58,6 +61,9 @@ public class TexlipseBuilder extends IncrementalProjectBuilder {
 
     // minimum number of characters that a valid latex document can have
     private static final int validDocumentLimit = 10;
+    
+    //Put this in your document to prevent it from building
+    private static final String NO_PARTIAL_BUILD = "%##noBuild";
 
     /**
      * Build the project.
@@ -159,28 +165,64 @@ public class TexlipseBuilder extends IncrementalProjectBuilder {
         
         monitor.beginTask(TexlipsePlugin.getResourceString("builderSubTaskClean"), files.length + 2);
         monitor.subTask(TexlipsePlugin.getResourceString("builderSubTaskCleanTemp"));
-        
-        for (int i = 0; i < files.length; i++) {
-            String name = files[i].getName();
-            if (isLatexTempFile(name, ext, format)) {
-                files[i].delete(true, monitor);
-            }
-            monitor.worked(1);
-        }
+        this.recursiveTempClean(dir, ext, format, monitor);
     }
     
     /**
-     * Check the given file ia a temp file.
+     * recursively delete the temp-directory
+     * 
+     * @param container
+     * @param ext
+     * @param format
+     * @param monitor
+     * @throws CoreException
+     */
+    private void recursiveTempClean(IContainer container, String[] ext,
+			String format, IProgressMonitor monitor) throws CoreException {
+		if (container == null || !container.exists())
+			return;
+
+		IResource files[] = container.members();
+		IResource current;
+
+		for (int i = 0; i < files.length; i++) {
+			current = files[i];
+
+			if (current instanceof IFolder) {
+				IFolder folder = (IFolder)current;
+				
+				// recursively delete folder
+				recursiveTempClean(folder, ext, format, monitor);
+
+				// remove the folder if it's empty (no non-tempfiles left)
+				if (folder.members().length == 0) {
+					folder.delete(true, monitor);
+				}
+			} else {
+				// current is a file; TODO: check for file?
+				if (isLatexTempFile(current.getName(), ext, format)) {
+					current.delete(true, monitor);
+				}
+			}
+			
+			monitor.worked(1);
+		}
+	}
+    
+    /**
+     * Check whether the given file is a temp file.
      * 
      * @param name file name
+     * @param ext temp. file extensions
+     * @param format build output format
      * @return true, if file is a temporary file created by Latex
      */
-    private boolean isLatexTempFile(String name, String[] ext, String format) {
+    private static boolean isLatexTempFile(String name, String[] ext, String format) {
         
-        for (int i = 0; i < ext.length; i++) {
-            if (name.endsWith(ext[i])) {
+        for (String e : ext) {
+            if (name.endsWith(e)) {
                 return true;
-            }
+            }            
         }
         
         // dvi and ps can also be temporary files at this point
@@ -221,7 +263,12 @@ public class TexlipseBuilder extends IncrementalProjectBuilder {
         }
 
         IFile file = project.getFile(res.getProjectRelativePath());
-        if (resourceName.equals(TexlipseProperties.getProjectProperty(project, TexlipseProperties.MAINFILE_PROPERTY))
+        String content = doc.get();
+        if (content.indexOf(NO_PARTIAL_BUILD) >= 0) {
+            //Do not build this file or anything else
+            return;
+        }
+        else if (resourceName.equals(TexlipseProperties.getProjectProperty(project, TexlipseProperties.MAINFILE_PROPERTY))
                 || (!ext.equals("tex") && !ext.equals("ltx"))) {
 
             // main file can't be built partially
@@ -229,8 +276,9 @@ public class TexlipseBuilder extends IncrementalProjectBuilder {
             TexlipseProperties.setSessionProperty(project, TexlipseProperties.PARTIAL_BUILD_FILE, null);
         	fullBuild(monitor);
         	return;
-        } else if (LatexParserUtils.findCommand(doc, "\\documentclass", 0) != -1
-                || LatexParserUtils.findCommand(doc, "\\documentstyle", 0) != -1) {
+        } else if (LatexParserUtils.findCommand(content, "\\documentclass", 0) != -1
+                || LatexParserUtils.findCommand(content, "\\documentstyle", 0) != -1
+                || LatexParserUtils.findBeginEnvironment(content, "document", 0) != null) {
             // A complete tex file (just build it)
             TexlipseProperties.setSessionProperty(project, TexlipseProperties.PARTIAL_BUILD_FILE, file);
             buildPartialFile(file, monitor);
@@ -279,7 +327,7 @@ public class TexlipseBuilder extends IncrementalProjectBuilder {
 
         // generate the file contents
         //StringBuffer sb = readFile(file.getContents(), monitor);
-        StringBuffer sb = new StringBuffer ("\\include{");
+        StringBuilder sb = new StringBuilder ("\\include{");
         String name = ViewerManager.resolveRelativePath(TexlipseProperties.getProjectSourceDir(project).getProjectRelativePath(), 
                 file.getProjectRelativePath());
         name = name.substring(0, name.lastIndexOf('.') + 1);
@@ -293,7 +341,7 @@ public class TexlipseBuilder extends IncrementalProjectBuilder {
             char c = name.charAt(i);
             if (c == File.separatorChar)
                 sb.append('/');
-            if (c == ' ') {
+            else if (c == ' ') {
                 sb.append("\\space ");
             }
             else
@@ -370,7 +418,7 @@ public class TexlipseBuilder extends IncrementalProjectBuilder {
 
         // build finished successfully, so refresh the directory
         IContainer sourceDir = resource.getParent();
-        sourceDir.refreshLocal(IProject.DEPTH_ONE, monitor);
+        sourceDir.refreshLocal(IProject.DEPTH_INFINITE, monitor);
 
         // mark temp and output files as derived
         markTempandOutFiles(project, sourceDir);
@@ -575,7 +623,7 @@ public class TexlipseBuilder extends IncrementalProjectBuilder {
 
         // build finished successfully, so refresh the directory
         IContainer sourceDir = TexlipseProperties.getProjectSourceDir(project);
-        sourceDir.refreshLocal(IProject.DEPTH_ONE, monitor);
+        sourceDir.refreshLocal(IProject.DEPTH_INFINITE, monitor);
         
         // mark temp and output files as derived
         markTempandOutFiles(project, sourceDir);
@@ -633,19 +681,21 @@ public class TexlipseBuilder extends IncrementalProjectBuilder {
         }
         
         String[] exts = TexlipsePlugin.getPreferenceArray(TexlipseProperties.TEMP_FILE_EXTS);
+        String format = TexlipseProperties.getProjectProperty(project, TexlipseProperties.OUTPUT_FORMAT);
         String outputFileName = TexlipseProperties.getOutputFileName(project);
 
         for (IResource file : files) {
             
-            String fileName = file.getName();
-            if (fileName.equals(outputFileName)) {
-                file.setDerived(true);
+            if (file instanceof IFolder) {
+                markTempandOutFiles(project, (IFolder) file);
             }
-            else {
-                for (String ext : exts) {
-                    if (fileName.endsWith(ext)) {
-                        file.setDerived(true);
-                    }
+            else{
+                String fileName = file.getName();
+                if (fileName.equals(outputFileName)) {
+                    file.setDerived(true);
+                }
+                else if (isLatexTempFile(fileName, exts, format)) {
+                    file.setDerived(true);
                 }
             }
         }
@@ -680,8 +730,11 @@ public class TexlipseBuilder extends IncrementalProjectBuilder {
         String outputFileName = TexlipseProperties.getOutputFileName(project);
         IResource outputFile = sourceDir.findMember(outputFileName);
         if (outputFile != null && outputFile.exists()) {
-            
-            // delete the old file
+            //Check if the output dir exists, if not create it
+            if (outputDir != null && !outputDir.exists()) {
+                outputDir.create(true, true, null);
+            }
+
             IResource dest = null;
             if (outputDir != null) {
                 dest = outputDir.getFile(outputFileName);
@@ -689,19 +742,38 @@ public class TexlipseBuilder extends IncrementalProjectBuilder {
                 dest = project.getFile(outputFileName);
             }
             if (dest != null && dest.exists()) {
-                dest.delete(true, monitor);
+                File outFile = new File(outputFile.getLocationURI());
+                File destFile = new File(dest.getLocationURI());
+                try {
+                    //Try to move the content instead of deleting the old file
+                    //and replace it by the new one. This is better for some viewers like Sumatrapdf
+                    FileOutputStream out = new FileOutputStream(destFile);
+                    out.getChannel().tryLock();
+                    BufferedInputStream in = new BufferedInputStream(new FileInputStream(outFile));
+
+                    byte[] buf = new byte[4096];
+                    int l;
+                    while ((l = in.read(buf)) != -1) {
+                        out.write(buf, 0, l);
+                    }
+                    in.close();
+                    out.close();
+                    outputFile.delete(true, monitor);
+                } catch (IOException e) {
+                    // try to delete and move the file
+                    dest.delete(true, monitor);
+                    outputFile.move(dest.getFullPath(), true, monitor);
+                }
             }
-            
-            //Check if the output dir exists, if not create it
-            if (outputDir != null && !outputDir.exists()) {
-                outputDir.create(true, true, null);
+            else {
+                // move the file
+                outputFile.move(dest.getFullPath(), true, monitor);
             }
-            // move the file
-            outputFile.move(dest.getFullPath(), true, monitor);
             monitor.worked(1);
             
+            
             // refresh the directories whose contents changed
-            sourceDir.refreshLocal(IProject.DEPTH_ONE, monitor);
+            sourceDir.refreshLocal(IProject.DEPTH_INFINITE, monitor);
             monitor.worked(1);
             if (outputDir != null) {
                 outputDir.refreshLocal(IProject.DEPTH_ONE, monitor);
@@ -739,26 +811,9 @@ public class TexlipseBuilder extends IncrementalProjectBuilder {
             }
             project.getWorkspace().run(new IWorkspaceRunnable() {
                 public void run(IProgressMonitor monitor) throws CoreException{
-                    IResource[] res = sourceDir.members();
-                    String[] ext = tempExts.split(",");
-                    String format = TexlipseProperties.getProjectProperty(project, TexlipseProperties.OUTPUT_FORMAT);
-                    for (int i = 0; i < res.length; i++) {
-
-                        String name = res[i].getName();
-                        if (isLatexTempFile(name, ext, format) && res[i].exists()) {
-                            if (!tempDir.exists()) {
-                                tempDir.create(true, true, null);
-                            }
-
-                            IResource dest = tempDir.getFile(name);
-                            if (dest != null && dest.exists()) {
-                                dest.delete(true, monitor);
-                            }
-
-                            res[i].move(dest.getFullPath(), true, monitor);
-                            monitor.worked(1);
-                        }
-                    }
+		            String[] ext = tempExts.split(",");
+		            String format = TexlipseProperties.getProjectProperty(project, TexlipseProperties.OUTPUT_FORMAT);
+		            recursiveTempMove(sourceDir, tempDir, true, ext, format, monitor);
                 }
             }, monitor);
             // refresh to reflect the changes of the temp moves
@@ -769,6 +824,71 @@ public class TexlipseBuilder extends IncrementalProjectBuilder {
         }
     }
 
+    /**
+     * Recursively move all resources of the source container to the 
+     * destination container.
+     * 
+     * @param source
+     * @param destination
+     * @throws CoreException 
+     */
+    private static void recursiveTempMove(IContainer source, IContainer destination, boolean createFolders, String[] ext, String format, IProgressMonitor monitor) throws CoreException {
+		if (source == null || destination == null)
+			return;
+
+		if (source.getFullPath().equals(destination.getFullPath()))
+			return;
+
+		if (!source.exists())
+			return;
+
+		if (destination instanceof IFolder) {
+			if (!destination.exists()){
+				if(!createFolders)
+					return;
+				
+				((IFolder) destination).create(true, true, monitor);
+
+				/*
+				 * Set destination derived so it will be ignored by version
+				 * control system. We can set it here because we will never
+				 * create a directory in the sourcefolder. Only in the temp
+				 * directory.
+				 */
+				destination.setDerived(true);
+			}
+		}
+
+		// source and destination are valid.
+		// start move
+		IResource[] res = source.members();
+		IResource current;
+
+		for (int i = 0; i < res.length; i++) {
+			current = res[i];
+
+			if (current instanceof IFolder) {
+				// We are moving a directory
+				IFolder srcFolder = (IFolder) current;
+				if (!current.equals(destination)) {
+				    //Do not copy tmp folder
+				    IPath destinationPath = destination.getFullPath().append(srcFolder.getName());
+				    destinationPath = destinationPath.removeFirstSegments(destinationPath.segmentCount() - 1);
+				    IFolder destFolder = destination.getFolder(destinationPath);
+
+				    recursiveTempMove(srcFolder, destFolder, createFolders, ext, format, monitor);
+				}
+			} else {
+				// We are moving a file
+				if (isLatexTempFile(current.getName(), ext, format)) {
+					IPath newPath = destination.getFullPath().addTrailingSeparator().append(current.getName());
+					current.move(newPath, true, monitor);
+				}
+			}
+			monitor.worked(1);
+		}
+	}
+    
     /**
      * Move temporary files from temp directory back to source directory.
      * 
@@ -785,8 +905,8 @@ public class TexlipseBuilder extends IncrementalProjectBuilder {
             if (!sourceDir.exists()) {
                 return;
             }
-            tempDir.refreshLocal(IResource.DEPTH_ONE, monitor);
-            sourceDir.refreshLocal(IResource.DEPTH_ONE, monitor);
+            tempDir.refreshLocal(IResource.DEPTH_INFINITE, monitor);
+            sourceDir.refreshLocal(IResource.DEPTH_INFINITE, monitor);
             
             if (tempDir.getFullPath().equals(sourceDir.getFullPath())) {
                 return;
@@ -796,30 +916,15 @@ public class TexlipseBuilder extends IncrementalProjectBuilder {
             if (ext == null || ext.length == 0) {
                 return;
             }
-
-            project.getWorkspace().run(new IWorkspaceRunnable() {
-                public void run(IProgressMonitor monitor) throws CoreException{
-                    String format = TexlipseProperties.getProjectProperty(project, TexlipseProperties.OUTPUT_FORMAT);
-                    IResource[] res = tempDir.members();
-                    for (int i = 0; i < res.length; i++) {
-
-                        String name = res[i].getName();
-                        if (isLatexTempFile(name, ext, format) && res[i].exists()) {
-                            IPath path = res[i].getProjectRelativePath();
-                            path = path.removeFirstSegments(path.segmentCount()-1);
-                            IResource dest = sourceDir.getFile(path);
-                            if (dest != null && dest.exists()) {
-                                dest.delete(true, monitor);
-                            }
-
-                            res[i].move(dest.getFullPath(), true, monitor);
-                        }
-                        monitor.worked(1);
-                    }
-                }
-            }, monitor);
-
-            // no need to refresh, because Eclipse API is not going to read these temp files
+			project.getWorkspace().run(new IWorkspaceRunnable() {
+				public void run(IProgressMonitor monitor) throws CoreException {
+					String format = TexlipseProperties.getProjectProperty(
+							project, TexlipseProperties.OUTPUT_FORMAT);
+							recursiveTempMove(tempDir, sourceDir, false, ext, format, monitor);
+				}
+				// no need to refresh, because Eclipse API is not going to read
+				// these temp files
+			}, monitor);
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * $Id: TexInformationControl.java,v 1.9 2008/03/09 16:49:42 borisvl Exp $
+ * $Id: TexInformationControl.java,v 1.10 2008/09/06 12:05:50 borisvl Exp $
  *
  * Copyright (c) 2006 by the TeXlipse team.
  * All rights reserved. This program and the accompanying materials
@@ -314,7 +314,7 @@ public class TexInformationControl implements IInformationControl,
             shell.layout();
         } else {
             // if there's just text, then it's a bibtex-entry
-            setBibHover(information);
+            setBibHover(information.trim());
         }
     }
 

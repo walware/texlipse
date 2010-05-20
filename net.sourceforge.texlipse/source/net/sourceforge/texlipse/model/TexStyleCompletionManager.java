@@ -1,5 +1,5 @@
 /*
- * $Id: TexStyleCompletionManager.java,v 1.3 2006/05/03 18:23:17 oskarojala Exp $
+ * $Id: TexStyleCompletionManager.java,v 1.4 2009/05/04 20:45:55 borisvl Exp $
  *
  * Copyright (c) 2006 by the TeXlipse team.
  * All rights reserved. This program and the accompanying materials
@@ -132,7 +132,7 @@ public class TexStyleCompletionManager implements IPropertyChangeListener{
             String replacement = tag + selectedText + "}";
             
             // Derive cursor position
-            int cursor = tag.length() + 1;
+            int cursor = tag.length() + selectedText.length() + 1;
             
             // Compute a suitable context information
             IContextInformation contextInfo = 

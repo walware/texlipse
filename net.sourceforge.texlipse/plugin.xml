@@ -17,7 +17,6 @@
          point="org.eclipse.core.runtime.contentTypes">
       <content-type
             base-type="org.eclipse.core.runtime.text"
-            default-charset="ISO-8859-1"
             file-extensions="tex,ltx,sty,cls"
             id="net.sourceforge.texlipse.contentTypes.Latex"
             name="LaTeX File"
@@ -1196,5 +1195,34 @@ ${cursor}
             extension="cls"
             type="text">
       </fileTypes>
+   </extension>
+   <extension
+         point="org.eclipse.ui.navigator.viewer">
+      <viewerContentBinding
+            viewerId="org.eclipse.ui.navigator.ProjectExplorer">
+         <includes>
+         <contentExtension
+               pattern="net.sourceforge.texlipse.KpathNavigatorContent">
+         </contentExtension>
+         </includes>
+      </viewerContentBinding>
+   </extension>
+   <extension
+         point="org.eclipse.ui.navigator.navigatorContent">
+      <navigatorContent
+            contentProvider="net.sourceforge.texlipse.ui.KpathseaProvider"
+            id="net.sourceforge.texlipse.KpathNavigatorContent"
+            labelProvider="net.sourceforge.texlipse.ui.KpathseaProvider"
+            name="Search Paths" activeByDefault="true">
+               <triggerPoints>
+               <and>
+               <adapt type="org.eclipse.core.resources.IProject">
+                <test
+                      property="org.eclipse.core.resources.projectNature"
+                      value="net.sourceforge.texlipse.builder.TexlipseNature"/>
+               </adapt>
+               </and>
+               </triggerPoints>
+      </navigatorContent>
    </extension>
 </plugin>

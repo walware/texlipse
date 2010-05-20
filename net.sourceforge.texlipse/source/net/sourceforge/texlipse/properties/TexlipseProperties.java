@@ -1,5 +1,5 @@
 /*
- * $Id: TexlipseProperties.java,v 1.21 2008/07/26 12:30:04 borisvl Exp $
+ * $Id: TexlipseProperties.java,v 1.22 2009/05/16 14:47:44 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -165,6 +165,7 @@ public class TexlipseProperties {
     public static final String SESSION_ATTRIBUTE_VIEWER = "active.viewer";
     public static final String SESSION_PROJECT_FULLOUTLINE = "project.fullTexParser";
     
+    public static final String ECLIPSE_BUILDIN_SPELLCHECKER = "eclipseBuildInSpellChecker";
     /**
        * A named preference that controls whether bracket matching highlighting is turned on or off.
        * <p>

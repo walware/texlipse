@@ -1,5 +1,5 @@
 /*
- * $Id: TexBuilder.java,v 1.7 2006/05/06 15:01:34 borisvl Exp $
+ * $Id: TexBuilder.java,v 1.8 2008/08/23 15:44:08 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -38,13 +38,15 @@ public class TexBuilder extends AbstractBuilder {
     private ProgramRunner makeIndexNomencl;
     private String output;
     private boolean stopped;
+    private int alternative;
     
-    public TexBuilder(int i, String outputFormat) {
+    public TexBuilder(int i, String outputFormat, int alt) {
         super(i);
         output = outputFormat;
         latex = null;
         bibtex = null;
         makeIndex = null;
+        alternative = alt;
         isValid();
     }
     
@@ -55,16 +57,16 @@ public class TexBuilder extends AbstractBuilder {
      */
     public boolean isValid() {
         if (latex == null || !latex.isValid()) {
-            latex = BuilderRegistry.getRunner(TexlipseProperties.INPUT_FORMAT_TEX, output);
+            latex = BuilderRegistry.getRunner(TexlipseProperties.INPUT_FORMAT_TEX, output, alternative);
         }
         if (bibtex == null || !bibtex.isValid()) {
-            bibtex = BuilderRegistry.getRunner(TexlipseProperties.INPUT_FORMAT_BIB, TexlipseProperties.OUTPUT_FORMAT_AUX);
+            bibtex = BuilderRegistry.getRunner(TexlipseProperties.INPUT_FORMAT_BIB, TexlipseProperties.OUTPUT_FORMAT_AUX, 0);
         }
         if (makeIndex == null || !makeIndex.isValid()) {
-            makeIndex = BuilderRegistry.getRunner(TexlipseProperties.INPUT_FORMAT_IDX, TexlipseProperties.OUTPUT_FORMAT_IDX);
+            makeIndex = BuilderRegistry.getRunner(TexlipseProperties.INPUT_FORMAT_IDX, TexlipseProperties.OUTPUT_FORMAT_IDX, 0);
         }
         if (makeIndexNomencl == null || !makeIndexNomencl.isValid()) {
-            makeIndexNomencl = BuilderRegistry.getRunner(TexlipseProperties.INPUT_FORMAT_NOMENCL, TexlipseProperties.OUTPUT_FORMAT_NOMENCL);
+            makeIndexNomencl = BuilderRegistry.getRunner(TexlipseProperties.INPUT_FORMAT_NOMENCL, TexlipseProperties.OUTPUT_FORMAT_NOMENCL, 0);
         }
          return latex != null && latex.isValid()
             && bibtex != null && bibtex.isValid()

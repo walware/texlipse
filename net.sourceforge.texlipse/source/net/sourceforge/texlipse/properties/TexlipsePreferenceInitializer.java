@@ -1,5 +1,5 @@
 /*
- * $Id: TexlipsePreferenceInitializer.java,v 1.15 2008/07/19 16:01:51 borisvl Exp $
+ * $Id: TexlipsePreferenceInitializer.java,v 1.16 2009/05/16 14:47:44 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -139,5 +139,7 @@ public class TexlipsePreferenceInitializer extends
         pref.setDefault(TexlipseProperties.OUTLINE_SUBSUBSECTION, true);
         pref.setDefault(TexlipseProperties.OUTLINE_PARAGRAPH, true);
         pref.setDefault(TexlipseProperties.OUTLINE_ENVS, "list,enumerate,itemize,figure,table,tabular");
+        
+        pref.setDefault(TexlipseProperties.ECLIPSE_BUILDIN_SPELLCHECKER, false);
     }
 }

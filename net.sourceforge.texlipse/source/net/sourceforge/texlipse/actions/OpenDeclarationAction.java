@@ -1,5 +1,5 @@
 /*
- * $Id: OpenDeclarationAction.java,v 1.4 2008/07/19 15:56:05 borisvl Exp $
+ * $Id: OpenDeclarationAction.java,v 1.6 2008/09/20 18:04:14 borisvl Exp $
  *
  * Copyright (c) 2006 by the TeXlipse team.
  * All rights reserved. This program and the accompanying materials
@@ -9,9 +9,12 @@
  */
 package net.sourceforge.texlipse.actions;
 
+import java.io.File;
 import java.text.MessageFormat;
 
 import net.sourceforge.texlipse.TexlipsePlugin;
+import net.sourceforge.texlipse.bibeditor.BibEditor;
+import net.sourceforge.texlipse.builder.KpsewhichRunner;
 import net.sourceforge.texlipse.editor.TexEditor;
 import net.sourceforge.texlipse.model.AbstractEntry;
 import net.sourceforge.texlipse.model.TexCommandEntry;
@@ -22,6 +25,7 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.SubStatusLineManager;
 import org.eclipse.jface.text.BadLocationException;
@@ -123,9 +127,7 @@ public class OpenDeclarationAction implements IEditorActionDelegate {
                 command.equals("\\bibliography")) {
             //We need the argument
             IRegion region = null;
-            try {
-                region = LatexParserUtils.getCommandArgument(docString, comRegion.getOffset());
-            } catch (BadLocationException e1) { }
+            region = LatexParserUtils.getCommandArgument(docString, comRegion.getOffset());
             if (region == null) {
                 createStatusLineErrorMessage(TexlipsePlugin.getResourceString("gotoDeclarationNoArgumentFound"));
                 return;
@@ -180,6 +182,18 @@ public class OpenDeclarationAction implements IEditorActionDelegate {
                 
                 IResource file = dir.findMember(ref);
                 if (file == null){
+/*                	TODO: Kpsewhich support
+					KpsewhichRunner filesearch = new KpsewhichRunner();
+                	try {
+                		String filepath = filesearch.getFile(editor.getDocumentModel().getFile(), refEntry.fileName, "bibtex");
+                		File f = new File(filepath);
+                		//Open the correct document and jump to label
+                		IDE.openEditor(editor.getEditorSite().getPage(), f.toURI(), BibEditor.ID, true);
+                	} catch (PartInitException e) {
+                        TexlipsePlugin.log("Jump2Label PartInitException", e);
+                	} catch (CoreException ce) {
+                		TexlipsePlugin.log ("Can't run Kpathsea", ce)
+                	}*/
                     createStatusLineErrorMessage(MessageFormat.format(TexlipsePlugin.getResourceString("gotoDeclarationNoFileFound"), 
                             new Object[]{ref}));
                     return;
@@ -200,8 +214,20 @@ public class OpenDeclarationAction implements IEditorActionDelegate {
 
         IFile file = project.getFile(refEntry.fileName);
         try {
-            //Open the correct document and jump to label
-            AbstractTextEditor part = (AbstractTextEditor) IDE.openEditor(editor.getEditorSite().getPage(), file);
+        	AbstractTextEditor part;
+            if (!file.exists()) {
+            	//Try kpathsea
+            	KpsewhichRunner filesearch = new KpsewhichRunner();
+            	String filepath = filesearch.getFile(editor.getDocumentModel().getFile(), refEntry.fileName, "bibtex");
+            	File f = new File(filepath);
+               	//Open the correct document and jump to label
+               	part = (AbstractTextEditor) IDE.openEditor(editor.getEditorSite().getPage(), 
+               			f.toURI(), BibEditor.ID, true);
+            }
+            else {
+            	//Open the correct document and jump to label
+            	part = (AbstractTextEditor) IDE.openEditor(editor.getEditorSite().getPage(), file);
+            }
             IDocument doc2 = part.getDocumentProvider().getDocument(part.getEditorInput());
             int lineOffset = doc2.getLineOffset(refEntry.startLine - 1);
             int offset = 0;
@@ -214,7 +240,9 @@ public class OpenDeclarationAction implements IEditorActionDelegate {
             TexlipsePlugin.log("Jump2Label PartInitException", e);
         } catch (BadLocationException e) {
             TexlipsePlugin.log("Jump2Label BadLocationException", e);
-        }
+        } catch (CoreException ce) {
+    		TexlipsePlugin.log("Can't run Kpathsea", ce);
+		}
 	}
 
     /*

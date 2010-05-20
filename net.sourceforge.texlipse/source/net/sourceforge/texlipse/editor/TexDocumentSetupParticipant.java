@@ -1,5 +1,5 @@
 /*
- * $Id: TexDocumentSetupParticipant.java,v 1.2 2006/05/02 18:35:48 borisvl Exp $
+ * $Id: TexDocumentSetupParticipant.java,v 1.3 2009/05/13 20:48:47 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -8,6 +8,8 @@
  * http://www.eclipse.org/legal/epl-v10.html
  */
 package net.sourceforge.texlipse.editor;
+
+import net.sourceforge.texlipse.editor.partitioner.FastLaTeXPartitionScanner;
 
 import org.eclipse.core.filebuffers.IDocumentSetupParticipant;
 import org.eclipse.jface.text.IDocument;
@@ -33,13 +35,13 @@ public class TexDocumentSetupParticipant implements IDocumentSetupParticipant {
 	public void setup(IDocument document) {
 		if (document instanceof IDocumentExtension3) {
 			IDocumentExtension3 extension3= (IDocumentExtension3) document;
-			
-		     IDocumentPartitioner partitioner = 
-		     		new FastPartitioner(
-		     				new TexPartitionScanner(), 
-		     				TexPartitionScanner.TEX_PARTITION_TYPES);
-		    
-	            extension3.setDocumentPartitioner(TexEditor.TEX_PARTITIONING, partitioner);
+
+			IDocumentPartitioner partitioner = 
+			    new FastPartitioner(
+			            new FastLaTeXPartitionScanner(), 
+			            FastLaTeXPartitionScanner.TEX_PARTITION_TYPES);
+
+			extension3.setDocumentPartitioner(TexEditor.TEX_PARTITIONING, partitioner);
 	        
 			partitioner.connect(document);
 			

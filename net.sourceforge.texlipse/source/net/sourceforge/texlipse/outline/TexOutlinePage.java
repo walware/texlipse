@@ -1,5 +1,5 @@
 /*
- * $Id: TexOutlinePage.java,v 1.2 2008/07/19 15:37:22 borisvl Exp $
+ * $Id: TexOutlinePage.java,v 1.3 2008/09/20 18:04:14 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -9,9 +9,8 @@
  */
 package net.sourceforge.texlipse.outline;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import net.sourceforge.texlipse.TexlipsePlugin;
@@ -654,10 +653,10 @@ public class TexOutlinePage extends ContentOutlinePage {
      * @param nodeType the type of nodes to be revealed
      */
     private void revealNodes(int nodeType) {
-        ArrayList nodeList = input.getTypeList(nodeType);
+        List<OutlineNode> nodeList = input.getTypeList(nodeType);
         if (nodeList != null) {
-            for (Iterator iter = nodeList.iterator(); iter.hasNext();) {
-                getTreeViewer().reveal((OutlineNode)iter.next());
+            for(OutlineNode node : nodeList) {
+                getTreeViewer().reveal(node);
             }
         }
     }

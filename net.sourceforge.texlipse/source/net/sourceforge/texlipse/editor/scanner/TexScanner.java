@@ -1,5 +1,5 @@
 /*
- * $Id: TexScanner.java,v 1.4 2007/02/12 20:32:41 borisvl Exp $
+ * $Id: TexScanner.java,v 1.5 2009/05/13 20:48:47 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -33,7 +33,7 @@ import org.eclipse.jface.text.rules.WordRule;
  * specified token that satisfies a rule. The token defines how the
  * characters are presented.
  * 
- * @see net.sourceforge.texlipse.editor.TexPartitionScanner
+ * @see net.sourceforge.texlipse.editor.partitioner.FastLaTeXPartitionScanner
  * @author Antti Pirinen
  */
 public class TexScanner extends RuleBasedScanner {
@@ -77,7 +77,7 @@ public class TexScanner extends RuleBasedScanner {
                 null,
                 manager.getStyle(ColorManager.TEX_SPECIAL_STYLE)));
         
-        List rules = new ArrayList();
+        List<IRule> rules = new ArrayList<IRule>();
         rules.add(new TexSpecialCharRule(specialCharToken));
         rules.add(new WordRule(new TexWord(), commandToken));
         rules.add(new NumberRule(numberToken));

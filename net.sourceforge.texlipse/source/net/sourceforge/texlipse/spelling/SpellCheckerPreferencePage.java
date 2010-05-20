@@ -1,5 +1,5 @@
 /*
- * $Id: SpellCheckerPreferencePage.java,v 1.1 2005/04/09 11:29:30 kimmok Exp $
+ * $Id: SpellCheckerPreferencePage.java,v 1.2 2009/05/16 14:47:45 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -11,7 +11,9 @@ package net.sourceforge.texlipse.spelling;
 
 import net.sourceforge.texlipse.TexlipsePlugin;
 import net.sourceforge.texlipse.properties.TexlipsePreferencePage;
+import net.sourceforge.texlipse.properties.TexlipseProperties;
 
+import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.FileFieldEditor;
 import org.eclipse.jface.preference.StringFieldEditor;
@@ -45,6 +47,8 @@ public class SpellCheckerPreferencePage
         addField(new FileFieldEditor(SpellChecker.SPELL_CHECKER_COMMAND, TexlipsePlugin.getResourceString("preferenceSpellCommandLabel"), getFieldEditorParent()));
         TexlipsePreferencePage.addSpacer(3, getFieldEditorParent());
         addField(new StringFieldEditor(SpellChecker.SPELL_CHECKER_ARGUMENTS, TexlipsePlugin.getResourceString("preferenceSpellArgumentsLabel"), getFieldEditorParent()));
+        TexlipsePreferencePage.addSpacer(3, getFieldEditorParent());
+        addField(new BooleanFieldEditor(TexlipseProperties.ECLIPSE_BUILDIN_SPELLCHECKER, TexlipsePlugin.getResourceString("preferenceSpellUseBuildIn"), getFieldEditorParent()));
     }
     
     /**
