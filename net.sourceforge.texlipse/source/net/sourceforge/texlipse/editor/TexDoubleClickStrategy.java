@@ -124,7 +124,7 @@ public class TexDoubleClickStrategy extends DefaultTextDoubleClickStrategy {
 				}
 				return;
 			}
-			if (ITexDocumentConstants.TEX_VERBATIM.equals(type)) {
+			if (ITexDocumentConstants.TEX_VERBATIM_CONTENT_TYPE.equals(type)) {
 				final int partitionOffset = partition.getOffset();
 				final int partitionEnd = partitionOffset + partition.getLength();
 				final int start = partitionOffset+6;

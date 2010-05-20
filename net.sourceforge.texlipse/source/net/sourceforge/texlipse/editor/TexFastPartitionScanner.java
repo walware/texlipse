@@ -93,7 +93,7 @@ public class TexFastPartitionScanner implements IPartitionTokenScanner {
 	
 	protected final static IToken T_DEFAULT = new Token(ITexDocumentConstants.TEX_DEFAULT_EXPL_CONTENT_TYPE);
 	protected final static IToken T_MATH = new Token(ITexDocumentConstants.TEX_MATH_CONTENT_TYPE);
-	protected final static IToken T_VERBATIM = new Token(ITexDocumentConstants.TEX_VERBATIM);
+	protected final static IToken T_VERBATIM = new Token(ITexDocumentConstants.TEX_VERBATIM_CONTENT_TYPE);
 	protected final static IToken T_COMMENT = new Token(ITexDocumentConstants.TEX_COMMENT_CONTENT_TYPE);
 	
 	
@@ -693,7 +693,7 @@ public class TexFastPartitionScanner implements IPartitionTokenScanner {
 			return;
 		}
 		if (contentType == ITexDocumentConstants.TEX_MATH_CONTENT_TYPE
-				|| contentType == ITexDocumentConstants.TEX_VERBATIM
+				|| contentType == ITexDocumentConstants.TEX_VERBATIM_CONTENT_TYPE
 				|| contentType == ITexDocumentConstants.TEX_COMMENT_CONTENT_TYPE) {
 			// we need the start pattern;
 			if (prefixLength > 0) {

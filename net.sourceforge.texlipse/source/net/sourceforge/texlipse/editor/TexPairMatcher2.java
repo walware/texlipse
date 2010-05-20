@@ -34,7 +34,7 @@ public class TexPairMatcher2 extends PairMatcher {
 		super(BRACKETS, ITexDocumentConstants.TEX_PARTITIONING, new String[] {
 				IDocument.DEFAULT_CONTENT_TYPE,
 				ITexDocumentConstants.TEX_MATH_CONTENT_TYPE,
-				ITexDocumentConstants.TEX_VERBATIM,
+				ITexDocumentConstants.TEX_VERBATIM_CONTENT_TYPE,
 		}, scanner, '\\');
 	}
 	

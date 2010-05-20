@@ -22,7 +22,7 @@ public interface ITexDocumentConstants {
 	public final static String TEX_DEFAULT_EXPL_CONTENT_TYPE = "__tex_default"; //$NON-NLS-1$
 	public final static String TEX_COMMENT_CONTENT_TYPE = "__tex_commentPartition"; //$NON-NLS-1$
 	public static final String TEX_MATH_CONTENT_TYPE = "__tex_mathPartition"; //$NON-NLS-1$
-	public static final String TEX_VERBATIM = "__tex_VerbatimPartition"; //$NON-NLS-1$
+	public static final String TEX_VERBATIM_CONTENT_TYPE = "__tex_VerbatimPartition"; //$NON-NLS-1$
 //	public static final String TEX_CURLY_BRACKETS = "__tex_curlyBracketPartition"; //$NON-NLS-1$
 //	public static final String TEX_SQUARE_BRACKETS = "__tex_squareBracketPartition"; //$NON-NLS-1$
 	
@@ -30,7 +30,7 @@ public interface ITexDocumentConstants {
 			TEX_DEFAULT_CONTENT_TYPE,
 			TEX_COMMENT_CONTENT_TYPE,
 			TEX_MATH_CONTENT_TYPE,
-			TEX_VERBATIM,
+			TEX_VERBATIM_CONTENT_TYPE,
 	};
 	
 	public static final PartitioningConfiguration TEX_PARTITIONING_CONFIG = new PartitioningConfiguration(

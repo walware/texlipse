@@ -360,7 +360,7 @@ public class BracketInserter implements VerifyKeyListener, ILinkedModeListener {
                 try {
                     String contentType = ((IDocumentExtension3) document).getContentType(
                             ITexDocumentConstants.TEX_PARTITIONING, offset, false);
-                    if (ITexDocumentConstants.TEX_VERBATIM.equals(contentType)) {
+                    if (ITexDocumentConstants.TEX_VERBATIM_CONTENT_TYPE.equals(contentType)) {
                         //No features inside verbatim environments
                         return;
                     }

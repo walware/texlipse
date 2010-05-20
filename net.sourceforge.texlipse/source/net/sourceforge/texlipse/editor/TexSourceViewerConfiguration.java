@@ -178,7 +178,7 @@ public class TexSourceViewerConfiguration extends TextSourceViewerConfiguration 
         return new String[] {
                 IDocument.DEFAULT_CONTENT_TYPE,
                 ITexDocumentConstants.TEX_MATH_CONTENT_TYPE,
-                ITexDocumentConstants.TEX_VERBATIM,
+                ITexDocumentConstants.TEX_VERBATIM_CONTENT_TYPE,
                 ITexDocumentConstants.TEX_COMMENT_CONTENT_TYPE
         };
     }
@@ -220,8 +220,8 @@ public class TexSourceViewerConfiguration extends TextSourceViewerConfiguration 
         DefaultDamagerRepairer dr = null;
         
         dr = new DefaultDamagerRepairer(getTexVerbatimScanner());
-        reconciler.setDamager(dr, ITexDocumentConstants.TEX_VERBATIM);
-        reconciler.setRepairer(dr, ITexDocumentConstants.TEX_VERBATIM);
+        reconciler.setDamager(dr, ITexDocumentConstants.TEX_VERBATIM_CONTENT_TYPE);
+        reconciler.setRepairer(dr, ITexDocumentConstants.TEX_VERBATIM_CONTENT_TYPE);
 
         dr = new DefaultDamagerRepairer(getTeXMathScanner());
         reconciler.setDamager(dr, ITexDocumentConstants.TEX_MATH_CONTENT_TYPE);
