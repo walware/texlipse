@@ -9,11 +9,13 @@
  */
 package net.sourceforge.texlipse.builder;
 
+import net.sourceforge.texlipse.TexPathConfig;
 import net.sourceforge.texlipse.TexlipsePlugin;
 import net.sourceforge.texlipse.properties.TexlipseProperties;
 import net.sourceforge.texlipse.viewer.ViewerManager;
 
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -36,12 +38,13 @@ public class TexBuilder extends AbstractBuilder {
     private ProgramRunner bibtex;
     private ProgramRunner makeIndex;
     private ProgramRunner makeIndexNomencl;
-    private String output;
+	private String outputRunnerId;
     private boolean stopped;
     
-    public TexBuilder(int i, String outputFormat) {
+	
+	public TexBuilder(int i, String outputRunnerId) {
         super(i);
-        output = outputFormat;
+		this.outputRunnerId = outputRunnerId;
         latex = null;
         bibtex = null;
         makeIndex = null;
@@ -55,16 +58,16 @@ public class TexBuilder extends AbstractBuilder {
      */
     public boolean isValid() {
         if (latex == null || !latex.isValid()) {
-            latex = BuilderRegistry.getRunner(TexlipseProperties.INPUT_FORMAT_TEX, output);
+			latex = BuilderRegistry.getRunner(outputRunnerId);
         }
         if (bibtex == null || !bibtex.isValid()) {
-            bibtex = BuilderRegistry.getRunner(TexlipseProperties.INPUT_FORMAT_BIB, TexlipseProperties.OUTPUT_FORMAT_AUX);
+			bibtex = BuilderRegistry.getRunner(BuilderRegistry.BIBTEX_RUNNER_ID);
         }
         if (makeIndex == null || !makeIndex.isValid()) {
-            makeIndex = BuilderRegistry.getRunner(TexlipseProperties.INPUT_FORMAT_IDX, TexlipseProperties.OUTPUT_FORMAT_IDX);
+			makeIndex = BuilderRegistry.getRunner(BuilderRegistry.MAKEINDEX_RUNNER_ID);
         }
         if (makeIndexNomencl == null || !makeIndexNomencl.isValid()) {
-            makeIndexNomencl = BuilderRegistry.getRunner(TexlipseProperties.INPUT_FORMAT_NOMENCL, TexlipseProperties.OUTPUT_FORMAT_NOMENCL);
+			makeIndexNomencl = BuilderRegistry.getRunner(BuilderRegistry.MAKEINDEX_NOMENCL_RUNNER_ID);
         }
          return latex != null && latex.isValid()
             && bibtex != null && bibtex.isValid()
@@ -147,8 +150,8 @@ public class TexBuilder extends AbstractBuilder {
      * Run latex and optionally bibtex to produce a dvi file.
      * @throws CoreException if the build fails at any point
      */
-    public void buildResource(IResource resource) throws CoreException {
-        //boolean error = false;
+	public void buildResource(TexPathConfig pathConfig) throws CoreException {
+		boolean error = false;
 		stopped = false;
         // Make sure we close the output document first 
     	// (using DDE on Win32)
@@ -160,7 +163,7 @@ public class TexBuilder extends AbstractBuilder {
     	
     	monitor.subTask("Building document");
         try {
-            latex.run(resource);
+			latex.run(pathConfig);
         } catch (BuilderCoreException ex) {
             //Don't stop here, we will ask the user later
             //TODO: Error managment
@@ -169,7 +172,8 @@ public class TexBuilder extends AbstractBuilder {
         monitor.worked(10);
         if (stopped)
             return;
-        IProject project = resource.getProject();
+		final IFile resource = pathConfig.getTexFile();
+		IProject project = pathConfig.getTexFile().getProject();
         String runBib = (String) TexlipseProperties.getSessionProperty(project, TexlipseProperties.SESSION_BIBTEX_RERUN);
         Boolean bibChange = (Boolean) TexlipseProperties.getSessionProperty(project, TexlipseProperties.BIBFILES_CHANGED);
         IResource runIdx = findIndex(project, resource);
@@ -189,7 +193,7 @@ public class TexBuilder extends AbstractBuilder {
                 }
             }*/
             
-            bibtex.run(resource);
+			bibtex.run(pathConfig);
             if (stopped)
                 return;
             monitor.worked(10);
@@ -198,7 +202,7 @@ public class TexBuilder extends AbstractBuilder {
             TexlipseProperties.setSessionProperty(project, TexlipseProperties.BIBFILES_CHANGED, null);
             
             if (runIdx != null) {
-                makeIndex.run(resource);
+				makeIndex.run(pathConfig);
                 if (stopped)
                     return;
                 monitor.worked(10);
@@ -208,14 +212,14 @@ public class TexBuilder extends AbstractBuilder {
             {
                 // Running makeindex to build nomenclature index
                 // when %input.nlo file is detected
-                makeIndexNomencl.run(resource);
+				makeIndexNomencl.run(pathConfig);
                 if (stopped)
                     return;
                 monitor.worked(10);
             }
               
             try {
-                latex.run(resource);
+				latex.run(pathConfig);
             } catch (BuilderCoreException ex) {
                 //if (!error)
                 //    throw ex;
@@ -224,7 +228,7 @@ public class TexBuilder extends AbstractBuilder {
                 return;
             monitor.worked(10);
             try {
-                latex.run(resource);
+				latex.run(pathConfig);
             } catch (BuilderCoreException ex) {
                 //if (!error)
                 //    throw ex;
@@ -242,7 +246,7 @@ public class TexBuilder extends AbstractBuilder {
             }*/
             
             if (runIdx != null) {
-                makeIndex.run(resource);
+				makeIndex.run(pathConfig);
                 if (stopped)
                     return;
                 monitor.worked(10);
@@ -252,14 +256,14 @@ public class TexBuilder extends AbstractBuilder {
             {
                 // Running makeindex to build nomenclature index
                 // when %input.nlo file is detected
-                makeIndexNomencl.run(resource);
+				makeIndexNomencl.run(pathConfig);
                 if (stopped)
                     return;
                 monitor.worked(10);
             }
             
             try {
-                latex.run(resource);
+				latex.run(pathConfig);
             } catch (BuilderCoreException ex) {
                 //if (!error)
                     //throw ex;
@@ -268,7 +272,7 @@ public class TexBuilder extends AbstractBuilder {
                 return;
             monitor.worked(10);
             
-            TexlipseProperties.setSessionProperty(resource.getProject(), TexlipseProperties.SESSION_LATEX_RERUN, null);
+			TexlipseProperties.setSessionProperty(pathConfig.getTexFile().getProject(), TexlipseProperties.SESSION_LATEX_RERUN, null);
         }
     }
 

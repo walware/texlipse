@@ -9,9 +9,18 @@
  */
 package net.sourceforge.texlipse.builder;
 
+import net.sourceforge.texlipse.TexPathConfig;
+import net.sourceforge.texlipse.Texlipse;
+
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubProgressMonitor;
 
 /**
  * Generic builder.
@@ -19,7 +28,61 @@ import org.eclipse.core.runtime.IProgressMonitor;
  * @author Kimmo Karlsson
  */
 public abstract class AbstractBuilder implements Runnable, Builder {
-
+	
+	
+	
+	
+	public static boolean checkOutput(TexPathConfig pathConfig, IProgressMonitor monitor) throws CoreException {
+		monitor.beginTask("Checking for output file", 50);
+		try {
+			final IContainer outputDir;
+			final IContainer texDir;
+			final IResource outputFile;
+			try {
+				outputDir = pathConfig.getOutputFile().getParent();
+				texDir = pathConfig.getTexFile().getParent();
+				
+				texDir.refreshLocal(IResource.DEPTH_ONE, new SubProgressMonitor(monitor, 5));
+				
+				outputFile = texDir.findMember(pathConfig.getOutputFile().getName());
+				if (!(outputFile instanceof IFile) || !outputFile.exists()) {
+					return false;
+				}
+			}
+			catch (CoreException e) {
+				throw new CoreException(new Status(IStatus.ERROR, Texlipse.PLUGIN_ID, -1,
+						"An error occured when checking for output file created by the TeX builder.", e));
+			}
+			
+			if (!outputDir.equals(texDir)) {
+				try {
+					outputDir.refreshLocal(IResource.DEPTH_ONE, new SubProgressMonitor(monitor, 5));
+					if (!outputDir.exists()) {
+						if (outputDir instanceof IFolder) {
+							((IFolder) outputDir).create(IResource.FORCE, true, new SubProgressMonitor(monitor, 5));
+						}
+						else {
+							outputDir.getLocation().toFile().mkdirs();
+						}
+					}
+					if (pathConfig.getOutputFile().exists()) {
+						pathConfig.getOutputFile().delete(IResource.FORCE, new SubProgressMonitor(monitor, 1));
+					}
+					outputFile.move(pathConfig.getOutputFile().getFullPath(), IResource.FORCE, new SubProgressMonitor(monitor, 5));
+				}
+				catch (CoreException e) {
+					throw new CoreException(new Status(IStatus.ERROR, Texlipse.PLUGIN_ID, -1,
+							"Can not move output file to output directory (a possible cause: that the document is locked by your viewer).", e));
+				}
+			}
+			return true;
+		}
+		finally {
+			monitor.done();
+		}
+	}
+	
+	
     // the current progress monitor
     protected IProgressMonitor monitor;
     
@@ -95,11 +158,15 @@ public abstract class AbstractBuilder implements Runnable, Builder {
         stopRunners();
     }
     
+	public void build(IFile resource) throws CoreException {
+		build(new TexPathConfig(resource, null, getOutputFormat()));
+	}
+	
     /**
      * The main build method. This runs latex program once at the given directory.
      * @throws CoreException
      */
-    public abstract void buildResource(IResource resource) throws CoreException;
+	public abstract void buildResource(TexPathConfig pathConfig) throws CoreException;
     
     /**
      * The main method.
@@ -107,8 +174,7 @@ public abstract class AbstractBuilder implements Runnable, Builder {
      * @param resource the input file to compile
      * @throws CoreException if the build fails
      */
-    public void build(IResource resource) throws CoreException {
-        
+	public void build(final TexPathConfig pathConfig) throws CoreException {
         if (monitor == null) {
             throw new IllegalStateException();
         }
@@ -118,7 +184,7 @@ public abstract class AbstractBuilder implements Runnable, Builder {
         buildThread.start();
         
         try {
-            buildResource(resource);
+			buildResource(pathConfig);
         } finally {
         	   
 	        buildRunning = false;
@@ -132,4 +198,5 @@ public abstract class AbstractBuilder implements Runnable, Builder {
 	        }
         }
     }
+
 }

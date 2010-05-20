@@ -171,7 +171,7 @@ public class TexlipseProperties {
        * Value is of type <code>Boolean</code>.
        * </p>
        */
-    public final static String MATCHING_BRACKETS = "matchingBrackets"; //$NON-NLS-1$
+    public static final String MATCHING_BRACKETS = "matchingBrackets"; //$NON-NLS-1$
     /**
        * A named preference that holds the color used to highlight matching brackets.
        * <p>
@@ -311,7 +311,11 @@ public class TexlipseProperties {
         if (dir != null && dir.length() > 0) {
             return project.getFolder(dir).getFile(getProjectProperty(project, MAINFILE_PROPERTY));
         }
-        return project.getFile(getProjectProperty(project, MAINFILE_PROPERTY));
+        final String file = getProjectProperty(project, MAINFILE_PROPERTY);
+        if (file != null) {
+        	return project.getFile(file);
+        }
+        return null;
     }
     
     /**

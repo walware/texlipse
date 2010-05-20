@@ -17,14 +17,17 @@ package net.sourceforge.texlipse;
  *
  */
 public class DDEClient {
-
-	public static native int execute(String server, String topic,
-			String command);
-
+	
 	static {
 		System.loadLibrary("ddeclient");
 	}
-
+	
+	public static native int execute(String server, String topic, String command);
+	
+	
+	/**
+	 * Tests DDE client
+	 */
 	public static void main(String[] args) {
 		int error = DDEClient.execute("acroview", "control",
 				"[DocOpen(\"C:\\test.pdf\")][FileOpen(\"C:\\test.pdf\")]");
@@ -32,4 +35,5 @@ public class DDEClient {
 		// Also, [MenuitemExecute("GoBack")] works in Acrobat (full)
 		System.out.println("Error: " + error);
 	}
+	
 }

@@ -22,15 +22,15 @@ public class PdflatexRunner extends LatexRunner {
      * Create a new ProgramRunner.
      */
     public PdflatexRunner() {
-        super();
+		super(BuilderRegistry.PDFLATEX_RUNNER_ID);
     }
     
     protected String getWindowsProgramName() {
-        return "pdflatex.exe";
+		return "pdflatex.exe"; //$NON-NLS-1$
     }
     
     protected String getUnixProgramName() {
-        return "pdflatex";
+		return "pdflatex"; //$NON-NLS-1$
     }
     
     public String getDescription() {

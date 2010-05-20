@@ -9,9 +9,9 @@
  */
 package net.sourceforge.texlipse.builder;
 
+import net.sourceforge.texlipse.TexPathConfig;
 import net.sourceforge.texlipse.properties.TexlipseProperties;
 
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 
@@ -25,12 +25,13 @@ public class DviBuilder extends AbstractBuilder {
 
     private Builder dvi;
     private ProgramRunner ps;
-    private String output;
+	private String outputRunnerId;
     private boolean stopped;
 
-    public DviBuilder(int i, String outputFormat) {
+	
+	public DviBuilder(int i, String outputRunnerId) {
         super(i);
-        output = outputFormat;
+		this.outputRunnerId = outputRunnerId;
         isValid();
     }
 
@@ -49,7 +50,7 @@ public class DviBuilder extends AbstractBuilder {
             dvi = BuilderRegistry.get(null, TexlipseProperties.OUTPUT_FORMAT_DVI);
         }
         if (ps == null || !ps.isValid()) {
-            ps = BuilderRegistry.getRunner(TexlipseProperties.OUTPUT_FORMAT_DVI, output);
+			ps = BuilderRegistry.getRunner(outputRunnerId);
         }
         return dvi != null && dvi.isValid() && ps != null && ps.isValid();
     }
@@ -75,15 +76,15 @@ public class DviBuilder extends AbstractBuilder {
         stopped = true;
     }
 
-    public void buildResource(IResource resource) throws CoreException {
+	public void buildResource(TexPathConfig pathConfig) throws CoreException {
         // call buildResource directly, because we don't want a separate thread for DviBuilder
         stopped = false;
-        dvi.buildResource(resource);
+		dvi.buildResource(pathConfig);
         if (stopped) 
             return;
         
-        monitor.subTask("Converting dvi to " + output);
-        ps.run(resource);
+		monitor.subTask("Converting dvi to " + ps.getOutputFormat());
+		ps.run(pathConfig);
         monitor.worked(15);
     }
 }

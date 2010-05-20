@@ -417,7 +417,7 @@ public class TexlipseBuilder extends IncrementalProjectBuilder {
      * @return the contents of the file
      */
     private StringBuffer readFile(InputStream stream, final IProgressMonitor monitor) {
-
+		try {
         monitor.subTask(TexlipsePlugin.getResourceString("builderSubTaskReadFile"));
         BufferedReader br = new BufferedReader(new InputStreamReader(stream));
 
@@ -433,13 +433,13 @@ public class TexlipseBuilder extends IncrementalProjectBuilder {
             }
         } catch (IOException e) {
         }
-
-        try {
-            br.close();
-        } catch (IOException e) {
+			return sb;
+		}
+		finally {
+			try {
+				stream.close();
+			} catch (IOException ignore) {}
         }
-        
-        return sb;
     }
 
     /**
@@ -450,8 +450,7 @@ public class TexlipseBuilder extends IncrementalProjectBuilder {
      * @return project's main file
      * @throws CoreException if some setting is not correct
      */
-    private IResource checkFileSettings(IProject project, IProgressMonitor monitor) throws CoreException {
-
+	private IFile checkFileSettings(IProject project, IProgressMonitor monitor) throws CoreException {
         String mainFile = TexlipseProperties.getProjectProperty(project, TexlipseProperties.MAINFILE_PROPERTY);
         if (mainFile == null || mainFile.length() == 0) {
             // maybe not a good idea to report as error, at least when in java-project
@@ -532,7 +531,7 @@ public class TexlipseBuilder extends IncrementalProjectBuilder {
         }
         
         // check settings
-        IResource resource = null;
+		IFile resource = null;
         try {
             resource = checkFileSettings(project, monitor);
         } catch (CoreException e) {}
@@ -782,15 +781,14 @@ public class TexlipseBuilder extends IncrementalProjectBuilder {
         if (tempDir != null && tempDir.exists()) {
             
             final IContainer sourceDir = TexlipseProperties.getProjectSourceDir(project);
-            if (!sourceDir.exists()) {
+			if (sourceDir == null || !sourceDir.exists()) {
                 return;
             }
-            tempDir.refreshLocal(IResource.DEPTH_ONE, monitor);
-            sourceDir.refreshLocal(IResource.DEPTH_ONE, monitor);
-            
             if (tempDir.getFullPath().equals(sourceDir.getFullPath())) {
                 return;
             }
+			tempDir.refreshLocal(IResource.DEPTH_ONE, monitor);
+			sourceDir.refreshLocal(IResource.DEPTH_ONE, monitor);
             
             final String[] ext = TexlipsePlugin.getPreferenceArray(TexlipseProperties.TEMP_FILE_EXTS);
             if (ext == null || ext.length == 0) {

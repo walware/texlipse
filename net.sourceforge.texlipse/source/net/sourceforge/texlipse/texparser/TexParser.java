@@ -7,6 +7,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
+
 package net.sourceforge.texlipse.texparser;
 
 import java.io.IOException;
@@ -15,15 +16,17 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.sourceforge.texlipse.model.DocumentReference;
 import net.sourceforge.texlipse.model.OutlineNode;
 import net.sourceforge.texlipse.model.ParseErrorMessage;
 import net.sourceforge.texlipse.model.ReferenceContainer;
+import net.sourceforge.texlipse.model.ReferenceEntry;
+import net.sourceforge.texlipse.model.TexCommandEntry;
 import net.sourceforge.texlipse.texparser.lexer.LexerException;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
-
 
 
 /**
@@ -39,7 +42,7 @@ public class TexParser {
     private LatexParser lparser;
 //    private LatexLexer llexer;
     
-    private ArrayList<ParseErrorMessage> errors;
+    private List<ParseErrorMessage> errors;
     private boolean fatalErrors;
     
     private String preamble;
@@ -191,28 +194,28 @@ public class TexParser {
     /**
      * @return The outline tree
      */
-    public ArrayList getOutlineTree() {
+    public List<OutlineNode> getOutlineTree() {
     	return lparser.getOutlineTree();
     }
 
     /**
      * @return The labels <code>ArrayList<ReferenceEntry></code>
      */
-    public ArrayList getLabels() {
+    public List<ReferenceEntry> getLabels() {
         return lparser.getLabels();
     }
 
     /**
      * @return The cite-references
      */
-    public ArrayList getCites() {
+    public List<DocumentReference> getCites() {
         return lparser.getCites();
     }
     
     /**
      * @return Returns the errors.
      */
-    public ArrayList<ParseErrorMessage> getErrors() {
+    public List<ParseErrorMessage> getErrors() {
         return errors;
     }
     
@@ -254,21 +257,22 @@ public class TexParser {
     /**
      * @return Get the \ref -references that were invalid
      */
-    public ArrayList getRefs() {
+    public List<DocumentReference> getRefs() {
         return lparser.getRefs();
     }
     
     /**
      * @return Get user-defined commands
      */
-    public ArrayList getCommands() {
+    public List<TexCommandEntry> getCommands() {
         return lparser.getCommands();
     }
     
     /**
      * @return The tasks to mark
      */
-    public List getTasks() {
+    public List<ParseErrorMessage> getTasks() {
         return lparser.getTasks();
     }
+    
 }

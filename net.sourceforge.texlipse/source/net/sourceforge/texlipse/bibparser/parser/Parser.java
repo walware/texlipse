@@ -2,14 +2,17 @@
 
 package net.sourceforge.texlipse.bibparser.parser;
 
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+
+import net.sourceforge.texlipse.bibparser.analysis.*;
 import net.sourceforge.texlipse.bibparser.lexer.*;
 import net.sourceforge.texlipse.bibparser.node.*;
-import net.sourceforge.texlipse.bibparser.analysis.*;
-import java.util.*;
-
-import java.io.DataInputStream;
-import java.io.BufferedInputStream;
-import java.io.IOException;
 
 public class Parser
 {

@@ -7,7 +7,23 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
+
 package net.sourceforge.texlipse.viewer;
+
+import static net.sourceforge.texlipse.viewer.ViewerConfiguration.ATTRIBUTE_ARGUMENTS;
+import static net.sourceforge.texlipse.viewer.ViewerConfiguration.ATTRIBUTE_COMMAND;
+import static net.sourceforge.texlipse.viewer.ViewerConfiguration.ATTRIBUTE_DDE_CLOSE_COMMAND;
+import static net.sourceforge.texlipse.viewer.ViewerConfiguration.ATTRIBUTE_DDE_CLOSE_SERVER;
+import static net.sourceforge.texlipse.viewer.ViewerConfiguration.ATTRIBUTE_DDE_CLOSE_TOPIC;
+import static net.sourceforge.texlipse.viewer.ViewerConfiguration.ATTRIBUTE_DDE_VIEW_COMMAND;
+import static net.sourceforge.texlipse.viewer.ViewerConfiguration.ATTRIBUTE_DDE_VIEW_SERVER;
+import static net.sourceforge.texlipse.viewer.ViewerConfiguration.ATTRIBUTE_DDE_VIEW_TOPIC;
+import static net.sourceforge.texlipse.viewer.ViewerConfiguration.ATTRIBUTE_FORMAT;
+import static net.sourceforge.texlipse.viewer.ViewerConfiguration.ATTRIBUTE_FORWARD_SEARCH;
+import static net.sourceforge.texlipse.viewer.ViewerConfiguration.ATTRIBUTE_INVERSE_SEARCH;
+import static net.sourceforge.texlipse.viewer.ViewerConfiguration.INVERSE_SEARCH_NO;
+import static net.sourceforge.texlipse.viewer.ViewerConfiguration.INVERSE_SEARCH_RUN;
+import static net.sourceforge.texlipse.viewer.ViewerConfiguration.INVERSE_SEARCH_STD;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,24 +46,6 @@ import org.eclipse.jface.preference.IPreferenceStore;
  */
 public class ViewerAttributeRegistry implements Cloneable {
 
-    // attribute suffixes
-    public static final String ATTRIBUTE_COMMAND = ".command";
-    public static final String ATTRIBUTE_ARGUMENTS = ".arguments";
-    public static final String ATTRIBUTE_DDE_VIEW_COMMAND = ".ddeViewCommand";
-    public static final String ATTRIBUTE_DDE_VIEW_SERVER = ".ddeViewServer";
-    public static final String ATTRIBUTE_DDE_VIEW_TOPIC = ".ddeViewTopic";
-    public static final String ATTRIBUTE_DDE_CLOSE_COMMAND = ".ddeCloseCommand";
-    public static final String ATTRIBUTE_DDE_CLOSE_SERVER = ".ddeCloseServer";
-    public static final String ATTRIBUTE_DDE_CLOSE_TOPIC = ".ddeCloseTopic";
-    public static final String ATTRIBUTE_FORMAT = ".format";
-    public static final String ATTRIBUTE_INVERSE_SEARCH = ".inverse";
-    public static final String ATTRIBUTE_FORWARD_SEARCH = ".forward";
-    
-    // inverse search attibute values
-    public static final String INVERSE_SEARCH_NO = "no";
-    public static final String INVERSE_SEARCH_RUN = "run";
-    public static final String INVERSE_SEARCH_STD = "std";
-    
     // property for the name of the current default viewer
     public static final String VIEWER_CURRENT = "viewerCurrent";
     

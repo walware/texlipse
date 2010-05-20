@@ -12,13 +12,11 @@ package net.sourceforge.texlipse.editor;
 import net.sourceforge.texlipse.TexlipsePlugin;
 import net.sourceforge.texlipse.builder.TexlipseNature;
 import net.sourceforge.texlipse.properties.TexlipseProperties;
-import net.sourceforge.texlipse.wizards.TexlipseProjectCreationOperation;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.ui.editors.text.ForwardingDocumentProvider;
 import org.eclipse.ui.editors.text.TextFileDocumentProvider;
@@ -42,7 +40,7 @@ public class TexDocumentProvider extends TextFileDocumentProvider {
      */
     public TexDocumentProvider() {
         IDocumentProvider provider= new TextFileDocumentProvider();
-        provider= new ForwardingDocumentProvider(TexEditor.TEX_PARTITIONING, 
+        provider = new ForwardingDocumentProvider(ITexDocumentConstants.TEX_PARTITIONING,
                 new TexDocumentSetupParticipant(), provider);
         setParentDocumentProvider(provider);    
     }
@@ -63,7 +61,7 @@ public class TexDocumentProvider extends TextFileDocumentProvider {
                 IProject project = file.getProject();
                 try {
                     if (!project.hasNature(TexlipseNature.NATURE_ID)) {
-                        TexlipseProjectCreationOperation.addProjectNature(project, new NullProgressMonitor());
+//                        TexlipseProjectCreationOperation.addProjectNature(project, new NullProgressMonitor());
                     } else if (TexlipseProperties.getProjectProperty(project, TexlipseProperties.OUTPUT_FORMAT) == null) {
                         // this is needed for imported projects
                         TexlipseNature n = new TexlipseNature();

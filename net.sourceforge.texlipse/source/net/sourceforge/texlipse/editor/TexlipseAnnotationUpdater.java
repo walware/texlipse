@@ -176,8 +176,7 @@ public class TexlipseAnnotationUpdater implements ISelectionChangedListener {
             new Job("Update Annotations") {
                 public IStatus run(IProgressMonitor monitor) {
                     String text = document.get();
-                    String refNameRegExp = refName.replaceAll("\\*", "\\\\*");
-                    final String simpleRefRegExp = "\\\\([a-zA-Z]*ref|label)\\s*\\{" + refNameRegExp + "\\}";
+                    final String simpleRefRegExp = "\\\\([a-zA-Z]*ref|label)\\s*\\{" + Pattern.quote(refName) + "\\}";
                     Matcher m = (Pattern.compile(simpleRefRegExp)).matcher(text);
                     while (m.find()) {
                         if (monitor.isCanceled()) return Status.CANCEL_STATUS;
@@ -255,12 +254,9 @@ public class TexlipseAnnotationUpdater implements ISelectionChangedListener {
      * @param model AnnotationModel
      */
     private void removeOldAnnotations(IAnnotationModel model) {
-
-        for (Iterator<Annotation> it= fOldAnnotations.iterator(); it.hasNext();) {
-            Annotation annotation= (Annotation) it.next();
-            model.removeAnnotation(annotation);
-        }
-
+		for (Annotation annotation : fOldAnnotations) {
+			model.removeAnnotation(annotation);
+		}
         fOldAnnotations.clear();
     }
 

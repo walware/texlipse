@@ -7,7 +7,9 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
+
 package net.sourceforge.texlipse.editor;
+
 import net.sourceforge.texlipse.TexlipsePlugin;
 import net.sourceforge.texlipse.editor.hover.TexHover;
 import net.sourceforge.texlipse.editor.scanner.TexCommentScanner;
@@ -17,10 +19,10 @@ import net.sourceforge.texlipse.properties.TexlipseProperties;
 
 import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IAutoEditStrategy;
-import org.eclipse.jface.text.IAutoIndentStrategy;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IInformationControl;
 import org.eclipse.jface.text.IInformationControlCreator;
+import org.eclipse.jface.text.ITextDoubleClickStrategy;
 import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.TextPresentation;
@@ -60,6 +62,7 @@ public class TexSourceViewerConfiguration extends SourceViewerConfiguration {
     private TexAnnotationHover annotationHover;
     private ContentAssistant assistant;
     private TexHover textHover;
+    private ITextDoubleClickStrategy doubleClickStrategy;
     private TexAutoIndentStrategy indentStrategy;
 
     /**
@@ -70,7 +73,7 @@ public class TexSourceViewerConfiguration extends SourceViewerConfiguration {
     public TexSourceViewerConfiguration(TexEditor te) {
         super();
         this.editor = te;
-        this.colorManager = new ColorManager();
+        this.colorManager = TexlipsePlugin.getDefault().getColorManager();
         this.annotationHover = new TexAnnotationHover(editor);
         
         // Adds a listener for changing content assistan properties if
@@ -98,6 +101,13 @@ public class TexSourceViewerConfiguration extends SourceViewerConfiguration {
         
     }
 
+    public ITextDoubleClickStrategy getDoubleClickStrategy(ISourceViewer sourceViewer, String contentType) {
+    	if (doubleClickStrategy == null) {
+    		doubleClickStrategy = new TexDoubleClickStrategy();
+    	}
+    	return doubleClickStrategy;
+    }
+    
     /**
      * @return the annotation hover text provider for this editor
      */
@@ -105,15 +115,6 @@ public class TexSourceViewerConfiguration extends SourceViewerConfiguration {
         return annotationHover;
     }
     
-    // the deprecated interface must be used as a return value, since the extended class hasn't been
-    // updated to reflect the change
-//    public IAutoIndentStrategy getAutoIndentStrategy(ISourceViewer sourceViewer, String contentType) {
-//        return new TexAutoIndentStrategy(editor.getPreferences());
-//    }
-    
-    /* (non-Javadoc)
-     * @see org.eclipse.jface.text.source.SourceViewerConfiguration#getAutoEditStrategies(org.eclipse.jface.text.source.ISourceViewer, java.lang.String)
-     */
     public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
         if (indentStrategy == null) {
             indentStrategy = new TexAutoIndentStrategy(editor.getPreferences());
@@ -131,7 +132,7 @@ public class TexSourceViewerConfiguration extends SourceViewerConfiguration {
 	 * @see org.eclipse.jface.text.source.SourceViewerConfiguration#getConfiguredContentTypes(ISourceViewer)
      */
     public String getConfiguredDocumentPartitioning(ISourceViewer sourceViewer) {
-        return TexEditor.TEX_PARTITIONING;
+        return ITexDocumentConstants.TEX_PARTITIONING;
     }
     
     /**
@@ -143,10 +144,9 @@ public class TexSourceViewerConfiguration extends SourceViewerConfiguration {
     public String[] getConfiguredContentTypes(ISourceViewer sourceViewer) {
         return new String[] {
                 IDocument.DEFAULT_CONTENT_TYPE,
-                TexPartitionScanner.TEX_MATH,
-                TexPartitionScanner.TEX_CURLY_BRACKETS,
-                TexPartitionScanner.TEX_SQUARE_BRACKETS,
-                TexPartitionScanner.TEX_COMMENT
+                ITexDocumentConstants.TEX_MATH_CONTENT_TYPE,
+                ITexDocumentConstants.TEX_VERBATIM,
+                ITexDocumentConstants.TEX_COMMENT_CONTENT_TYPE
         };
     }
     
@@ -167,11 +167,7 @@ public class TexSourceViewerConfiguration extends SourceViewerConfiguration {
 //                IDocument.DEFAULT_CONTENT_TYPE);
 
         assistant.setContentAssistProcessor(tcp, IDocument.DEFAULT_CONTENT_TYPE);
-        //assistant.setContentAssistProcessor(tcp, TexPartitionScanner.TEX_MATH);
-        assistant.setContentAssistProcessor(tmcp, TexPartitionScanner.TEX_MATH);
-        assistant.setContentAssistProcessor(tcp, TexPartitionScanner.TEX_CURLY_BRACKETS);
-        assistant.setContentAssistProcessor(tcp, TexPartitionScanner.TEX_SQUARE_BRACKETS);
-
+        assistant.setContentAssistProcessor(tmcp, ITexDocumentConstants.TEX_MATH_CONTENT_TYPE);
         
         assistant.enableAutoActivation(TexlipsePlugin.getDefault().getPreferenceStore().getBoolean(TexlipseProperties.TEX_COMPLETION));
         assistant.enableAutoInsert(true);
@@ -191,16 +187,16 @@ public class TexSourceViewerConfiguration extends SourceViewerConfiguration {
         DefaultDamagerRepairer dr = null;
         
         dr = new DefaultDamagerRepairer(getTexVerbatimScanner());
-        reconciler.setDamager(dr, TexPartitionScanner.TEX_VERBATIM);
-        reconciler.setRepairer(dr, TexPartitionScanner.TEX_VERBATIM);
+        reconciler.setDamager(dr, ITexDocumentConstants.TEX_VERBATIM);
+        reconciler.setRepairer(dr, ITexDocumentConstants.TEX_VERBATIM);
 
         dr = new DefaultDamagerRepairer(getTeXMathScanner());
-        reconciler.setDamager(dr, TexPartitionScanner.TEX_MATH);
-        reconciler.setRepairer(dr, TexPartitionScanner.TEX_MATH);
+        reconciler.setDamager(dr, ITexDocumentConstants.TEX_MATH_CONTENT_TYPE);
+        reconciler.setRepairer(dr, ITexDocumentConstants.TEX_MATH_CONTENT_TYPE);
             
         dr = new DefaultDamagerRepairer(getTexCommentScanner());
-        reconciler.setDamager(dr, TexPartitionScanner.TEX_COMMENT);
-        reconciler.setRepairer(dr, TexPartitionScanner.TEX_COMMENT);
+        reconciler.setDamager(dr, ITexDocumentConstants.TEX_COMMENT_CONTENT_TYPE);
+        reconciler.setRepairer(dr, ITexDocumentConstants.TEX_COMMENT_CONTENT_TYPE);
         
         dr = new DefaultDamagerRepairer(getTexScanner());
         reconciler.setDamager(dr, IDocument.DEFAULT_CONTENT_TYPE);
@@ -217,13 +213,7 @@ public class TexSourceViewerConfiguration extends SourceViewerConfiguration {
      */
     protected TexScanner getTexScanner() {
         if (scanner == null) {
-            scanner = new TexScanner(colorManager, editor);
-            scanner.setDefaultReturnToken(
-                    new Token(
-                            new TextAttribute(
-                                    colorManager.getColor(ColorManager.DEFAULT),
-                                    null,
-                                    colorManager.getStyle(ColorManager.DEFAULT_STYLE))));
+            scanner = new TexScanner(colorManager);
         }
         return scanner;
     }
@@ -235,13 +225,7 @@ public class TexSourceViewerConfiguration extends SourceViewerConfiguration {
      */
     protected TexMathScanner getTeXMathScanner() {
         if (mathScanner == null) {
-            mathScanner = new TexMathScanner(colorManager, editor);
-            mathScanner.setDefaultReturnToken(
-                    new Token(
-                            new TextAttribute(
-                                    colorManager.getColor(ColorManager.EQUATION),
-                                    null,
-                                    colorManager.getStyle(ColorManager.EQUATION_STYLE))));
+            mathScanner = new TexMathScanner(colorManager);
         }
         return mathScanner;
     }

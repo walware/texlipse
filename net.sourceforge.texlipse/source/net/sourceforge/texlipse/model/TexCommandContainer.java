@@ -7,12 +7,15 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
+
 package net.sourceforge.texlipse.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+
 
 /**
  * Contains the LaTeX commands that can be completed.
@@ -21,7 +24,7 @@ import java.util.Iterator;
  * @author Boris von Loesch
  */
 public class TexCommandContainer {
-
+    
     /**
      * Standard LaTeX commands.
      */
@@ -445,7 +448,7 @@ public class TexCommandContainer {
      * @param refs The commands to insert
      * @return true if the container needs a reorganize
      */
-    public boolean addRefSource(String key, ArrayList refs) {
+    public boolean addRefSource(String key, List<TexCommandEntry> refs) {
         //Add filenames to the entries
         for (Iterator iter = refs.iterator(); iter.hasNext();) {
             AbstractEntry r = (AbstractEntry) iter.next();

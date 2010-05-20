@@ -7,6 +7,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
+
 package net.sourceforge.texlipse.editor;
 
 import org.eclipse.core.filebuffers.IDocumentSetupParticipant;
@@ -16,33 +17,27 @@ import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.rules.FastPartitioner;
 
 /**
+ * 
  * @author Antti Pirinen
- *
  */
 public class TexDocumentSetupParticipant implements IDocumentSetupParticipant {
-
-	/**
-	 * Empty constructor
-	 */
+	
+	
 	public TexDocumentSetupParticipant() {
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.core.filebuffers.IDocumentSetupParticipant#setup(org.eclipse.jface.text.IDocument)
-	 */
-	public void setup(IDocument document) {
+	
+	public void setup(final IDocument document) {
 		if (document instanceof IDocumentExtension3) {
-			IDocumentExtension3 extension3= (IDocumentExtension3) document;
+			final IDocumentExtension3 extension3= (IDocumentExtension3) document;
 			
-		     IDocumentPartitioner partitioner = 
-		     		new FastPartitioner(
-		     				new TexPartitionScanner(), 
-		     				TexPartitionScanner.TEX_PARTITION_TYPES);
-		    
-	            extension3.setDocumentPartitioner(TexEditor.TEX_PARTITIONING, partitioner);
-	        
+			final IDocumentPartitioner partitioner = new FastPartitioner(
+							new TexFastPartitionScanner(),
+							ITexDocumentConstants.TEX_PARTITION_TYPES);
 			partitioner.connect(document);
 			
-		}	
+			extension3.setDocumentPartitioner(ITexDocumentConstants.TEX_PARTITIONING, partitioner);
+		}
 	}
+	
 }

@@ -64,7 +64,7 @@ public class TexCodeFolder {
      * 
      * @param outline The document outline data structure containing the document positions
      */
-    public void update(ArrayList outline) {
+    public void update(List<OutlineNode> outline) {
         model = (ProjectionAnnotationModel)editor.getAdapter(ProjectionAnnotationModel.class);
 
         if (model != null) {
@@ -77,7 +77,7 @@ public class TexCodeFolder {
      * 
      * @param outline The document outline data structure containing the document positions
      */
-    private void addMarks(ArrayList outline) {
+    private void addMarks(List<OutlineNode> outline) {
         if (firstRun) {
             String[] envs = TexlipsePlugin.getPreferenceArray(TexlipseProperties.CODE_FOLDING_ENVS);
             environments = new HashSet(envs.length + 1);
@@ -101,7 +101,7 @@ public class TexCodeFolder {
             // save old nodes
             oldNodes = new ArrayList();
             for (Iterator iter = model.getAnnotationIterator(); iter.hasNext();) {
-                oldNodes.add((TexProjectionAnnotation) iter.next());
+                oldNodes.add(iter.next());
             }
             
             markTreeNodes(outline);
@@ -118,10 +118,8 @@ public class TexCodeFolder {
      * 
      * @param documentTree The document outline data structure containing the document positions
      */
-    private void markTreeNodes(ArrayList documentTree) {
-        for (ListIterator iter = documentTree.listIterator(); iter.hasNext();) {
-            OutlineNode on = (OutlineNode) iter.next();
-
+    private void markTreeNodes(List<OutlineNode> documentTree) {
+        for (OutlineNode on : documentTree) {
             // Here, call the appropriate method on the node
             inspectAndAddMark(on);
             

@@ -10,6 +10,7 @@
 package net.sourceforge.texlipse.bibparser;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import net.sourceforge.texlipse.bibparser.analysis.DepthFirstAdapter;
 import net.sourceforge.texlipse.bibparser.node.ABibtex;
@@ -38,12 +39,12 @@ import net.sourceforge.texlipse.model.ReferenceEntry;
  */
 public final class AbbrevRetriever extends DepthFirstAdapter {
 
-    private ArrayList abbrevs = new ArrayList(); //type: ReferenceEntry
+    private List<ReferenceEntry> abbrevs = new ArrayList<ReferenceEntry>();
     
     /**
      * @return The abbreviations as a list of <code>ReferenceEntry</code>s
      */
-    public ArrayList getAbbrevs() {
+    public List<ReferenceEntry> getAbbrevs() {
         return abbrevs;
     }
     

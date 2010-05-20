@@ -22,15 +22,15 @@ import org.eclipse.core.resources.IResource;
 public class DvipsRunner extends AbstractProgramRunner {
 
     public DvipsRunner() {
-        super();
+		super(BuilderRegistry.DVIPS_RUNNER_ID);
     }
 
     protected String getWindowsProgramName() {
-        return "dvips.exe";
+		return "dvips.exe"; //$NON-NLS-1$
     }
 
     protected String getUnixProgramName() {
-        return "dvips";
+		return "dvips"; //$NON-NLS-1$
     }
 
     public String getDescription() {

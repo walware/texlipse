@@ -7,6 +7,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
+
 package net.sourceforge.texlipse.model;
 
 import java.io.File;
@@ -64,7 +65,7 @@ public final class ReferenceEntry extends AbstractEntry {
      * 
      * @return A copy of this reference
      */
-    public AbstractEntry copy() {
+    public ReferenceEntry copy() {
         ReferenceEntry re = new ReferenceEntry(key, info);
         re.startLine = startLine;
         re.endLine = endLine;

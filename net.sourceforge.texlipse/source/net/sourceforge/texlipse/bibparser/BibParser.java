@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.PushbackReader;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import net.sourceforge.texlipse.bibparser.lexer.LexerException;
@@ -22,6 +23,7 @@ import net.sourceforge.texlipse.bibparser.node.Start;
 import net.sourceforge.texlipse.bibparser.parser.Parser;
 import net.sourceforge.texlipse.bibparser.parser.ParserException;
 import net.sourceforge.texlipse.model.ParseErrorMessage;
+import net.sourceforge.texlipse.model.ReferenceEntry;
 
 import org.eclipse.core.resources.IMarker;
 
@@ -39,8 +41,8 @@ public class BibParser {
     private Reader reader;
     
     private List<ParseErrorMessage> errors;
-    private List warnings;
-    private List tasks;
+    private List<ParseErrorMessage> warnings;
+    private List<ParseErrorMessage> tasks;
     private Start ast;
     
     /**
@@ -51,7 +53,8 @@ public class BibParser {
     public BibParser(String filename) {
         this.filename = filename;
         this.errors = new ArrayList<ParseErrorMessage>();
-        this.warnings = new ArrayList();
+        this.warnings = new ArrayList<ParseErrorMessage>();
+        this.tasks = new ArrayList<ParseErrorMessage>();
     }
     
     /**
@@ -61,8 +64,9 @@ public class BibParser {
      */
     public BibParser(Reader r) {
         this.reader = r;
-        this.errors = new ArrayList();
-        this.warnings = new ArrayList();
+        this.errors = new ArrayList<ParseErrorMessage>();
+        this.warnings = new ArrayList<ParseErrorMessage>();
+        this.tasks = new ArrayList<ParseErrorMessage>();
     }
     
     /**
@@ -71,8 +75,7 @@ public class BibParser {
      * 
      * @return BibTeX entries (<code>ReferenceEntry</code>)
      */
-//    public List<ReferenceEntry> getEntries() throws IOException, FileNotFoundException {
-    public List getEntries() throws IOException, FileNotFoundException {
+    public List<ReferenceEntry> getEntries() throws IOException, FileNotFoundException {
         try {
             BibLexer l;
             if (filename != null) {
@@ -123,13 +126,13 @@ public class BibParser {
     /**
      * @return Returns the abbreviations (<code>ReferenceEntry</code>)
      */
-    public List getAbbrevs() {
+    public List<ReferenceEntry> getAbbrevs() {
         if (ast != null) {
             AbbrevRetriever ar = new AbbrevRetriever();
             ast.apply(ar);
             return ar.getAbbrevs();
         }
-        return null;
+        return Collections.emptyList();
     }
     
     /**
@@ -142,14 +145,14 @@ public class BibParser {
     /**
      * @return Returns the warnings.
      */
-    public List getWarnings() {
+    public List<ParseErrorMessage> getWarnings() {
         return warnings;
     }
     
     /**
      * @return Returns the tasks
      */
-    public List getTasks() {
+    public List<ParseErrorMessage> getTasks() {
         return tasks;
     }
 }

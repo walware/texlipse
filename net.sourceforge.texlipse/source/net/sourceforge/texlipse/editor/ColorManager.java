@@ -74,7 +74,7 @@ public class ColorManager {
     private static final RGB DEFAULT_CURLY_BRACKETS_COLOR = new RGB(3, 54, 222);
     private static final RGB DEFAULT_SQUARE_BRACKETS_COLOR = new RGB(243, 129, 37);
     private static final RGB DEFAULT_EQUATION_COLOR = new RGB(190, 100, 100);
-    private static final RGB DEFAULT_COMMENT_COLOR = new RGB(190, 190, 190);
+    private static final RGB DEFAULT_COMMENT_COLOR = new RGB(63, 127, 95);
     private static final RGB DEFAULT_VERBATIM_COLOR = new RGB(80, 80, 80);
     
     //private static final RGB DEFAULT_TEX_WHITE_COLOR = new RGB(125, 125, 125);

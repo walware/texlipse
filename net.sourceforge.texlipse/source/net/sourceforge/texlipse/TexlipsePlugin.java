@@ -7,6 +7,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
+
 package net.sourceforge.texlipse;
 
 import java.io.IOException;
@@ -19,9 +20,11 @@ import java.util.ResourceBundle;
 import net.sourceforge.texlipse.bibeditor.BibCodeScanner;
 import net.sourceforge.texlipse.bibeditor.BibColorProvider;
 import net.sourceforge.texlipse.bibeditor.BibEntryScanner;
+import net.sourceforge.texlipse.editor.ColorManager;
 import net.sourceforge.texlipse.properties.StringListFieldEditor;
 import net.sourceforge.texlipse.templates.BibTexContextType;
 import net.sourceforge.texlipse.templates.TexContextType;
+import net.sourceforge.texlipse.viewer.ViewerManager2;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -77,6 +80,8 @@ public class TexlipsePlugin extends AbstractUIPlugin {
     private BibColorProvider bibColor;
     private BibCodeScanner bibCodeScanner;
     private BibEntryScanner bibEntryScanner;
+	private ColorManager fColorManager;
+	private ViewerManager2 fViewerManager2;
     
     // used by the current project solving mechanism
     protected static IWorkbenchWindow currentWindow;
@@ -112,6 +117,10 @@ public class TexlipsePlugin extends AbstractUIPlugin {
      * This method is called when the plug-in is stopped
      */
     public void stop(BundleContext context) throws Exception {
+		if (fViewerManager2 != null) {
+			fViewerManager2.dispose();
+			fViewerManager2 = null;
+		}
         super.stop(context);
     }
     
@@ -406,4 +415,19 @@ public class TexlipsePlugin extends AbstractUIPlugin {
         }
         return bibEntryScanner;
     }
+	
+	public synchronized ColorManager getColorManager() {
+		if (fColorManager == null) {
+			fColorManager = new ColorManager();
+		}
+		return fColorManager;
+	}
+	
+	public synchronized ViewerManager2 getViewerManager2() {
+		if (fViewerManager2 == null) {
+			fViewerManager2 = new ViewerManager2();
+		}
+		return fViewerManager2;
+	}
+	
 }

@@ -2,8 +2,8 @@
 
 package net.sourceforge.texlipse.bibparser.parser;
 
-import net.sourceforge.texlipse.bibparser.node.*;
 import net.sourceforge.texlipse.bibparser.analysis.*;
+import net.sourceforge.texlipse.bibparser.node.*;
 
 class TokenIndex extends AnalysisAdapter
 {

@@ -11,8 +11,10 @@ package net.sourceforge.texlipse.builder;
 
 import java.util.StringTokenizer;
 
+import net.sourceforge.texlipse.TexPathConfig;
 import net.sourceforge.texlipse.properties.TexlipseProperties;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 
 
@@ -24,15 +26,15 @@ import org.eclipse.core.resources.IResource;
 public class MakeindexRunner extends AbstractProgramRunner {
 
     public MakeindexRunner() {
-        super();
+		super(BuilderRegistry.MAKEINDEX_RUNNER_ID);
     }
 
     protected String getWindowsProgramName() {
-        return "makeindex.exe";
+		return "makeindex.exe"; //$NON-NLS-1$
     }
     
     protected String getUnixProgramName() {
-        return "makeindex";
+		return "makeindex"; //$NON-NLS-1$
     }
     
     public String getDescription() {
@@ -48,9 +50,9 @@ public class MakeindexRunner extends AbstractProgramRunner {
      * @param resource .tex file to compile
      * @return argument string for latex program
      */
-    public String getArguments(IResource resource) {
-        
-        String args = super.getArguments(resource);
+	protected String getArguments(TexPathConfig pathConfig) {
+		String args = super.getArguments(pathConfig);
+		IFile resource = pathConfig.getTexFile();
         String style = TexlipseProperties.getProjectProperty(resource.getProject(),
                 TexlipseProperties.MAKEINDEX_STYLEFILE_PROPERTY);
         

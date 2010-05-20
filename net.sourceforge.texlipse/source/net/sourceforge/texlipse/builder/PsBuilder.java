@@ -9,9 +9,9 @@
  */
 package net.sourceforge.texlipse.builder;
 
+import net.sourceforge.texlipse.TexPathConfig;
 import net.sourceforge.texlipse.properties.TexlipseProperties;
 
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 
@@ -50,7 +50,7 @@ public class PsBuilder extends AbstractBuilder {
             dvi = BuilderRegistry.get(builderClass, TexlipseProperties.OUTPUT_FORMAT_PS);
         }
         if (pdf == null || !pdf.isValid()) {
-            pdf = BuilderRegistry.getRunner(TexlipseProperties.OUTPUT_FORMAT_PS, TexlipseProperties.OUTPUT_FORMAT_PDF);
+			pdf = BuilderRegistry.getRunner(BuilderRegistry.PS2PDF_RUNNER_ID);
         }
         return dvi != null && dvi.isValid() && pdf != null && pdf.isValid();
     }
@@ -76,15 +76,15 @@ public class PsBuilder extends AbstractBuilder {
         stopped = true;
     }
 
-    public void buildResource(IResource resource) throws CoreException {
+	public void buildResource(TexPathConfig pathConfig) throws CoreException {
         // call buildResource directly, because we don't want a separate thread for DviBuilder
         stopped = false;
-        dvi.buildResource(resource);
+		dvi.buildResource(pathConfig);
         if (stopped) 
             return;
         
         monitor.subTask("Converting dvi to pdf");
-        pdf.run(resource);
+		pdf.run(pathConfig);
         monitor.worked(15);
     }
 }

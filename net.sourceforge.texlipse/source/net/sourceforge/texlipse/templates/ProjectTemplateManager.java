@@ -226,7 +226,7 @@ public class ProjectTemplateManager {
         IPath templateDir = TexlipsePlugin.getDefault().getStateLocation().append(USER_TEMPLATES_DIR);
         File dir = new File(templateDir.toOSString());
         if (!dir.exists()) {
-            dir.mkdir();
+            dir.mkdirs();
         }
         
         // check extension

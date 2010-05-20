@@ -2,7 +2,9 @@
 
 package net.sourceforge.texlipse.bibparser.node;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.ListIterator;
 
 public class TypedLinkedList extends LinkedList
 {

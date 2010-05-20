@@ -37,17 +37,21 @@ public class LatexRunner extends AbstractProgramRunner {
     /**
      * Create a new ProgramRunner.
      */
+	public LatexRunner(String id) {
+		super(id);
+		this.parsingStack = new Stack<String>();
+	}
+	
     public LatexRunner() {
-        super();
-        this.parsingStack = new Stack<String>();
+		this(BuilderRegistry.LATEX_RUNNER_ID);
     }
     
     protected String getWindowsProgramName() {
-        return "latex.exe";
+		return "latex.exe"; //$NON-NLS-1$
     }
     
     protected String getUnixProgramName() {
-        return "latex";
+		return "latex"; //$NON-NLS-1$
     }
     
     public String getDescription() {

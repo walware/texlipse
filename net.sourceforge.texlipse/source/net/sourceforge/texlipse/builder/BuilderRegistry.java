@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.sourceforge.texlipse.TexlipsePlugin;
-import net.sourceforge.texlipse.properties.TexlipseProperties;
 
 import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
@@ -30,6 +29,20 @@ import org.eclipse.ui.console.MessageConsoleStream;
  */
 public class BuilderRegistry {
 
+	
+	public static final String LATEX_RUNNER_ID = "latex";
+	public static final String PSLATEX_RUNNER_ID = "pslatex";
+	public static final String PDFLATEX_RUNNER_ID = "pdflatex";
+	public static final String DVIPS_RUNNER_ID = "dvips";
+	public static final String DVIPDF_RUNNER_ID = "dvipdf";
+	public static final String PS2PDF_RUNNER_ID = "ps2pdf";
+	public static final String XELATEX_RUNNER_ID = "xelatex";
+	
+	public static final String BIBTEX_RUNNER_ID = "bibtex";
+	public static final String MAKEINDEX_RUNNER_ID = "makeindex";
+	public static final String MAKEINDEX_NOMENCL_RUNNER_ID = "makeindex.nomencl";
+	
+	
     // the singleton instance
     private static BuilderRegistry instance = new BuilderRegistry();
     
@@ -95,7 +108,7 @@ public class BuilderRegistry {
      * 
      * @return the builder or null if there is no such builder configured
      */
-    public static Builder get(Class clazz, String format) {
+    public static Builder get(Class<? extends Builder> clazz, String format) {
         return instance.getBuilder(clazz, format);
     }
     
@@ -138,18 +151,6 @@ public class BuilderRegistry {
     }
 
     /**
-     * Get a program runner for the given conversion.
-     * 
-     * @param in input file format
-     * @param out output file format
-     * @return a program runner capable of converting from the given
-     *         input format to the given output format
-     */
-    public static ProgramRunner getRunner(String in, String out) {
-        return instance.getProgramRunner(in, out);
-    }
-    
-    /**
      * Hidden constructor.
      * Creates the shared instances of the program runners and the builders.
      * 
@@ -181,16 +182,17 @@ public class BuilderRegistry {
      */
     protected void initBuilders() {
         builderList = new Builder[8];
-        builderList[0] = new TexBuilder(0, TexlipseProperties.OUTPUT_FORMAT_DVI);
-        builderList[1] = new TexBuilder(1, TexlipseProperties.OUTPUT_FORMAT_PS);
-        builderList[2] = new TexBuilder(2, TexlipseProperties.OUTPUT_FORMAT_PDF);
+        builderList[0] = new TexBuilder(0, LATEX_RUNNER_ID);
+        builderList[1] = new TexBuilder(1, PSLATEX_RUNNER_ID);
+        builderList[2] = new TexBuilder(2, PDFLATEX_RUNNER_ID);
         
-        builderList[3] = new DviBuilder(3, TexlipseProperties.OUTPUT_FORMAT_PS);
-        builderList[4] = new DviBuilder(4, TexlipseProperties.OUTPUT_FORMAT_PDF);
+        builderList[3] = new DviBuilder(3, DVIPS_RUNNER_ID);
+        builderList[4] = new DviBuilder(4, DVIPDF_RUNNER_ID);
         
         builderList[5] = new PsBuilder(5, TexBuilder.class);
         builderList[6] = new PsBuilder(6, DviBuilder.class);
-        builderList[7] = new TexBuilder(7, TexlipseProperties.OUTPUT_FORMAT_PDF);
+        
+        builderList[7] = new TexBuilder(7, XELATEX_RUNNER_ID);
     }
     
     /**
@@ -200,8 +202,7 @@ public class BuilderRegistry {
      * @param outputFormat the output format of the builder
      * @return the builder instance, or null if none found
      */
-    protected Builder getBuilder(Class builderClass, String outputFormat) {
-
+	protected Builder getBuilder(Class<? extends Builder> builderClass, String outputFormat) {
         if (outputFormat == null) {
             return null;
         }
@@ -256,31 +257,21 @@ public class BuilderRegistry {
     }
 
     /**
-     * Get the named program runner.
-     * 
-     * @param in input format of the runner
-     * @param out output format of the runner
-     * @return the program runner
-     */
-    protected ProgramRunner getProgramRunner(String in, String out) {
-        
-        int size = getNumberOfRunners();
-        for (int i = 0; i < size; i++) {
-            ProgramRunner r = getProgramRunner(i);
-            if (r.getInputFormat().equals(in) && (out == null || r.getOutputFormat().equals(out))) {
-                return r;
-            }
-        }
-        
-        return null;
-    }
-    
-    /**
      * Returns the number of implemented runners.
      * @return the number of implemented runners
      */
     public static int getNumberOfRunners() {
         return instance.runnerList.length;
+    }
+        
+	public static ProgramRunner getRunner(String id) {
+		for (ProgramRunner runner : instance.runnerList) {
+			if (runner.getId().equals(id)) {
+				return runner;
+            }
+        }
+        
+        return null;
     }
 }
 

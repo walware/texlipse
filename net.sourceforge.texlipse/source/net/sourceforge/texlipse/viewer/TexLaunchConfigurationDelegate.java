@@ -77,7 +77,7 @@ public class TexLaunchConfigurationDelegate extends LaunchConfigurationDelegate 
             try {
                 Thread.sleep(500); // A small delay required
             } catch (InterruptedException e) {
-                // swallow
+				Thread.interrupted();
             }
             
             ViewerManager.returnFocusToEclipse(false);

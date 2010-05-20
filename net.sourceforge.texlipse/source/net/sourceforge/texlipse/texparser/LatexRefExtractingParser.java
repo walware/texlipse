@@ -7,12 +7,14 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
+
 package net.sourceforge.texlipse.texparser;
 
 import java.io.IOException;
 import java.io.PushbackReader;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.List;
 
 import net.sourceforge.texlipse.model.ReferenceEntry;
 import net.sourceforge.texlipse.model.TexCommandEntry;
@@ -178,13 +180,13 @@ public class LatexRefExtractingParser {
     /**
      * @return Returns the labels.
      */
-    public ArrayList<ReferenceEntry> getLabels() {
+    public List<ReferenceEntry> getLabels() {
         return labels;
     }
     /**
      * @return Returns the commands.
      */
-    public ArrayList<TexCommandEntry> getCommands() {
+    public List<TexCommandEntry> getCommands() {
         return commands;
     }
     /**
@@ -199,4 +201,5 @@ public class LatexRefExtractingParser {
     public boolean isFatalErrors() {
         return fatalErrors;
     }
+    
 }

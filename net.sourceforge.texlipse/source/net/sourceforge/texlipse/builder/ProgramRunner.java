@@ -9,7 +9,8 @@
  */
 package net.sourceforge.texlipse.builder;
 
-import org.eclipse.core.resources.IResource;
+import net.sourceforge.texlipse.TexPathConfig;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.preference.IPreferenceStore;
 
@@ -20,6 +21,9 @@ import org.eclipse.jface.preference.IPreferenceStore;
  */
 public interface ProgramRunner {
     
+	
+	public String getId();
+	
     /**
      * @return the name of the executable program
      */
@@ -49,11 +53,11 @@ public interface ProgramRunner {
     /**
      * The main method.
      * 
-     * @param resource the input file to feed to the external program
+	 * @param pathConfig the input file to feed to the external program
      * @throws CoreException if the external program is not found
      *                       or if there was an error during the build
      */
-    public void run(IResource resource) throws CoreException;
+	public void run(TexPathConfig pathConfig) throws CoreException;
 
     /**
      * Kill the external program if it is running.

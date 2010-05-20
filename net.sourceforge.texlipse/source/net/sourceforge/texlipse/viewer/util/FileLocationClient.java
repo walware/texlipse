@@ -113,7 +113,7 @@ public class FileLocationClient {
                 lineNum = args[i + 1];
                 i += 2;
             } else {
-                System.out.println("Unknown argument "+args[i]);
+//                System.out.println("Unknown argument "+args[i]);
                 i++;
             }
         }

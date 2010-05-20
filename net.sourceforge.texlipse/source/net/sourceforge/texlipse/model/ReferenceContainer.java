@@ -7,6 +7,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
+
 package net.sourceforge.texlipse.model;
 
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
 
 /**
  * Container for referencing data (BibTeX and labels.) Holds the reference
@@ -200,9 +202,9 @@ public class ReferenceContainer {
      * 
      * @param errors A list of errors in the form of <code>DocumentReference</code>
      */
-    public void removeFalseEntries(List errors) {
-        for (Iterator iter = errors.iterator(); iter.hasNext();) {
-            DocumentReference docRef = (DocumentReference) iter.next();
+    public void removeFalseEntries(List<DocumentReference> errors) {
+        for (Iterator<DocumentReference> iter = errors.iterator(); iter.hasNext();) {
+            DocumentReference docRef = iter.next();
             if (binTest(docRef.getKey())) {
                 iter.remove();
             }

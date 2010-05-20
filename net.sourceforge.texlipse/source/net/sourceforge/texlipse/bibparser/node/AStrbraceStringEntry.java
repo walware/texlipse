@@ -2,7 +2,6 @@
 
 package net.sourceforge.texlipse.bibparser.node;
 
-import java.util.*;
 import net.sourceforge.texlipse.bibparser.analysis.*;
 
 public final class AStrbraceStringEntry extends PStringEntry

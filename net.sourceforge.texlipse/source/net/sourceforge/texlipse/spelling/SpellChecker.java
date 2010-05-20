@@ -185,8 +185,7 @@ public class SpellChecker implements IPropertyChangeListener {
         
         BuilderRegistry.printToConsole("aspell> adding word: " + word);
 
-        String[] environp = PathUtils.mergeEnvFromPrefs(PathUtils.getEnv(),
-                SPELL_CHECKER_ENV);
+        String[] environp = PathUtils.mergeEnvFromPrefs(SPELL_CHECKER_ENV);
         try {
             Process p = Runtime.getRuntime().exec(cmd, environp);
             PrintWriter w = new PrintWriter(p.getOutputStream());
@@ -234,7 +233,8 @@ public class SpellChecker implements IPropertyChangeListener {
         args = args.replaceAll("%language", language);
         
         command = f.getAbsolutePath() + " " + args;
-        envp = PathUtils.mergeEnvFromPrefs(PathUtils.getEnv(), SPELL_CHECKER_ENV);
+        
+        envp = PathUtils.mergeEnvFromPrefs(SPELL_CHECKER_ENV);
     }
 
     /**
@@ -598,7 +598,7 @@ public class SpellChecker implements IPropertyChangeListener {
         // delete all markers with proposals, because there might be something in the other files
         Iterator<IMarker> iter = proposalMap.keySet().iterator();
         while (iter.hasNext()) {
-            IMarker marker = (IMarker) iter.next();
+            IMarker marker = iter.next();
             try {
                 marker.delete();
             } catch (CoreException e) {

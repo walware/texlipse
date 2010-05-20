@@ -15,11 +15,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
-import java.util.Properties;
+import java.util.HashMap;
+import java.util.Map;
 
 import net.sourceforge.texlipse.PathUtils;
 import net.sourceforge.texlipse.TexlipsePlugin;
 import net.sourceforge.texlipse.properties.TexlipseProperties;
+
+import org.eclipse.core.runtime.CoreException;
+
+import de.walware.ecommons.debug.ui.LaunchConfigUtil;
 
 
 /**
@@ -137,7 +142,7 @@ public class ExternalProgram {
      * @return the text produced to standard output by the process
      * @throws IOException 
      */
-    protected String run(boolean wait, String[] queryMessage) throws IOException {
+    protected String run(boolean wait, String[] queryMessage) throws IOException, CoreException {
         
         String output = null;
         String errorOutput = null;
@@ -155,16 +160,17 @@ public class ExternalProgram {
             // Add builder program path to environmet variables.
             // This is needed at least on Mac OS X, where Eclipse overwrites
             // the "path" environment variable, and xelatex needs its directory in the path.
-            Properties envProp = PathUtils.getEnv();
-            int index = command[0].lastIndexOf(File.separatorChar);
-            if (index > 0) {
-	            String commandPath = command[0].substring(0, index);
-	            String key = PathUtils.findPathKey(envProp);
-	            envProp.setProperty(key, envProp.getProperty(key) + File.pathSeparatorChar + commandPath);
-            }
-            
-            String[] env = PathUtils.mergeEnvFromPrefs(envProp, TexlipseProperties.BUILD_ENV_SETTINGS);
-            process = rt.exec(command, env, dir);
+			Map<String, String> envPrevMap = PathUtils.getPreferenceMap(TexlipseProperties.BUILD_ENV_SETTINGS);
+			Map<String, String> envAddMap = new HashMap<String, String>(1);
+			int index = command[0].lastIndexOf(File.separatorChar);
+			if (index > 0) {
+				String commandPath = command[0].substring(0, index);
+				envAddMap.put("PATH", "${env_var:PATH}" + File.pathSeparatorChar + commandPath);
+			}
+			Map<String, String> envp = LaunchConfigUtil.createEnvironment(null,
+					new Map[] { envPrevMap, envAddMap });
+			
+            process = rt.exec(command, LaunchConfigUtil.toKeyValueStrings(envp), dir);
             
         } else {
             throw new IllegalStateException();

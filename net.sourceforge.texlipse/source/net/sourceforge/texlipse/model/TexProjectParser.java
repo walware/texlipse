@@ -7,6 +7,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
+
 package net.sourceforge.texlipse.model;
 
 import java.io.BufferedReader;
@@ -21,6 +22,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+
 
 /**
  * A parser interface for finding and parsing files in a LaTeX-project.
@@ -84,7 +86,7 @@ public class TexProjectParser {
      * @throws IOException if the file was not readable
      * @throws TexDocumentParseException if the parsing ended in fatal errors
      */
-    public List parseFile(IFile file) throws IOException {
+    public List<OutlineNode> parseFile(IFile file) throws IOException {
         this.file = file;
         return this.parseFile();
     }
@@ -99,7 +101,7 @@ public class TexProjectParser {
      * @throws IOException if the file was not readable
      * @throws TexDocumentParseException if the parsing ended in fatal errors
      */
-    public List parseFile() throws IOException {
+    private List<OutlineNode> parseFile() throws IOException {
         String inputContent = readFile(file);
         parseDocument(inputContent);
         if (parser.isFatalErrors()) {
@@ -131,7 +133,7 @@ public class TexProjectParser {
      * @throws IOException
      */
     private String readFile(IFile file) throws IOException {
-        StringBuffer inputContent = new StringBuffer("");
+        StringBuilder inputContent = new StringBuilder("");
         try {
             BufferedReader buf = new BufferedReader(
                     new InputStreamReader(file.getContents()));

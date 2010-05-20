@@ -2,7 +2,8 @@
 
 package net.sourceforge.texlipse.texparser.analysis;
 
-import java.util.*;
+import java.util.Hashtable;
+
 import net.sourceforge.texlipse.texparser.node.*;
 
 public class AnalysisAdapter implements Analysis

@@ -239,14 +239,14 @@ public class TexLaunchConfigurationTab extends AbstractLaunchConfigurationTab {
             registry.setActiveViewer(viewer);
             
             configuration.setAttribute(ViewerAttributeRegistry.VIEWER_CURRENT, viewer);
-            configuration.setAttribute(viewer + ViewerAttributeRegistry.ATTRIBUTE_COMMAND, registry.getCommand());
-            configuration.setAttribute(viewer + ViewerAttributeRegistry.ATTRIBUTE_ARGUMENTS, registry.getArguments());
-            configuration.setAttribute(viewer + ViewerAttributeRegistry.ATTRIBUTE_DDE_VIEW_COMMAND, registry.getDDEViewCommand());
-            configuration.setAttribute(viewer + ViewerAttributeRegistry.ATTRIBUTE_DDE_VIEW_SERVER, registry.getDDEViewServer());
-            configuration.setAttribute(viewer + ViewerAttributeRegistry.ATTRIBUTE_DDE_VIEW_TOPIC, registry.getDDEViewTopic());
-            configuration.setAttribute(viewer + ViewerAttributeRegistry.ATTRIBUTE_DDE_CLOSE_COMMAND, registry.getDDECloseCommand());
-            configuration.setAttribute(viewer + ViewerAttributeRegistry.ATTRIBUTE_DDE_CLOSE_SERVER, registry.getDDECloseServer());
-            configuration.setAttribute(viewer + ViewerAttributeRegistry.ATTRIBUTE_DDE_CLOSE_TOPIC, registry.getDDECloseTopic());  
+            configuration.setAttribute(viewer + ViewerConfiguration.ATTRIBUTE_COMMAND, registry.getCommand());
+            configuration.setAttribute(viewer + ViewerConfiguration.ATTRIBUTE_ARGUMENTS, registry.getArguments());
+            configuration.setAttribute(viewer + ViewerConfiguration.ATTRIBUTE_DDE_VIEW_COMMAND, registry.getDDEViewCommand());
+            configuration.setAttribute(viewer + ViewerConfiguration.ATTRIBUTE_DDE_VIEW_SERVER, registry.getDDEViewServer());
+            configuration.setAttribute(viewer + ViewerConfiguration.ATTRIBUTE_DDE_VIEW_TOPIC, registry.getDDEViewTopic());
+            configuration.setAttribute(viewer + ViewerConfiguration.ATTRIBUTE_DDE_CLOSE_COMMAND, registry.getDDECloseCommand());
+            configuration.setAttribute(viewer + ViewerConfiguration.ATTRIBUTE_DDE_CLOSE_SERVER, registry.getDDECloseServer());
+            configuration.setAttribute(viewer + ViewerConfiguration.ATTRIBUTE_DDE_CLOSE_TOPIC, registry.getDDECloseTopic());  
         } catch (CoreException e) {
             TexlipsePlugin.log("Initializing launch configuration", e);
         }

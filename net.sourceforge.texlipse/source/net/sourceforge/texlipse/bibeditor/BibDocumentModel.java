@@ -12,7 +12,6 @@ package net.sourceforge.texlipse.bibeditor;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 import net.sourceforge.texlipse.TexlipsePlugin;
@@ -30,7 +29,8 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.BadPositionCategoryException;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.ui.part.FileEditorInput;
+import org.eclipse.ui.ide.ResourceUtil;
+import org.eclipse.ui.texteditor.IDocumentProvider;
 
 
 /**
@@ -41,8 +41,8 @@ import org.eclipse.ui.part.FileEditorInput;
 public class BibDocumentModel {
     
     private BibEditor editor;
-    private List entryList;    
-    private List abbrevs;
+    private List<ReferenceEntry> entryList;
+    private List<ReferenceEntry> abbrevs;
     private AbbrevManager abbrManager;
     
     private ReferenceContainer bibContainer;
@@ -73,14 +73,20 @@ public class BibDocumentModel {
      *             parsing
      */
     private void doParse() throws TexDocumentParseException {
+		IDocumentProvider documentProvider = editor.getDocumentProvider();
+		if (documentProvider == null) {
+			return;
+		}
+		IDocument document = documentProvider.getDocument(editor.getEditorInput());
+		
         try {
-            BibParser parser = new BibParser(new StringReader(this.editor.getDocumentProvider().getDocument(this.editor.getEditorInput()).get()));
+            BibParser parser = new BibParser(new StringReader(document.get()));
             
             this.entryList = parser.getEntries();
             
             List<ParseErrorMessage> parseErrors = parser.getErrors();
-            List parseWarnings = parser.getWarnings();
-            List tasks = parser.getTasks();
+            List<ParseErrorMessage> parseWarnings = parser.getWarnings();
+            List<ParseErrorMessage> tasks = parser.getTasks();
             
             MarkerHandler marker = MarkerHandler.getInstance();
             marker.clearErrorMarkers(editor);
@@ -116,10 +122,12 @@ public class BibDocumentModel {
      * Updates the BibTeX -data in the BibTeX-container.
      */
     private void updateBibContainer() {
-    	IProject project = editor.getProject();
-    	if (project == null) return;
-    	
-        IResource resource = ((FileEditorInput)editor.getEditorInput()).getFile();
+		IResource resource = ResourceUtil.getFile(editor.getEditorInput());
+		if (resource == null) {
+			return;
+		}
+		IProject project = resource.getProject();
+		
         if (bibContainer == null) {
             ReferenceContainer refCon = (ReferenceContainer) TexlipseProperties.getSessionProperty(project,
                     TexlipseProperties.BIBCONTAINER_PROPERTY);
@@ -153,8 +161,12 @@ public class BibDocumentModel {
      * for outline navigation and code folding.
      */
     private void updateDocumentPositions() {
-        IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
-        
+		IDocumentProvider documentProvider = editor.getDocumentProvider();
+		if (documentProvider == null) {
+			return;
+		}
+		IDocument document = documentProvider.getDocument(editor.getEditorInput());
+		
         try {
             document.removePositionCategory(BibOutlinePage.SEGMENTS);
         } catch (BadPositionCategoryException bpce) {
@@ -193,12 +205,11 @@ public class BibDocumentModel {
             // the offset of the last line in the document
             if (entryList.isEmpty()) return;
             int lastLine = document.getNumberOfLines();
-            ReferenceEntry rel = (ReferenceEntry) entryList.get(entryList.size() - 1);
+            ReferenceEntry rel = entryList.get(entryList.size() - 1);
             if (rel.endLine == lastLine) {
                 rel.endLine--;
             }
-            for (Iterator iter = entryList.iterator(); iter.hasNext();) {
-                ReferenceEntry re = (ReferenceEntry) iter.next();
+            for (ReferenceEntry re : entryList) {
                 int beginOffset = document.getLineOffset(re.startLine - 1);
                 int length = document.getLineOffset(re.endLine) - beginOffset;
                 re.setPosition(beginOffset, length);

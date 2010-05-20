@@ -2,8 +2,9 @@
 
 package net.sourceforge.texlipse.bibparser.node;
 
-import java.util.*;
-import net.sourceforge.texlipse.bibparser.analysis.*;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 public abstract class Node implements Switchable, Cloneable
 {

@@ -2,7 +2,7 @@ package net.sourceforge.texlipse.actions;
 
 import net.sourceforge.texlipse.TexlipsePlugin;
 import net.sourceforge.texlipse.editor.TexEditor;
-import net.sourceforge.texlipse.editor.TexPairMatcher;
+import net.sourceforge.texlipse.editor.TexPairMatcher2;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.SubStatusLineManager;
@@ -47,12 +47,12 @@ public class GoToMatchingBracketAction implements IEditorActionDelegate {
         
         int sourceCaretOffset= selection.getOffset() + selection.getLength();
 
-        TexPairMatcher fBracketMatcher = new TexPairMatcher("{}[]()");
+        final TexPairMatcher2 fBracketMatcher = new TexPairMatcher2();
         
         IRegion region= fBracketMatcher.match(document, sourceCaretOffset);
         if (region == null) {
             slm.setErrorMessage(TexlipsePlugin.getResourceString("gotoMatchingBracketNotFound"));
-            slm.setVisible(true);            
+            slm.setVisible(true);
             sourceViewer.getTextWidget().getDisplay().beep();
             return;
         }

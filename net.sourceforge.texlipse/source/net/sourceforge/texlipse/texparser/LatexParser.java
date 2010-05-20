@@ -7,6 +7,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
+
 package net.sourceforge.texlipse.texparser;
 
 import java.io.IOException;
@@ -153,20 +154,20 @@ public class LatexParser {
         }
     }
 
-    private ArrayList labels; //type: ReferenceEntry
-    private ArrayList cites; //type: DocumentReference
-    private ArrayList refs; //type: DocumentReference
-    private ArrayList commands; //type: TexCommandEntry
-    private List tasks; //type: ParseErrorMessage
+    private ArrayList<ReferenceEntry> labels;
+    private ArrayList<DocumentReference> cites;
+    private ArrayList<DocumentReference> refs;
+    private ArrayList<TexCommandEntry> commands;
+    private List<ParseErrorMessage> tasks;
     
     private String[] bibs;
     private String bibstyle;
     
-    private ArrayList inputs; //type: String
+    private List<OutlineNode> inputs;
     
-    private ArrayList outlineTree; //type: OutlineNode
+    private ArrayList<OutlineNode> outlineTree;
     
-    private ArrayList errors; //type: ParseErrorMessage
+    private ArrayList<ParseErrorMessage> errors;
     
     private OutlineNode documentEnv;
     
@@ -183,16 +184,16 @@ public class LatexParser {
      * Initializes the internal datastructures that are exported after parsing.
      */
     private void initializeDatastructs() {
-        this.labels = new ArrayList();
-        this.cites = new ArrayList();
-        this.refs = new ArrayList();
-        this.commands = new ArrayList();
-        this.tasks = new ArrayList();
+        this.labels = new ArrayList<ReferenceEntry>();
+        this.cites = new ArrayList<DocumentReference>();
+        this.refs = new ArrayList<DocumentReference>();
+        this.commands = new ArrayList<TexCommandEntry>();
+        this.tasks = new ArrayList<ParseErrorMessage>();
         
-        this.inputs = new ArrayList();
+        this.inputs = new ArrayList<OutlineNode>(2);
         
-        this.outlineTree = new ArrayList();
-        this.errors = new ArrayList();
+        this.outlineTree = new ArrayList<OutlineNode>();
+        this.errors = new ArrayList<ParseErrorMessage>();
         
         this.bibs = null;
         this.index = false;
@@ -249,9 +250,8 @@ public class LatexParser {
         
         TexCommandEntry currentCommand = null;
         int argCount = 0;
-        Integer nodeType;
         
-        HashMap sectioning = new HashMap();
+        HashMap<String, Integer> sectioning = new HashMap<String, Integer> ();
         
         if (preamble != null) {
             outlineTree.add(preamble);
@@ -684,25 +684,25 @@ public class LatexParser {
                     currentCommand.info = t.getText();
                     commands.add(currentCommand);
                     if (partRe.matcher(currentCommand.info).find())
-                        sectioning.put("\\" + currentCommand.key, new Integer(OutlineNode.TYPE_PART));
+                        sectioning.put("\\" + currentCommand.key, OutlineNode.TYPE_PART);
                     //else if (currentCommand.info.indexOf("\\chapter") != -1)
                     else if (chapterRe.matcher(currentCommand.info).find())
-                        sectioning.put("\\" + currentCommand.key, new Integer(OutlineNode.TYPE_CHAPTER));
+                        sectioning.put("\\" + currentCommand.key, OutlineNode.TYPE_CHAPTER);
                     //else if (currentCommand.info.indexOf("\\section") != -1)
                     else if (sectionRe.matcher(currentCommand.info).find())
-                        sectioning.put("\\" + currentCommand.key, new Integer(OutlineNode.TYPE_SECTION));
+                        sectioning.put("\\" + currentCommand.key, OutlineNode.TYPE_SECTION);
                     //else if (currentCommand.info.indexOf("\\subsection") != -1)
                     else if (ssectionRe.matcher(currentCommand.info).find())
-                        sectioning.put("\\" + currentCommand.key, new Integer(OutlineNode.TYPE_SUBSECTION));
+                        sectioning.put("\\" + currentCommand.key, OutlineNode.TYPE_SUBSECTION);
                     //else if (currentCommand.info.indexOf("\\subsubsection") != -1)
                     else if (sssectionRe.matcher(currentCommand.info).find())
-                        sectioning.put("\\" + currentCommand.key, new Integer(OutlineNode.TYPE_SUBSUBSECTION));
+                        sectioning.put("\\" + currentCommand.key, OutlineNode.TYPE_SUBSUBSECTION);
                     //else if (currentCommand.info.indexOf("\\paragraph") != -1)
                     else if (paragraphRe.matcher(currentCommand.info).find())
-                        sectioning.put("\\" + currentCommand.key, new Integer(OutlineNode.TYPE_PARAGRAPH));
+                        sectioning.put("\\" + currentCommand.key, OutlineNode.TYPE_PARAGRAPH);
                     //else if (currentCommand.info.indexOf("\\label") != -1)
                     else if (labelRe.matcher(currentCommand.info).find())  
-                        sectioning.put("\\" + currentCommand.key, new Integer(LatexParser.TYPE_LABEL));
+                        sectioning.put("\\" + currentCommand.key, LatexParser.TYPE_LABEL);
 
                     argCount = 0;
                     expectArg2 = false;
@@ -743,7 +743,8 @@ public class LatexParser {
                 } else if (t instanceof TCword) {
                     // macros (\newcommand) show up as TCword when used, so we need
                     // to check (for each word!) whether it happens to be a command
-                    if ((nodeType = (Integer) sectioning.get(t.getText())) != null) {
+                    Integer nodeType = sectioning.get(t.getText());
+                    if (nodeType != null) {
                         switch (nodeType.intValue()) {
                         case OutlineNode.TYPE_PART:
                             prevToken = new TCpart(t.getLine(), t.getPos());
@@ -838,21 +839,21 @@ public class LatexParser {
     /**
      * @return The labels defined in this document
      */
-    public ArrayList getLabels() {
+    public List<ReferenceEntry> getLabels() {
         return this.labels;
     }
     
     /**
      * @return The BibTeX citations which weren't defined
      */
-    public ArrayList getCites() {
+    public List<DocumentReference> getCites() {
         return this.cites;
     }
     
     /**
      * @return The refencing commands for which no label was found
      */
-    public ArrayList getRefs() {
+    public List<DocumentReference> getRefs() {
         return this.refs;
     }
     
@@ -873,21 +874,21 @@ public class LatexParser {
     /**
      * @return The input commands in this document
      */
-    public ArrayList getInputs() {
+    public List<OutlineNode> getInputs() {
         return this.inputs;
     }
     
     /**
      * @return The outline tree of the document (OutlineNode objects).
      */
-    public ArrayList getOutlineTree() {
+    public List<OutlineNode> getOutlineTree() {
         return this.outlineTree;
     }
     
     /**
      * @return The list of errors (ParseErrorMessage objects) in the document
      */
-    public ArrayList getErrors() {
+    public List<ParseErrorMessage> getErrors() {
         return this.errors;
     }
     
@@ -915,14 +916,14 @@ public class LatexParser {
     /**
      * @return Returns the commands.
      */
-    public ArrayList getCommands() {
+    public List<TexCommandEntry> getCommands() {
         return commands;
     }
     
     /**
      * @return Returns the tasks.
      */
-    public List getTasks() {
+    public List<ParseErrorMessage> getTasks() {
         return tasks;
     }
 }

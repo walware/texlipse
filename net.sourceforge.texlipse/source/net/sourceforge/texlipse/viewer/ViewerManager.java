@@ -17,7 +17,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 import net.sourceforge.texlipse.DDEClient;
 import net.sourceforge.texlipse.PathUtils;
@@ -32,7 +31,6 @@ import net.sourceforge.texlipse.viewer.util.FileLocationServer;
 import net.sourceforge.texlipse.viewer.util.ViewerErrorScanner;
 
 import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -52,6 +50,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+
+import de.walware.ecommons.debug.ui.LaunchConfigUtil;
 
 
 /**
@@ -97,7 +97,7 @@ public class ViewerManager {
     private ViewerAttributeRegistry registry;
 
     // environment variables to add to current environment
-    private Map envSettings;
+    private Map<String, String> envSettings;
 
     // the current project
     private IProject project;
@@ -144,6 +144,7 @@ public class ViewerManager {
         		Thread.sleep(1000); // 1000 enough? Who knows!?
         		// The timeout should probably be a config setting?
 			} catch (InterruptedException e) {
+				Thread.interrupted();
 			}
 			
         	mgr.sendDDEViewCommand();
@@ -195,7 +196,7 @@ public class ViewerManager {
 			try {
                 Thread.sleep(500); // A small delay required
             } catch (InterruptedException e) {
-                // swallow
+                Thread.interrupted();
             }
 
             returnFocusToEclipse(false);
@@ -571,20 +572,22 @@ public class ViewerManager {
         PathUtils.tokenizeEscapedString(args, list);
         
         // create environment
-        Properties env = PathUtils.getEnv();
-        if (envSettings != null) {
-            env.putAll(envSettings);
-        }
-        //String envp[] = PathUtils.getStrings(env);
-        String envp[] = PathUtils.mergeEnvFromPrefs(env, TexlipseProperties.VIEWER_ENV_SETTINGS);
-        
+		Map<String, String> envPrevMap = PathUtils.getPreferenceMap(TexlipseProperties.BUILD_ENV_SETTINGS);
+		Map<String, String> envAddMap = new HashMap<String, String>();
+		if (envSettings != null) {
+			envAddMap.putAll(envSettings);
+		}
+		LaunchConfigUtil.createEnvironment(null, new Map[] {});
+		Map<String, String> envp = LaunchConfigUtil.createEnvironment(null,
+				new Map[] { envPrevMap, envAddMap });
+		
         // print command
         BuilderRegistry.printToConsole(TexlipsePlugin.getResourceString("viewerRunning")
                 + " " + command + " " + args);
 
         // start viewer process
         Runtime runtime = Runtime.getRuntime();
-        Process process = runtime.exec((String[]) list.toArray(new String[0]), envp, dir);
+        Process process = runtime.exec(list.toArray(new String[0]), LaunchConfigUtil.toKeyValueStrings(envp), dir);
   
         // save attribute
         HashMap viewerInfo = new HashMap();
@@ -677,15 +680,13 @@ public class ViewerManager {
      * @param viewer the name of the viewer
      */
     private void startOutputListener(InputStream in, String inverse) {
-        
-        if (inverse.equals(ViewerAttributeRegistry.INVERSE_SEARCH_RUN)) {
-            
+        if (inverse.equals(ViewerConfiguration.INVERSE_SEARCH_RUN)) {
             FileLocationServer server = FileLocationServer.getInstance();
             server.setListener(new FileLocationOpener(project));
             if (!server.isRunning()) {
                 new Thread(server).start();
             }
-        } else if (inverse.equals(ViewerAttributeRegistry.INVERSE_SEARCH_STD)) {
+        } else if (inverse.equals(ViewerConfiguration.INVERSE_SEARCH_STD)) {
             new Thread(new ViewerOutputScanner(project, in)).start();
         }
     }

@@ -24,15 +24,15 @@ import org.eclipse.ui.PlatformUI;
 public class Ps2pdfRunner extends AbstractProgramRunner {
 
     public Ps2pdfRunner() {
-        super();
+		super(BuilderRegistry.PS2PDF_RUNNER_ID);
     }
 
     protected String getWindowsProgramName() {
-        return "ps2pdf.exe";
+		return "ps2pdf.exe"; //$NON-NLS-1$
     }
     
     protected String getUnixProgramName() {
-        return "ps2pdf";
+		return "ps2pdf"; //$NON-NLS-1$
     }
     
     public String getDescription() {

@@ -2,8 +2,11 @@
 
 package net.sourceforge.texlipse.texparser.lexer;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.PushbackReader;
+
 import net.sourceforge.texlipse.texparser.node.*;
 
 public class Lexer

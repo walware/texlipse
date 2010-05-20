@@ -12,8 +12,10 @@ package net.sourceforge.texlipse.builder;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import net.sourceforge.texlipse.PathUtils;
+import net.sourceforge.texlipse.TexPathConfig;
 import net.sourceforge.texlipse.TexlipsePlugin;
 import net.sourceforge.texlipse.properties.TexlipseProperties;
 
@@ -37,18 +39,26 @@ import org.eclipse.ui.texteditor.MarkerUtilities;
  */
 public abstract class AbstractProgramRunner implements ProgramRunner {
     
+	
+	private final String id;
+	
     // the currently running program
     private ExternalProgram extrun;
     
     /**
      * Create a new program runner.
-     * @param project the project holding the properties
-     * @param propertyName name of the property containing the name of the program
+	 * @param id the id
      */
-    protected AbstractProgramRunner() {
+	protected AbstractProgramRunner(String id) {
+		this.id = id;
         extrun = new ExternalProgram();
     }
 
+	
+	public String getId() {
+		return this.id;
+	}
+	
     /**
      * @return the name of the program runner arguments -preference in the plugin preferences
      */
@@ -129,7 +139,8 @@ public abstract class AbstractProgramRunner implements ProgramRunner {
      * @param resource the input file to be processed
      * @return the arguments to give to the external program
      */
-    protected String getArguments(IResource resource) {
+	protected String getArguments(final TexPathConfig pathConfig) {
+		final IFile resource = pathConfig.getTexFile();
         String args = getProgramArguments();
         if (args == null) {
             return null;
@@ -147,6 +158,13 @@ public abstract class AbstractProgramRunner implements ProgramRunner {
         if (args.indexOf("%input") >= 0) {
             args = args.replaceAll("%input", inputName);
         }
+		if (args.indexOf("%outputdir") >= 0) {
+			String dir = pathConfig.getOutputFile().getParent().getLocation().makeAbsolute().toString();
+			if (dir.indexOf(' ') >= 0) {
+				 dir = "\""+dir+"\"";
+			}
+			args = args.replaceAll("%outputdir", dir);
+		}
         if (args.indexOf("%output") >= 0) {
             args = args.replaceAll("%output", outputName);
         }
@@ -191,8 +209,8 @@ public abstract class AbstractProgramRunner implements ProgramRunner {
      * @throws CoreException if the external program is not found
      *                       or if there was an error during the build
      */
-    public void run(IResource resource) throws CoreException {
-        
+	public void run(final TexPathConfig pathConfig) throws CoreException {
+		final IFile resource = pathConfig.getTexFile();
         File sourceDir = resource.getLocation().toFile().getParentFile();
         
         // find executable file
@@ -203,10 +221,10 @@ public abstract class AbstractProgramRunner implements ProgramRunner {
         }
         
         // split command into array
-        ArrayList list = new ArrayList();
+		final List<String> list = new ArrayList<String>();
         list.add(exec.getAbsolutePath());
-        PathUtils.tokenizeEscapedString(getArguments(resource), list);
-        String[] command =  (String[]) list.toArray(new String[0]);
+		PathUtils.tokenizeEscapedString(getArguments(pathConfig), list);
+		String[] command = list.toArray(new String[0]);
         
         // check if we are using console
         String console = null;
@@ -327,7 +345,7 @@ public abstract class AbstractProgramRunner implements ProgramRunner {
         IMarker marker = AbstractProgramRunner.findMarker(resource, message, markerType);
         if (marker == null) {
             try {
-                HashMap map = new HashMap();
+				final HashMap<String, Object> map = new HashMap<String, Object>();
                 map.put(IMarker.MESSAGE, message);
                 map.put(IMarker.SEVERITY, new Integer(IMarker.SEVERITY_WARNING));
                 
@@ -358,8 +376,7 @@ public abstract class AbstractProgramRunner implements ProgramRunner {
         if (marker == null) {
             
             try {
-                
-                HashMap map = new HashMap();
+				final HashMap<String, Object> map = new HashMap<String, Object>();
                 map.put(IMarker.MESSAGE, message);
                 map.put(IMarker.SEVERITY, new Integer(severity));
                 

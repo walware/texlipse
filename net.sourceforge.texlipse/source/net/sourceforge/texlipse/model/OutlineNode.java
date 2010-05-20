@@ -7,12 +7,15 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
+
 package net.sourceforge.texlipse.model;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.Position;
+
 
 /**
  * Node of the outline tree. Created during parsing of the document.
@@ -43,7 +46,7 @@ public class OutlineNode {
     private int offsetOnLine;
     private int declarationLength;
     private OutlineNode parent;
-    private ArrayList children;
+    private List<OutlineNode> children;
     private Position position;
     private IFile file;
 
@@ -94,7 +97,7 @@ public class OutlineNode {
      */
     public void addChild(OutlineNode child) {
         if (this.children == null)
-            this.children = new ArrayList();
+            this.children = new ArrayList<OutlineNode>();
         this.children.add(child);
     }
 
@@ -122,13 +125,13 @@ public class OutlineNode {
     /**
      * @return Returns the children.
      */
-    public ArrayList getChildren() {
+    public List<OutlineNode> getChildren() {
         return children;
     }
     /**
      * @param children The children to set.
      */
-    public void setChildren(ArrayList children) {
+    public void setChildren(List<OutlineNode> children) {
         this.children = children;
     }
     /**

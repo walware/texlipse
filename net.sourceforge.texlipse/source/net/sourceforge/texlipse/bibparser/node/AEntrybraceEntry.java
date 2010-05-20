@@ -2,7 +2,10 @@
 
 package net.sourceforge.texlipse.bibparser.node;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+
 import net.sourceforge.texlipse.bibparser.analysis.*;
 
 public final class AEntrybraceEntry extends PEntry

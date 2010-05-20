@@ -22,15 +22,15 @@ public class PslatexRunner extends LatexRunner {
      * Create a new ProgramRunner.
      */
     public PslatexRunner() {
-        super();
+		super(BuilderRegistry.PSLATEX_RUNNER_ID);
     }
     
     protected String getWindowsProgramName() {
-        return "pslatex.exe";
+		return "pslatex.exe"; //$NON-NLS-1$
     }
     
     protected String getUnixProgramName() {
-        return "pslatex";
+		return "pslatex"; //$NON-NLS-1$
     }
     
     public String getDescription() {

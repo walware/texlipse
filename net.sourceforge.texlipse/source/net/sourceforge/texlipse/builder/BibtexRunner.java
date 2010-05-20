@@ -12,10 +12,12 @@ package net.sourceforge.texlipse.builder;
 import java.io.File;
 import java.util.StringTokenizer;
 
+import net.sourceforge.texlipse.TexPathConfig;
 import net.sourceforge.texlipse.TexlipsePlugin;
 import net.sourceforge.texlipse.properties.TexlipseProperties;
 
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -32,21 +34,21 @@ public class BibtexRunner extends AbstractProgramRunner {
      * Create a new bibtex program runner
      */
     public BibtexRunner() {
-        super();
+		super(BuilderRegistry.BIBTEX_RUNNER_ID);
     }
 
     /**
      * @return bibtex program name in windows
      */
     protected String getWindowsProgramName() {
-        return "bibtex.exe";
+		return "bibtex.exe"; //$NON-NLS-1$
     }
     
     /**
      * @return bibtex program name in unix systems
      */
     protected String getUnixProgramName() {
-        return "bibtex";
+		return "bibtex"; //$NON-NLS-1$
     }
     
     /**
@@ -64,8 +66,9 @@ public class BibtexRunner extends AbstractProgramRunner {
      * @param resource the project's main file to build
      * @return arguments for the bibtex program when building the given resource
      */
-    public String getArguments(IResource resource) {
-        String args = super.getArguments(resource);
+	protected String getArguments(TexPathConfig pathConfig) {
+		IFile resource = pathConfig.getTexFile();
+		String args = super.getArguments(pathConfig);
         //Bibtex stops if there is a fileextension, so remove it
         String name = resource.getName();
         String baseName = name.substring(0, name.lastIndexOf('.'));

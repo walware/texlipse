@@ -186,15 +186,16 @@ public class LatexParserUtils {
      */
     private static int getStartofLine(ILatexText input, int index) {
         int lastCR = input.lastIndexOf('\r', index);
-        int lastLine = input.lastIndexOf('\n', index);
-        if (lastCR > lastLine) {
-            //Mac
-            lastLine = lastCR;
+		int lastNL = input.lastIndexOf('\n', index);
+		if (lastCR > lastNL) {
+			return lastCR + 1;
+		}
+		else {
+			return lastNL + 1;
         }
-        return lastLine + 1;
     }
     
-    public static int getStartofLine(String input, int index) {
+	static int getStartofLine(String input, int index) {
         return getStartofLine(new StringLatexText(input), index);
     }
     
@@ -417,7 +418,9 @@ public class LatexParserUtils {
     public static IRegion getCommand (String input, int index){
         int pos = index;
         if ("".equals(input)) return null;
-        while (pos >= input.length()) pos--;
+        if (pos >= input.length()) {
+        	pos = input.length() - 1;
+        }
         try {
             if (isInsideComment(input, pos)) return null;
         } catch (BadLocationException ex) {

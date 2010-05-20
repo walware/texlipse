@@ -66,6 +66,7 @@ public class TexEditorActionContributor extends TextEditorActionContributor {
      * @see org.eclipse.ui.part.EditorActionBarContributor#contributeToMenu(org.eclipse.jface.action.IMenuManager)
      */
     public void contributeToMenu(IMenuManager menuManager) {
+		super.contributeToMenu(menuManager);
         //Add a new group to the navigation/goto menu
         IMenuManager gotoMenu = menuManager.findMenuUsingPath(IWorkbenchActionConstants.M_NAVIGATE+"/"+IWorkbenchActionConstants.GO_TO);
         gotoMenu.add(new Separator("additions2"));

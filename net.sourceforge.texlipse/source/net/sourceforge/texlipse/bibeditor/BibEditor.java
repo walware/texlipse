@@ -15,8 +15,6 @@ import net.sourceforge.texlipse.TexlipsePlugin;
 import net.sourceforge.texlipse.editor.TexPairMatcher;
 import net.sourceforge.texlipse.properties.TexlipseProperties;
 
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.source.ISourceViewer;
@@ -198,13 +196,4 @@ public class BibEditor extends TextEditor {
         return documentModel;
     }
     
-    /**
-     * @return The project that belongs to the current file
-     * or null if it does not belong to any project
-     */
-    public IProject getProject() {
-        IResource res = (IResource) getEditorInput().getAdapter(IResource.class);
-        if (res == null) return null;
-        else return res.getProject();
-    }
 }

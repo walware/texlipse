@@ -7,26 +7,28 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
+
 package net.sourceforge.texlipse.viewer;
 
-
 import java.io.File;
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 
+import net.sourceforge.texlipse.Texlipse;
 import net.sourceforge.texlipse.TexlipsePlugin;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
-import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialogWithToggle;
+import org.eclipse.jface.dialogs.StatusDialog;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -45,6 +47,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import de.walware.ecommons.ui.util.LayoutUtil;
+
 
 /**
  * Viewer configuration editor.
@@ -53,56 +57,73 @@ import org.eclipse.swt.widgets.Text;
  * @author Kimmo Karlsson
  * @author Tor Arne Vestbø
  */
-public class ViewerConfigDialog extends Dialog {
-
-    private static final String[] inverseSearchValues = new String[] { ViewerAttributeRegistry.INVERSE_SEARCH_NO, ViewerAttributeRegistry.INVERSE_SEARCH_RUN, ViewerAttributeRegistry.INVERSE_SEARCH_STD };
-    
-    protected File lastPath;
-    private Text fileField;
-    private Text nameField;
-    private Text argsField; 
+public class ViewerConfigDialog extends StatusDialog {
+	
+	
+	private static final String[] inverseSearchValues = new String[] {
+			ViewerConfiguration.INVERSE_SEARCH_NO,
+			ViewerConfiguration.INVERSE_SEARCH_RUN,
+			ViewerConfiguration.INVERSE_SEARCH_STD };
+	
+	
+	protected File lastPath;
+	private Text fileField;
+	private Text nameField;
+	private Text argsField;
 	private DDEGroup ddeViewGroup;
 	private DDEGroup ddeCloseGroup;
-    private Combo formatChooser;
-    private Combo inverseChooser;
-    private Label statusField;
-
-    private ViewerAttributeRegistry registry;
-    private ArrayList nameList;
-    private boolean newConfig;
-
-    private Button forwardChoice;
-
-
+	private Combo formatChooser;
+	private Combo inverseChooser;
+	
+	private ViewerAttributeRegistry registry;
+	private ArrayList nameList;
+	private boolean newConfig;
+	
+	private Button forwardChoice;
+	
+	
     /**
      * Create a new config editor dialog.
      * @param parentShell shell of the creating component
      */
-    public ViewerConfigDialog(Shell parentShell, ViewerAttributeRegistry reg) {
-        super(parentShell);
-        registry = reg;
-        newConfig = false;
-    }
-
+	public ViewerConfigDialog(Shell parentShell, ViewerAttributeRegistry reg) {
+		this(parentShell, reg, false);
+		
+		updateStatus(new Status(IStatus.OK, Texlipse.PLUGIN_ID,
+				TexlipsePlugin.getResourceString("preferenceViewerStatusTooltip")));
+	}
+	
     /**
      * Create a new config creator dialog.
      * @param parentShell shell of the creating component
      * @param nameList list of existing viewer configuration names
      */
-    public ViewerConfigDialog(Shell parentShell, ArrayList nameList) {
-        super(parentShell);
-        registry = new ViewerAttributeRegistry();
-        registry.setActiveViewer(ViewerAttributeRegistry.VIEWER_NONE);
-        this.nameList = nameList;
-        newConfig = true;
-    }
-
+	public ViewerConfigDialog(Shell parentShell, ArrayList nameList) {
+		this(parentShell, new ViewerAttributeRegistry(), true);
+		this.nameList = nameList;
+	}
+	
+	
+	private ViewerConfigDialog(Shell parentShell, ViewerAttributeRegistry reg, boolean newConfig) {
+		super(parentShell);
+		registry = reg;
+		
+		this.newConfig = newConfig;
+		if (newConfig) {
+			registry.setActiveViewer(ViewerAttributeRegistry.VIEWER_NONE);
+		}
+		
+		setTitle((newConfig) ?
+				TexlipsePlugin.getResourceString("preferenceViewerDialogAddTitle") :
+				TexlipsePlugin.getResourceString("preferenceViewerDialogEditTitle") );
+	}
+	
     /**
-     * Set status field message.
+     * Gets and formats message with text parameter..
      * @param key message text key on resource bundle
      * @param info value of the text parameter (%s)
      */
-    protected void setStatus(String key, String info) {
+	protected String bind(String key, String info) {
         String msg = "";
         if (key != null && key.length() > 0) {
             msg = TexlipsePlugin.getResourceString(key);
@@ -110,19 +131,7 @@ public class ViewerConfigDialog extends Dialog {
                 msg = msg.replaceAll("%s", info);
             }
         }
-        statusField.setText(msg);
-    }
-    
-    /**
-     * Set dialog title when the window is created.
-     */
-    protected void configureShell(Shell newShell) {
-        super.configureShell(newShell);
-        if (newConfig) {
-            newShell.setText(TexlipsePlugin.getResourceString("preferenceViewerDialogAddTitle"));
-        } else {
-            newShell.setText(TexlipsePlugin.getResourceString("preferenceViewerDialogEditTitle"));
-        }
+        return msg;
     }
     
     /**
@@ -192,7 +201,7 @@ public class ViewerConfigDialog extends Dialog {
                                     if (returnCode == IDialogConstants.YES_ID) {
                                         ILaunchConfigurationWorkingCopy workingCopy = c.getWorkingCopy();
                                         workingCopy.setAttributes(registry.asMap());
-
+                                        
                                         // We need to set at least one attribute using a one-shot setter method
                                         // because the method setAttributes does not mark the config as dirty. 
                                         // A dirty config is required for a doSave to do anything useful. 
@@ -213,7 +222,7 @@ public class ViewerConfigDialog extends Dialog {
         } catch (CoreException e) {
             // Something wrong with the config, or could not read attributes, so swallow and skip
         }
-
+        
         setReturnCode(OK);
         close();
     }
@@ -224,7 +233,7 @@ public class ViewerConfigDialog extends Dialog {
      */
     protected Control createDialogArea(Composite parent) {
         Composite composite = (Composite) super.createDialogArea(parent);    
-    
+        
         GridLayout gl = (GridLayout) composite.getLayout();
         gl.numColumns = 2;
         
@@ -233,7 +242,7 @@ public class ViewerConfigDialog extends Dialog {
         GridData dgd = new GridData(GridData.FILL_HORIZONTAL);
         dgd.horizontalSpan = 2;
         descrLabel.setLayoutData(dgd);
-
+        
         addConfigNameField(composite);
         addFileBrowser(composite);
         addArgumentsField(composite);
@@ -242,77 +251,49 @@ public class ViewerConfigDialog extends Dialog {
         addInverseChooser(composite);
         addForwardChooser(composite);
         
-        Group group = new Group(composite, SWT.SHADOW_IN);
-        group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        ((GridData)group.getLayoutData()).horizontalSpan = 2;
-        group.setLayout(new GridLayout());
-        statusField = new Label(group, SWT.LEFT);
-        statusField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        statusField.setToolTipText(TexlipsePlugin.getResourceString("preferenceViewerStatusTooltip"));
+		LayoutUtil.addSmallFiller(composite, true);
         
         return composite;
     }
     
-    
-    
-    /* 
-     * @see org.eclipse.jface.dialogs.Dialog#createButtonBar(org.eclipse.swt.widgets.Composite)
-     */
-    protected Control createButtonBar(Composite parent) {
-        Control ctrl = super.createButtonBar(parent);
-        validateFields();
-        return ctrl;
-    }
-
-    private boolean validateFields() {
-        
-        boolean everythingOK = true;
-        
-        String name = nameField.getText();
-        if ( nameField.getText() == null ||  nameField.getText().length() == 0) {
-            setStatus("preferenceViewerDialogNameEmpty", "");
-            everythingOK = false;
-        }
-        if (formatChooser.getSelectionIndex() == -1) {
-            setStatus("preferenceViewerFormatEmpty", "");
-            everythingOK = false;
-        }
-        
-        // if adding new configuration, existing name is not valid
-        if (nameList != null && nameList.contains(name)) {
-            setStatus("preferenceViewerDialogNameExists", name);
-            everythingOK = false;
-        }
-        
-        File f = new File(fileField.getText());
-        if (fileField.getText().trim().equals("")) {
-            setStatus("preferenceViewerDialogFileNoFile", "");
-            everythingOK = false;
-        }
-        else if (!f.exists()) {
-            setStatus("preferenceViewerDialogFileNotFound", "");
-            everythingOK = false;
-        }
-
-        if (!everythingOK) {
-            Button b = getButton(IDialogConstants.OK_ID);
-            if (b != null) {
-                // set button status
-                b.setEnabled(false);
-            }
-            return false;
-        }
-        
-        Button b = getButton(IDialogConstants.OK_ID);
-        if (b != null) {
-            b.setEnabled(true);
-        }
-        
-        setStatus("preferenceViewerDialogFileOk", "");
-        
-        return true;
-    }
-
+	protected Control createButtonBar(final Composite parent) {
+		final Composite composite = (Composite) super.createButtonBar(parent);
+		((GridLayout) composite.getLayout()).verticalSpacing = 0;
+		
+		validateFields();
+		return composite;
+	}
+	
+	private boolean validateFields() {
+		String name = nameField.getText();
+		if (nameField.getText() == null || nameField.getText().length() == 0) {
+			updateStatus(new Status(IStatus.ERROR, Texlipse.PLUGIN_ID, bind("preferenceViewerDialogNameEmpty", "")));
+			return false;
+		}
+		if (formatChooser.getSelectionIndex() == -1) {
+			updateStatus(new Status(IStatus.ERROR, Texlipse.PLUGIN_ID, bind("preferenceViewerFormatEmpty", "")));
+			return false;
+		}
+		
+		// if adding new configuration, existing name is not valid
+		if (nameList != null && nameList.contains(name)) {
+			updateStatus(new Status(IStatus.ERROR, Texlipse.PLUGIN_ID, bind("preferenceViewerDialogNameExists", "")));
+			return false;
+		}
+		
+		File f = new File(fileField.getText());
+		if (fileField.getText().trim().equals("")) {
+			updateStatus(new Status(IStatus.ERROR, Texlipse.PLUGIN_ID, bind("preferenceViewerDialogFileNoFile", "")));
+			return false;
+		} else if (!f.exists()) {
+			updateStatus(new Status(IStatus.ERROR, Texlipse.PLUGIN_ID, bind("preferenceViewerDialogFileNotFound", "")));
+			return false;
+		}
+		
+		updateStatus(Status.OK_STATUS);
+		return true;
+	}
+	
     /**
      * Creates the configuration name text field.
      * @param composite parent component
@@ -355,7 +336,8 @@ public class ViewerConfigDialog extends Dialog {
         fileField.addModifyListener(new ModifyListener() {
             public void modifyText(ModifyEvent e) {
                 validateFields();
-            }});
+            }
+        });
         
         Button browseButton = new Button(browser, SWT.PUSH);
         browseButton.setText(JFaceResources.getString("openBrowse"));
@@ -388,8 +370,8 @@ public class ViewerConfigDialog extends Dialog {
                         lastPath = null;
                     }
                 }
-                
-            }});
+            }
+        });
     }
 
     /**
@@ -501,49 +483,50 @@ public class ViewerConfigDialog extends Dialog {
     
 
 	private class DDEGroup extends Composite {
-
+		
 		// Public members since the class is private to the dialog
 		public Text command;
 		public Text server;
 		public Text topic;
-
+		
+		
 		public DDEGroup(Composite parent, String name, String toolTip) {
 			super(parent, SWT.NONE);
 			
 			setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		    ((GridData)getLayoutData()).horizontalSpan = 2;
-		    setLayout( new GridLayout());
-		    	    
-   		    Group group = new Group(this, SWT.SHADOW_IN);
-	        group.setText(name);
-	        group.setToolTipText(toolTip);
-   		    group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-	        group.setLayout(new GridLayout(4, false));
-
+			((GridData) getLayoutData()).horizontalSpan = 2;
+			setLayout(new GridLayout());
+			
+			Group group = new Group(this, SWT.SHADOW_IN);
+			group.setText(name);
+			group.setToolTipText(toolTip);
+			group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			group.setLayout(new GridLayout(4, false));
+			
 			Label ddeCommandLabel = new Label(group, SWT.LEFT);
 			ddeCommandLabel.setText(TexlipsePlugin.getResourceString("preferenceViewerDDECommandLabel"));
 			ddeCommandLabel.setToolTipText(TexlipsePlugin.getResourceString("preferenceViewerDDECommandTooltip"));
 			ddeCommandLabel.setLayoutData(new GridData());
-
+			
 			command = new Text(group, SWT.SINGLE | SWT.BORDER);
 			command.setToolTipText(TexlipsePlugin.getResourceString("preferenceViewerDDECommandTooltip"));
 			command.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			((GridData) command.getLayoutData()).horizontalSpan = 3;
-
+			
 			Label ddeServerLabel = new Label(group, SWT.LEFT);
 			ddeServerLabel.setText(TexlipsePlugin.getResourceString("preferenceViewerDDEServerLabel"));
 			ddeServerLabel.setToolTipText(TexlipsePlugin.getResourceString("preferenceViewerDDEServerTooltip"));
 			ddeServerLabel.setLayoutData(new GridData());
-
+			
 			server = new Text(group, SWT.SINGLE | SWT.BORDER);
 			server.setToolTipText(TexlipsePlugin.getResourceString("preferenceViewerDDEServerTooltip"));
 			server.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
+			
 			Label ddeTopicLabel = new Label(group, SWT.LEFT);
 			ddeTopicLabel.setText(TexlipsePlugin.getResourceString("preferenceViewerDDETopicLabel"));
 			ddeTopicLabel.setToolTipText(TexlipsePlugin.getResourceString("preferenceViewerDDETopicTooltip"));
 			ddeTopicLabel.setLayoutData(new GridData());
-
+			
 			topic = new Text(group, SWT.SINGLE | SWT.BORDER);
 			topic.setToolTipText(TexlipsePlugin.getResourceString("preferenceViewerDDETopicTooltip"));
 			topic.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -551,5 +534,5 @@ public class ViewerConfigDialog extends Dialog {
 			setVisible(false);
 		}
 	}
+	
 }
-

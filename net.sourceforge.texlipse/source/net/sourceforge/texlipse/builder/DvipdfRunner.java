@@ -25,15 +25,15 @@ import org.eclipse.ui.PlatformUI;
 public class DvipdfRunner extends AbstractProgramRunner {
 
     public DvipdfRunner() {
-        super();
+		super(BuilderRegistry.DVIPDF_RUNNER_ID);
     }
 
     protected String getWindowsProgramName() {
-        return "dvipdfm.exe";
+		return "dvipdfm.exe"; //$NON-NLS-1$
     }
 
     protected String getUnixProgramName() {
-        return "dvipdf";
+		return "dvipdf"; //$NON-NLS-1$
     }
 
     public String getDescription() {

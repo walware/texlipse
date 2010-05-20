@@ -22,15 +22,15 @@ import org.eclipse.core.resources.IResource;
 public class MakeindexNomenclRunner extends AbstractProgramRunner {
 
     public MakeindexNomenclRunner() {
-        super();
+		super(BuilderRegistry.MAKEINDEX_NOMENCL_RUNNER_ID);
     }
 
     protected String getWindowsProgramName() {
-        return "makeindex.exe";
+		return "makeindex.exe"; //$NON-NLS-1$
     }
     
     protected String getUnixProgramName() {
-        return "makeindex";
+		return "makeindex"; //$NON-NLS-1$
     }
     
     public String getDescription() {

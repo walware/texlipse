@@ -30,7 +30,7 @@ public class BibOutlineContainer {
     private String endName;
     private String sorting; // TODO ENUMs here    
     private List childContainers; // BibOutlineContainer
-    private List childEntries; // ReferenceEntry
+    private List<ReferenceEntry> childEntries;
     private boolean topLevel;
     
     // TODO enums
@@ -48,7 +48,7 @@ public class BibOutlineContainer {
      * @param entries The initial entries
      * @param topLevel Whether or not this represents the top level of the hierarchy
      */
-    public BibOutlineContainer(List entries, boolean topLevel) {
+    public BibOutlineContainer(List<ReferenceEntry> entries, boolean topLevel) {
         this.childEntries = entries;
         this.topLevel = topLevel;
         this.sorting = SORTNATURAL;
@@ -61,7 +61,7 @@ public class BibOutlineContainer {
      * @param sName Name of the first entry
      * @param eName Name of the last entry
      */
-    private BibOutlineContainer(List entries, String sName, String eName) {
+    private BibOutlineContainer(List<ReferenceEntry> entries, String sName, String eName) {
         this.childEntries = entries;
         this.startName = sName;
         this.endName = eName;
@@ -76,11 +76,10 @@ public class BibOutlineContainer {
      * @return A copy of this container
      */
     private BibOutlineContainer childCopy(String sorting) {
-        BibOutlineContainer newboc = new BibOutlineContainer(new ArrayList(), topLevel);
+        BibOutlineContainer newboc = new BibOutlineContainer(new ArrayList<ReferenceEntry>(), topLevel);
         newboc.sorting = sorting;
         
-        for (Iterator iter = childEntries.iterator(); iter.hasNext();) {
-            ReferenceEntry re = (ReferenceEntry) iter.next();
+        for (ReferenceEntry re : childEntries) {
             newboc.childEntries.add(re.copy());
         }
         return newboc;
@@ -98,8 +97,7 @@ public class BibOutlineContainer {
         newboc.authorSort();
         
         // Replace the keys with the names of the authors
-        for (Iterator iter = newboc.childEntries.iterator(); iter.hasNext();) {
-            ReferenceEntry re = (ReferenceEntry) iter.next();
+        for (ReferenceEntry re : newboc.childEntries) {
             re.key = re.author + "; " + re.key;
         }
         // Build a tree structure
@@ -286,7 +284,7 @@ public class BibOutlineContainer {
 //        }
         
         
-        String prevName = ((ReferenceEntry) childEntries.get(0)).key;
+        String prevName = (childEntries.get(0)).key;
         String nextName = "...";
         for (int i = 0; i < totalPartitions; i++) {
             //int partitionEnd = Math.min(childEntries.size(), MAX_PARTITIONSIZE);
@@ -358,7 +356,7 @@ public class BibOutlineContainer {
     /**
      * @return Returns the childEntries.
      */
-    public List getChildEntries() {
+    public List<ReferenceEntry> getChildEntries() {
         return childEntries;
     }
 

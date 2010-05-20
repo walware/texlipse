@@ -7,13 +7,13 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
+
 package net.sourceforge.texlipse.editor.scanner;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import net.sourceforge.texlipse.editor.ColorManager;
-import net.sourceforge.texlipse.editor.TexEditor;
 
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.rules.EndOfLineRule;
@@ -41,43 +41,48 @@ public class TexScanner extends RuleBasedScanner {
     /**
      * A default constructor.
      * @param manager
-     * @param editor
      */
-    public TexScanner(ColorManager manager, TexEditor editor) {
-        // A token that defines how to color numbers
-        IToken numberToken = new Token(new TextAttribute(manager
-                .getColor(ColorManager.TEX_NUMBER),
-                null,
-                manager.getStyle(ColorManager.TEX_NUMBER_STYLE)));
-
-        // A token that defines how to color command words (\command_word)
-        IToken commandToken = new Token(new TextAttribute(manager
-                .getColor(ColorManager.COMMAND),
-                null,
-                manager.getStyle(ColorManager.COMMAND_STYLE)));
-
-        IToken braketToken = new Token(new TextAttribute(manager
-                .getColor(ColorManager.CURLY_BRACKETS),
-                null,
-                manager.getStyle(ColorManager.CURLY_BRACKETS_STYLE)));
-
-        IToken squareToken = new Token(new TextAttribute(manager
-                .getColor(ColorManager.SQUARE_BRACKETS),
-                null,
-                manager.getStyle(ColorManager.SQUARE_BRACKETS_STYLE)));
-
-        IToken commentToken = new Token(new TextAttribute(manager
-                .getColor(ColorManager.COMMENT),
-                null,
-                manager.getStyle(ColorManager.COMMENT_STYLE)));
-
-        // A token that defines how to color special characters (\_, \&, \~ ...)
-        IToken specialCharToken = new Token(new TextAttribute(manager
-                .getColor(ColorManager.TEX_SPECIAL),
-                null,
-                manager.getStyle(ColorManager.TEX_SPECIAL_STYLE)));
+    public TexScanner(ColorManager manager) {
+		IToken defaultToken = new Token(new TextAttribute(
+				manager.getColor(ColorManager.DEFAULT),
+				null,
+				manager.getStyle(ColorManager.DEFAULT_STYLE)));
+		
+		// A token that defines how to color numbers
+		IToken numberToken = new Token(new TextAttribute(
+				manager.getColor(ColorManager.TEX_NUMBER),
+				null,
+				manager.getStyle(ColorManager.TEX_NUMBER_STYLE)));
+		
+		// A token that defines how to color command words (\command_word)
+		IToken commandToken = new Token(new TextAttribute(
+				manager.getColor(ColorManager.COMMAND),
+				null,
+				manager.getStyle(ColorManager.COMMAND_STYLE)));
+		
+		IToken braketToken = new Token(new TextAttribute(
+				manager.getColor(ColorManager.CURLY_BRACKETS),
+				null,
+				manager.getStyle(ColorManager.CURLY_BRACKETS_STYLE)));
+		
+		IToken squareToken = new Token(new TextAttribute(
+				manager.getColor(ColorManager.SQUARE_BRACKETS),
+				null,
+				manager.getStyle(ColorManager.SQUARE_BRACKETS_STYLE)));
+		
+		IToken commentToken = new Token(new TextAttribute(
+				manager.getColor(ColorManager.COMMENT),
+				null,
+				manager.getStyle(ColorManager.COMMENT_STYLE)));
+		
+		// A token that defines how to color special characters (\_, \&, \~ ...)
+		IToken specialCharToken = new Token(new TextAttribute(
+				manager.getColor(ColorManager.TEX_SPECIAL),
+				null,
+				manager.getStyle(ColorManager.TEX_SPECIAL_STYLE)));
+		
+        List<IRule> rules = new ArrayList<IRule>();
         
-        List rules = new ArrayList();
         rules.add(new TexSpecialCharRule(specialCharToken));
         rules.add(new WordRule(new TexWord(), commandToken));
         rules.add(new NumberRule(numberToken));
@@ -89,5 +94,8 @@ public class TexScanner extends RuleBasedScanner {
         IRule[] result = new IRule[rules.size()];
         rules.toArray(result);
         setRules(result);
+        
+        setDefaultReturnToken(defaultToken);
     }
+    
 }

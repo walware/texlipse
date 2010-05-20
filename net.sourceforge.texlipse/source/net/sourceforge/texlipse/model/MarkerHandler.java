@@ -7,12 +7,12 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
+
 package net.sourceforge.texlipse.model;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import net.sourceforge.texlipse.TexlipsePlugin;
 
@@ -34,9 +34,6 @@ public class MarkerHandler {
 
     private static MarkerHandler theInstance;
     
-    private MarkerHandler() {
-    }
-
     /**
      * Returns the sole instance of the MarkerHandler
      * 
@@ -49,13 +46,18 @@ public class MarkerHandler {
         return theInstance;
     }
 
+	
+	private MarkerHandler() {
+	}
+	
+	
     /**
      * Create error markers from the given <code>ParseErrorMessage</code>s.
      * 
      * @param editor The editor to add the errors to
      * @param errors The errors to add as instances of <code>ParseErrorMessage</code>
      */
-    public void createErrorMarkers(ITextEditor editor, List errors) {
+	public void createErrorMarkers(ITextEditor editor, List<ParseErrorMessage> errors) {
         createMarkers(editor, errors, IMarker.PROBLEM);
     }
 
@@ -65,7 +67,7 @@ public class MarkerHandler {
      * @param editor The editor to add the errors to
      * @param tasks The tasks to add as instances of <code>ParseErrorMessage</code>
      */
-    public void createTaskMarkers(ITextEditor editor, List tasks) {
+	public void createTaskMarkers(ITextEditor editor, List<ParseErrorMessage> tasks) {
         createMarkers(editor, tasks, IMarker.TASK);
     }
     
@@ -76,18 +78,17 @@ public class MarkerHandler {
      * @param markers The markers to add as instances of <code>ParseErrorMessage</code>
      * @param markerType The type of the markers as <code>IMarker</code> types
      */
-    private void createMarkers(ITextEditor editor, List markers, final String markerType) {
+	private void createMarkers(ITextEditor editor, List<ParseErrorMessage> markers, final String markerType) {
         IResource resource = (IResource) editor.getEditorInput().getAdapter(IResource.class);
         if (resource == null) return;
         //IResource resource = ((FileEditorInput)editor.getEditorInput()).getFile();
         IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
         
-        for (Iterator iter = markers.iterator(); iter.hasNext();) {
-            ParseErrorMessage msg = (ParseErrorMessage) iter.next();
+		for (ParseErrorMessage msg : markers) {
             try {
                 int beginOffset = document.getLineOffset(msg.getLine() - 1) + msg.getPos();
                 
-                HashMap map = new HashMap();
+				Map<String, Object> map = new HashMap<String, Object>();
                 map.put(IMarker.LINE_NUMBER, new Integer(msg.getLine()));
                 map.put(IMarker.CHAR_START, new Integer(beginOffset));
                 map.put(IMarker.CHAR_END, new Integer(beginOffset + msg.getLength()));
@@ -112,18 +113,17 @@ public class MarkerHandler {
      * @param editor The editor to add the errors to
      * @param errors The errors to add as instances of <code>DocumentReference</code>
      */
-    public void createReferencingErrorMarkers(ITextEditor editor, ArrayList errors) {
+	public void createReferencingErrorMarkers(ITextEditor editor, List<DocumentReference> errors) {
         
         IResource resource = (IResource) editor.getEditorInput().getAdapter(IResource.class);
         if (resource == null) return;
         IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
         
-        for (Iterator iter = errors.iterator(); iter.hasNext();) {
-            DocumentReference msg = (DocumentReference) iter.next();
+		for (DocumentReference msg : errors) {
             try {
                 int beginOffset = document.getLineOffset(msg.getLine() - 1) + msg.getPos();
                 
-                HashMap map = new HashMap();
+				Map<String, Object> map = new HashMap<String, Object>();
                 map.put(IMarker.LINE_NUMBER, new Integer(msg.getLine()));
                 map.put(IMarker.CHAR_START, new Integer(beginOffset));
                 map.put(IMarker.CHAR_END, new Integer(beginOffset + msg.getLength()));
@@ -150,7 +150,7 @@ public class MarkerHandler {
         if (resource == null) return;
         //IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
         try {
-            HashMap map = new HashMap();
+			Map<String, Object> map = new HashMap<String, Object>();
             map.put(IMarker.MESSAGE, error);
             map.put(IMarker.SEVERITY, new Integer(IMarker.SEVERITY_ERROR));
             
@@ -221,7 +221,7 @@ public class MarkerHandler {
      */
     public void createErrorMarker(IResource resource, String message, int lineNumber) {
         try {
-            HashMap map = new HashMap();
+			Map<String, Object> map = new HashMap<String, Object>();
             map.put(IMarker.LINE_NUMBER, new Integer(lineNumber));
             map.put(IMarker.MESSAGE, message);
             

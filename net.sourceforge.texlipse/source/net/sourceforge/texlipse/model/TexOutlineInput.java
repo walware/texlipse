@@ -7,12 +7,14 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
+
 package net.sourceforge.texlipse.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+
 
 /**
  * Container class for outline input stuff. Includes the outline tree
@@ -22,8 +24,9 @@ import java.util.List;
  * @author Taavi Hupponen
  */
 public class TexOutlineInput {
-
-	private ArrayList rootNodes;
+	
+	
+	private List<OutlineNode> rootNodes;
 	private int treeDepth;
 	private HashMap typeLists;
 	
@@ -32,7 +35,7 @@ public class TexOutlineInput {
      * 
 	 * @param rootNodes rootNode list
 	 */
-	public TexOutlineInput(ArrayList rootNodes) {
+	public TexOutlineInput(List<OutlineNode> rootNodes) {
 		this.rootNodes = rootNodes;
 		typeLists = new HashMap();
         treeDepth = -1;
@@ -79,7 +82,7 @@ public class TexOutlineInput {
      * 
      * @return the root nodes
 	 */
-	public ArrayList getRootNodes() {
+	public List<OutlineNode> getRootNodes() {
 		return rootNodes;
 	}
 	
