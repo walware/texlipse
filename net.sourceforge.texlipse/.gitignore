@@ -1,0 +1,6 @@
+/bin/
+CVS/
+.cvsignore
+/docs/
+/test/
+
