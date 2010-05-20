@@ -14,7 +14,7 @@ package net.sourceforge.texlipse.editor;
 import org.eclipse.jface.text.IDocument;
 
 import de.walware.ecommons.text.ITokenScanner;
-import de.walware.ecommons.ui.text.PairMatcher;
+import de.walware.ecommons.text.PairMatcher;
 
 
 /**
