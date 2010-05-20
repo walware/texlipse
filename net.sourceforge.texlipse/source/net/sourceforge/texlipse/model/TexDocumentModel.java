@@ -217,7 +217,7 @@ public class TexDocumentModel implements IDocumentListener {
     private boolean firstRun = true;
 
     // used to synchronize ParseJob rescheduling
-    private static ILock lock = Platform.getJobManager().newLock();
+    private static ILock lock = Job.getJobManager().newLock();
     private boolean isDirty;
     
     private ParseJob parseJob;
@@ -428,7 +428,7 @@ public class TexDocumentModel implements IDocumentListener {
         }
         pollCancel(monitor);
 
-        List errors = parser.getErrors();
+        List<ParseErrorMessage> errors = parser.getErrors();
         List tasks = parser.getTasks();
         MarkerHandler marker = MarkerHandler.getInstance();
 
@@ -633,6 +633,9 @@ public class TexDocumentModel implements IDocumentListener {
     private void updateBibs(String[] bibNames, IResource resource) {        
         IProject project = getCurrentProject();
         if (project == null) return;
+        if (bibNames == null) {
+            bibNames = new String[0];
+        }
         for (int i=0; i < bibNames.length; i++)
             bibNames[i] += ".bib";
         
@@ -644,17 +647,16 @@ public class TexDocumentModel implements IDocumentListener {
                 TexlipseProperties.BIBFILE_PROPERTY,
                 bibNames);
         
-        LinkedList newBibs = bibContainer.updateBibHash(bibNames);
+        List<String> newBibs = bibContainer.updateBibHash(bibNames);
 
         IPath path = resource.getFullPath().removeFirstSegments(1).removeLastSegments(1);        
         if (!path.isEmpty())
             path = path.addTrailingSeparator();
         
-        for (Iterator iter = newBibs.iterator(); iter.hasNext();) {
-            String name = (String) iter.next();
+        for (String name : newBibs) {
             IResource res = project.findMember(path + name);
             if (res != null) {
-                BibParser parser = new BibParser(res.getLocation().toOSString(), project);
+                BibParser parser = new BibParser(res.getLocation().toOSString());
                 try {
                     List bibEntriesList = parser.getEntries();
                     if (bibEntriesList != null && bibEntriesList.size() > 0) {
@@ -676,7 +678,7 @@ public class TexDocumentModel implements IDocumentListener {
      * Updates the labels.
      * @param labels
      */
-    private void updateLabels(ArrayList labels) {
+    private void updateLabels(List<ReferenceEntry> labels) {
         IResource resource = getFile();
         if (resource == null) return;
         labelContainer.addRefSource(resource.getProjectRelativePath().toString(), labels);
@@ -775,7 +777,7 @@ public class TexDocumentModel implements IDocumentListener {
                             marker.addFatalError(editor, "The file " + files[i].getFullPath() + " contains fatal errors, parsing aborted.");
                             continue;
                         }
-                        ArrayList labels = lrep.getLabels();
+                        List<ReferenceEntry> labels = lrep.getLabels();
                         if (labels.size() > 0) {
                             labelContainer.addRefSource(files[i].getProjectRelativePath().toString(), labels);
                         }
@@ -786,8 +788,7 @@ public class TexDocumentModel implements IDocumentListener {
                         //Only update Preamble, Bibstyle if main Document
                         if (files[i].equals(mainFile)) {
                             String[] bibs = lrep.getBibs();
-                            if (bibs != null)
-                                this.updateBibs(bibs, files[i]);
+                            this.updateBibs(bibs, files[i]);
 
                             String preamble = lrep.getPreamble();
                             if (preamble != null) {

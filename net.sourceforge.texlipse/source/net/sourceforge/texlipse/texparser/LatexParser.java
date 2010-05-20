@@ -1,5 +1,5 @@
 /*
- * $Id: LatexParser.java,v 1.15 2006/10/27 17:08:48 borisvl Exp $
+ * $Id: LatexParser.java,v 1.16 2008/08/18 18:36:52 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import net.sourceforge.texlipse.TexlipsePlugin;
-import net.sourceforge.texlipse.model.AbstractEntry;
 import net.sourceforge.texlipse.model.DocumentReference;
 import net.sourceforge.texlipse.model.OutlineNode;
 import net.sourceforge.texlipse.model.ParseErrorMessage;
@@ -195,6 +194,7 @@ public class LatexParser {
         this.outlineTree = new ArrayList();
         this.errors = new ArrayList();
         
+        this.bibs = null;
         this.index = false;
         this.fatalErrors = false;
     }

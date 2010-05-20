@@ -10,6 +10,7 @@
 package net.sourceforge.texlipse.builder;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import net.sourceforge.texlipse.TexlipsePlugin;
 import net.sourceforge.texlipse.properties.TexlipseProperties;
@@ -164,6 +165,7 @@ public class BuilderRegistry {
                 new LatexRunner(),
                 new PslatexRunner(),
                 new PdflatexRunner(),
+                new XelatexRunner(),
                 new BibtexRunner(),
                 new MakeindexRunner(),
                 new DvipsRunner(),
@@ -178,7 +180,7 @@ public class BuilderRegistry {
      * because builders need to use BuilderRegistry to resolve runners.
      */
     protected void initBuilders() {
-        builderList = new Builder[7];
+        builderList = new Builder[8];
         builderList[0] = new TexBuilder(0, TexlipseProperties.OUTPUT_FORMAT_DVI);
         builderList[1] = new TexBuilder(1, TexlipseProperties.OUTPUT_FORMAT_PS);
         builderList[2] = new TexBuilder(2, TexlipseProperties.OUTPUT_FORMAT_PDF);
@@ -188,6 +190,7 @@ public class BuilderRegistry {
         
         builderList[5] = new PsBuilder(5, TexBuilder.class);
         builderList[6] = new PsBuilder(6, DviBuilder.class);
+        builderList[7] = new TexBuilder(7, TexlipseProperties.OUTPUT_FORMAT_PDF);
     }
     
     /**
@@ -227,7 +230,7 @@ public class BuilderRegistry {
      */
     protected Builder[] getAllBuilders(String format) {
 
-        ArrayList list = new ArrayList();
+        List<Builder> list = new ArrayList<Builder>();
 
         for (int i = 0; i < builderList.length; i++) {
             if (builderList[i] != null
@@ -236,7 +239,7 @@ public class BuilderRegistry {
             }
         }
 
-        return (Builder[]) list.toArray(new Builder[0]);
+        return list.toArray(new Builder[0]);
     }
     
     /**

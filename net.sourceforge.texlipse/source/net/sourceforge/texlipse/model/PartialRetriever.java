@@ -1,5 +1,5 @@
 /*
- * $Id: PartialRetriever.java,v 1.4 2006/04/12 08:41:09 borisvl Exp $
+ * $Id: PartialRetriever.java,v 1.5 2008/08/18 18:36:58 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -57,7 +57,7 @@ public abstract class PartialRetriever {
      * @return The position inside the array or -1 if the entry was not found
      */
     protected int getEntry(String entryname, AbstractEntry[] entries){
-    	if (entries == null) return -1;
+    	if (entries == null || entries.length == 0) return -1;
     	int start = 0;
     	int end = entries.length;
     	while (end-start>1 && !entries[(start+end)/2].key.equals(entryname)){

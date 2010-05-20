@@ -26,10 +26,10 @@ public class PsBuilder extends AbstractBuilder {
 
     private Builder dvi;
     private ProgramRunner pdf;
-    private Class builderClass;
+    private Class<? extends Builder> builderClass;
     private boolean stopped;
 
-    public PsBuilder(int i, Class clazz) {
+    public PsBuilder(int i, Class<? extends Builder> clazz) {
         super(i);
         builderClass = clazz;
         isValid();

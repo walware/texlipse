@@ -1,5 +1,5 @@
 /*
- * $Id: BibtexRunner.java,v 1.5 2006/04/19 22:59:42 borisvl Exp $
+ * $Id: BibtexRunner.java,v 1.6 2008/08/03 16:22:00 borisvl Exp $
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -206,6 +206,10 @@ public class BibtexRunner extends AbstractProgramRunner {
                 
                 String bibName = line.substring(line.indexOf(':')+2);
                 bibResource = sourceDir.findMember(bibName);
+                if (bibResource == null) {
+                	//Could happen if bibName is not part of project (kpathsea)
+                	bibResource = origResource;
+                }
 
             } else if (line.startsWith("I couldn't open database file ")) {
                 

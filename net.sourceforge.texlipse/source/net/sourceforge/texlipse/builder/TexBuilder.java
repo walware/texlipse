@@ -148,7 +148,7 @@ public class TexBuilder extends AbstractBuilder {
      * @throws CoreException if the build fails at any point
      */
     public void buildResource(IResource resource) throws CoreException {
-        boolean error = false;
+        //boolean error = false;
 		stopped = false;
         // Make sure we close the output document first 
     	// (using DDE on Win32)
@@ -157,14 +157,14 @@ public class TexBuilder extends AbstractBuilder {
     		ViewerManager.closeOutputDocument();
     		monitor.worked(5);    		
     	}
-    	  		
+    	
     	monitor.subTask("Building document");
         try {
             latex.run(resource);
         } catch (BuilderCoreException ex) {
             //Don't stop here, we will ask the user later
             //TODO: Error managment
-            error = true;
+            //error = true;
         }
         monitor.worked(10);
         if (stopped)
