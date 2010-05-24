@@ -1,5 +1,5 @@
 /*
- * $Id: TexSpellDictionary.java,v 1.1 2010/02/27 20:58:04 borisvl Exp $
+ * $Id: TexSpellDictionary.java,v 1.2 2010/04/10 11:53:34 borisvl Exp $
  *
  * Copyright (c) 2004-2010 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -203,6 +204,16 @@ public class TexSpellDictionary extends SpellDictionaryASpell {
         }
     }
 
+    /**
+     * Compresses the dictionary so that it takes less memory
+     */
+    public void compress() {
+        Collection<StringBuilder> c = mainDictionary.values();
+        for (StringBuilder st : c) {
+            st.trimToSize();
+        }
+    }
+    
     /**
      * Returns a list of strings (words) for the code.
      */
