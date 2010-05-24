@@ -1,5 +1,5 @@
 /*
- * $Id: TexlipseWordFinder.java,v 1.1 2010/04/02 20:14:57 borisvl Exp $
+ * $Id: TexlipseWordFinder.java,v 1.2 2010/04/10 11:53:34 borisvl Exp $
  * 
  * Copyright (c) 2010 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -87,7 +87,7 @@ public class TexlipseWordFinder extends AbstractWordFinder {
                 //j = ignore(j, '$', '$');
             }
 
-            if (text.charAt(j) == '\\') { 
+            if (j < text.length() && text.charAt(j) == '\\') { 
                 // Ignore certain command parameters.
                 j = ignore(j, "\\documentclass", OPT_MAND_ARG);
                 j = ignore(j, "\\usepackage", OPT_MAND_ARG);
@@ -153,7 +153,8 @@ public class TexlipseWordFinder extends AbstractWordFinder {
     public int ignore(int index, String command, Pattern p) {
         int i = 0;
         //Is this the right command
-        while (index + i < text.length() && i < command.length()) {
+        while (i < command.length()) {
+            if (index + i >= text.length()) return index;
             if (command.charAt(i) != text.charAt(i + index)) return index;
             i++;
         }
