@@ -32,10 +32,10 @@ import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.link.ILinkedModeListener;
 import org.eclipse.jface.text.link.LinkedModeModel;
 import org.eclipse.jface.text.link.LinkedModeUI;
-import org.eclipse.jface.text.link.LinkedPosition;
-import org.eclipse.jface.text.link.LinkedPositionGroup;
 import org.eclipse.jface.text.link.LinkedModeUI.ExitFlags;
 import org.eclipse.jface.text.link.LinkedModeUI.IExitPolicy;
+import org.eclipse.jface.text.link.LinkedPosition;
+import org.eclipse.jface.text.link.LinkedPositionGroup;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.VerifyKeyListener;
@@ -323,7 +323,10 @@ public class BracketInserter implements VerifyKeyListener, ILinkedModeListener {
     private String getQuotes (boolean opening){
         String replacement;
         IProject project = ((FileEditorInput)editor.getEditorInput()).getFile().getProject();
-        String lang = TexlipseProperties.getProjectProperty(project, TexlipseProperties.LANGUAGE_PROPERTY);		
+        String lang = TexlipseProperties.getProjectProperty(project, TexlipseProperties.LANGUAGE_PROPERTY);
+        if (lang == null) {
+            lang = "en";
+        }
         String postfix = opening ? "o" : "c";
         replacement = quotes.get(lang + postfix);
         return (replacement != null ? replacement : quotes.get("en" + postfix));

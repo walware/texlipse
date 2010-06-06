@@ -189,9 +189,12 @@ public class TexSpellingEngine implements ISpellingEngine, SpellCheckListener {
         }
 
         IProject project = TexlipsePlugin.getCurrentProject();
-        String lang = DEFAULT_LANG;
+        String lang = null;
         if (project != null) {
             lang = TexlipseProperties.getProjectProperty(project, TexlipseProperties.LANGUAGE_PROPERTY);
+        }
+        if (lang == null) {
+        	lang = DEFAULT_LANG;
         }
         //Get spellchecker for the correct language
         SpellChecker spellCheck = getSpellChecker(lang);
