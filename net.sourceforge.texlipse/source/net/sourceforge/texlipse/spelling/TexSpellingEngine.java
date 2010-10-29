@@ -1,5 +1,5 @@
 /*
- * $Id: TexSpellingEngine.java,v 1.5 2010/04/10 11:53:34 borisvl Exp $
+ * $Id: TexSpellingEngine.java,v 1.6 2010/09/04 09:11:24 borisvl Exp $
  *
  * Copyright (c) 2004-2010 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -134,6 +134,9 @@ public class TexSpellingEngine implements ISpellingEngine, SpellCheckListener {
      * @return null, if no dictionary for the current language was found
      */
     private static SpellChecker getSpellChecker(String lang) {
+        //Return null, when no language is set
+        if (lang == null) return null;
+        
         if (lang.equals(currentLang)) return spellCheck;
                 
         //Get dictionary path from preferences and check if it exists

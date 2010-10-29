@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Vendor: TeXlapse Team
 Bundle-Name: TeXlipse (patched for StatET)
 Bundle-SymbolicName: net.sourceforge.texlipse;singleton:=true
-Bundle-Version: 10400.6.0.qualifier
+Bundle-Version: 10401.6.0.qualifier
 Bundle-Activator: net.sourceforge.texlipse.TexlipsePlugin
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .,
