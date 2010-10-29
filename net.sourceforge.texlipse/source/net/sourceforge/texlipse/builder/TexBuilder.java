@@ -160,7 +160,7 @@ public class TexBuilder extends AbstractBuilder {
      * @param project
      * @return
      */
-    private String getAuxFileName(IProject project) {
+    private String getAuxFileName(final IProject project) {
         // evaluate the .aux file
         String auxFileName = TexlipseProperties.getProjectProperty(project, TexlipseProperties.MAINFILE_PROPERTY);
         //Check for partial build
@@ -171,7 +171,9 @@ public class TexBuilder extends AbstractBuilder {
                 auxFileName = tmpFile.getProjectRelativePath().toPortableString();
             }
         }
-        auxFileName = auxFileName.replaceFirst("\\.tex$", "\\.aux");
+        if (auxFileName != null) {
+            auxFileName = auxFileName.replaceFirst("\\.tex$", "\\.aux");
+        }
         return auxFileName;
     }
     
@@ -218,13 +220,13 @@ public class TexBuilder extends AbstractBuilder {
     	}
     	
 		final IFile resource = pathConfig.getTexFile();
-		IProject project = pathConfig.getTexFile().getProject();
-    	boolean parseAuxFiles = TexlipsePlugin.getDefault().getPreferenceStore().getBoolean(TexlipseProperties.BUILDER_PARSE_AUX_FILES);
-    	String auxFileName = getAuxFileName(project);
-		IResource auxFile = project.getFile(auxFileName);
-    	List<String> oldCitations = null;
-    
-		if (parseAuxFiles && auxFile.exists()) {
+		final IProject project = pathConfig.getTexFile().getProject();
+		final boolean parseAuxFiles = TexlipsePlugin.getDefault().getPreferenceStore().getBoolean(TexlipseProperties.BUILDER_PARSE_AUX_FILES);
+		final String auxFileName = getAuxFileName(project);
+		final IResource auxFile = (auxFileName != null) ? project.getFile(auxFileName) : null;
+		List<String> oldCitations = null;
+		
+		if (parseAuxFiles && auxFile != null && auxFile.exists()) {
 			// read all citations from the aux-files and save them for later
 			AuxFileParser afp = new AuxFileParser(project, auxFileName);
 			oldCitations = afp.getCitations();
@@ -250,7 +252,7 @@ public class TexBuilder extends AbstractBuilder {
         // if bibtex is not used, maybe the references need to be updated in the main document
         String rerun = (String) TexlipseProperties.getSessionProperty(resource.getProject(), TexlipseProperties.SESSION_LATEX_RERUN);
         
-		if (parseAuxFiles && auxFile.exists()) {
+		if (parseAuxFiles && auxFile != null && auxFile.exists()) {
 			AuxFileParser afp = new AuxFileParser(project, auxFileName);
 
 			// check whether a new bibtex run is required
