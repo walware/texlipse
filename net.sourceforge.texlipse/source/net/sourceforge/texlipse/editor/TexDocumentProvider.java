@@ -61,6 +61,7 @@ public class TexDocumentProvider extends TextFileDocumentProvider {
                 IProject project = file.getProject();
                 try {
                     if (!project.hasNature(TexlipseNature.NATURE_ID)) {
+                        return doc;
 //                        TexlipseProjectCreationOperation.addProjectNature(project, new NullProgressMonitor());
                     } else if (TexlipseProperties.getProjectProperty(project, TexlipseProperties.OUTPUT_FORMAT) == null) {
                         // this is needed for imported projects

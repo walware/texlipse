@@ -574,7 +574,7 @@ public class TexlipseBuilder extends IncrementalProjectBuilder {
         }
         
         String outputFileName = TexlipseProperties.getOutputFileName(project);
-        IResource r = sourceDir.findMember(outputFileName);
+        IResource r = (outputFileName != null) ? sourceDir.findMember(outputFileName) : null;
         if (r != null) r.setDerived(true);
     }
     
@@ -605,7 +605,7 @@ public class TexlipseBuilder extends IncrementalProjectBuilder {
         }
         
         String outputFileName = TexlipseProperties.getOutputFileName(project);
-        IResource outputFile = sourceDir.findMember(outputFileName);
+        IResource outputFile = (outputFileName != null) ? sourceDir.findMember(outputFileName) : null;
         if (outputFile != null && outputFile.exists()) {
             //Check if the output dir exists, if not create it
             if (outputDir != null && !outputDir.exists()) {
