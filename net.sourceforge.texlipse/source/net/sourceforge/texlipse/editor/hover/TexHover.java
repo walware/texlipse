@@ -1,5 +1,5 @@
 /*
- * $Id: TexHover.java,v 1.6 2008/09/06 12:05:50 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2006 by the TeXlipse team.
  * All rights reserved. This program and the accompanying materials

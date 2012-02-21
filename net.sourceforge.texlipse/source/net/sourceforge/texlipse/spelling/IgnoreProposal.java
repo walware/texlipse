@@ -1,5 +1,5 @@
 /*
- * $Id: IgnoreProposal.java,v 1.1 2010/02/27 20:58:04 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2010 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials

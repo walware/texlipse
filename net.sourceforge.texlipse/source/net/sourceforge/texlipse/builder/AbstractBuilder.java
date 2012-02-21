@@ -1,5 +1,5 @@
 /*
- * $Id: AbstractBuilder.java,v 1.2 2008/04/27 10:05:42 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -14,13 +14,14 @@ import net.sourceforge.texlipse.Texlipse;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
+
 
 /**
  * Generic builder.
@@ -35,17 +36,14 @@ public abstract class AbstractBuilder implements Runnable, Builder {
 	public static boolean checkOutput(TexPathConfig pathConfig, IProgressMonitor monitor) throws CoreException {
 		monitor.beginTask("Checking for output file", 50);
 		try {
-			final IContainer outputDir;
 			final IContainer texDir;
 			final IResource outputFile;
 			try {
-				outputDir = pathConfig.getOutputFile().getParent();
 				texDir = pathConfig.getTexFile().getParent();
 				
-				texDir.refreshLocal(IResource.DEPTH_ONE, new SubProgressMonitor(monitor, 5));
-				
-				outputFile = texDir.findMember(pathConfig.getOutputFile().getName());
-				if (!(outputFile instanceof IFile) || !outputFile.exists()) {
+				outputFile = texDir.getFile(new Path(pathConfig.getOutputFile().getName()));
+				outputFile.refreshLocal(IResource.DEPTH_ZERO, monitor);
+				if (!outputFile.exists()) {
 					return false;
 				}
 			}
@@ -54,19 +52,15 @@ public abstract class AbstractBuilder implements Runnable, Builder {
 						"An error occured when checking for output file created by the TeX builder.", e));
 			}
 			
+			final IContainer outputDir = pathConfig.getOutputFile().getParent();
 			if (!outputDir.equals(texDir)) {
 				try {
-					outputDir.refreshLocal(IResource.DEPTH_ONE, new SubProgressMonitor(monitor, 5));
-					if (!outputDir.exists()) {
-						if (outputDir instanceof IFolder) {
-							((IFolder) outputDir).create(IResource.FORCE, true, new SubProgressMonitor(monitor, 5));
-						}
-						else {
-							outputDir.getLocation().toFile().mkdirs();
-						}
-					}
+					pathConfig.getOutputFile().refreshLocal(IResource.DEPTH_ZERO, new SubProgressMonitor(monitor, 5));
 					if (pathConfig.getOutputFile().exists()) {
 						pathConfig.getOutputFile().delete(IResource.FORCE, new SubProgressMonitor(monitor, 1));
+					}
+					else {
+						outputDir.getLocation().toFile().mkdirs();
 					}
 					outputFile.move(pathConfig.getOutputFile().getFullPath(), IResource.FORCE, new SubProgressMonitor(monitor, 5));
 				}

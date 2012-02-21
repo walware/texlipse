@@ -1,5 +1,5 @@
 /*
- * $Id: TexWord.java,v 1.2 2006/03/09 21:11:37 oskarojala Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials

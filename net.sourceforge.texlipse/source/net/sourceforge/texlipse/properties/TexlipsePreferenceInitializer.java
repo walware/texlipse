@@ -1,5 +1,5 @@
 /*
- * $Id: TexlipsePreferenceInitializer.java,v 1.19 2010/04/02 20:14:57 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -87,7 +87,8 @@ public class TexlipsePreferenceInitializer extends
         
         pref.setDefault(TexlipseProperties.BUILD_ENV_SETTINGS, "");
         pref.setDefault(TexlipseProperties.VIEWER_ENV_SETTINGS, "");
-        pref.setDefault(TexlipseProperties.TEMP_FILE_EXTS, ".aux,.log,.toc,.ind,.ilg,.bbl,.blg,.lot,.lof,.snm,.nav,.out,.vrb");
+        pref.setDefault(TexlipseProperties.TEMP_FILE_EXTS, ".aux,.log,.toc,.ind,.ilg,.bbl,.blg,.lot,.lof,.snm,.nav,.out,.vrb,.run.xml,.bcf");
+        pref.setDefault(TexlipseProperties.DERIVED_FILES, ".synctex.gz,.synctex,.pdfsync");
         
         pref.setDefault(TexlipseProperties.BIB_COMPLETION, true);
         pref.setDefault(TexlipseProperties.BIB_COMPLETION_DELAY, 500);
@@ -146,5 +147,7 @@ public class TexlipsePreferenceInitializer extends
         pref.setDefault(TexlipseProperties.SPELLCHECKER_IGNORE_COMMENTS, true);
         pref.setDefault(TexlipseProperties.SPELLCHECKER_IGNORE_MATH, false);
         pref.setDefault(TexlipseProperties.SPELLCHECKER_IGNORE_MIXED_CASE, true);
+        
+        pref.setDefault(TexlipseProperties.BUILDER_FORCE_RETURN_FOCUS, true);
     }
 }

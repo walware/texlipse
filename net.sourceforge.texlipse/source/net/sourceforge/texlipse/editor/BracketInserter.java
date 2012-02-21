@@ -1,5 +1,5 @@
 /*
- * $Id: BracketInserter.java,v 1.10 2009/05/16 13:35:26 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2006 by the TeXlipse team.
  * All rights reserved. This program and the accompanying materials
@@ -15,6 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.texlipse.TexlipsePlugin;
+import net.sourceforge.texlipse.editor.partitioner.FastLaTeXPartitionScanner;
 import net.sourceforge.texlipse.properties.TexlipseProperties;
 
 import org.eclipse.core.resources.IProject;
@@ -25,17 +26,17 @@ import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentExtension;
 import org.eclipse.jface.text.IDocumentExtension3;
-import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.IPositionUpdater;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Position;
+import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.link.ILinkedModeListener;
 import org.eclipse.jface.text.link.LinkedModeModel;
 import org.eclipse.jface.text.link.LinkedModeUI;
-import org.eclipse.jface.text.link.LinkedModeUI.ExitFlags;
-import org.eclipse.jface.text.link.LinkedModeUI.IExitPolicy;
 import org.eclipse.jface.text.link.LinkedPosition;
 import org.eclipse.jface.text.link.LinkedPositionGroup;
+import org.eclipse.jface.text.link.LinkedModeUI.ExitFlags;
+import org.eclipse.jface.text.link.LinkedModeUI.IExitPolicy;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.VerifyKeyListener;
@@ -235,7 +236,7 @@ public class BracketInserter implements VerifyKeyListener, ILinkedModeListener {
      * @return True if <code>c</code> is a bracket or paren, false otherwise
      */
     private static boolean isClosingBracket(char c){
-        if (c == ')' || c == '}' || c == ']')
+        if (c == ')' || c == '}' || c == ']' || c == '$')
             return true;
         return false;
     }
@@ -323,10 +324,7 @@ public class BracketInserter implements VerifyKeyListener, ILinkedModeListener {
     private String getQuotes (boolean opening){
         String replacement;
         IProject project = ((FileEditorInput)editor.getEditorInput()).getFile().getProject();
-        String lang = TexlipseProperties.getProjectProperty(project, TexlipseProperties.LANGUAGE_PROPERTY);
-        if (lang == null) {
-            lang = "en";
-        }
+        String lang = TexlipseProperties.getProjectProperty(project, TexlipseProperties.LANGUAGE_PROPERTY);		
         String postfix = opening ? "o" : "c";
         replacement = quotes.get(lang + postfix);
         return (replacement != null ? replacement : quotes.get("en" + postfix));
@@ -362,8 +360,8 @@ public class BracketInserter implements VerifyKeyListener, ILinkedModeListener {
             if (document instanceof IDocumentExtension3) {
                 try {
                     String contentType = ((IDocumentExtension3) document).getContentType(
-                            ITexDocumentConstants.TEX_PARTITIONING, offset, false);
-                    if (ITexDocumentConstants.TEX_VERBATIM_CONTENT_TYPE.equals(contentType)) {
+                            TexEditor.TEX_PARTITIONING, offset, false);
+                    if (FastLaTeXPartitionScanner.TEX_VERBATIM.equals(contentType)) {
                         //No features inside verbatim environments
                         return;
                     }

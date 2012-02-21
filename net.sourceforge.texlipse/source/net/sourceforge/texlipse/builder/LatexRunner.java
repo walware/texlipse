@@ -1,5 +1,5 @@
 /*
- * $Id: LatexRunner.java,v 1.24 2010/02/17 22:22:33 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -52,11 +52,11 @@ public class LatexRunner extends AbstractProgramRunner {
     }
     
     protected String getWindowsProgramName() {
-		return "latex.exe"; //$NON-NLS-1$
+        return "latex.exe";
     }
     
     protected String getUnixProgramName() {
-		return "latex"; //$NON-NLS-1$
+        return "latex";
     }
     
     public String getDescription() {
@@ -251,9 +251,9 @@ public class LatexRunner extends AbstractProgramRunner {
 
                 // Ignore undefined references or citations because they are
                 // found by the parser
-                if (line.indexOf("Warning: Reference `") > -1)
+                if (line.indexOf("Warning: Reference ") > -1)
                     continue;
-                if (line.indexOf("Warning: Citation `") > -1) {
+                if (line.indexOf("Warning: Citation ") > -1) {
                     citeNotfound = true;
                     continue;
                 }

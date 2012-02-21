@@ -1,5 +1,5 @@
 /*
- * $Id: TexPairMatcher.java,v 1.3 2006/10/11 20:13:36 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -12,11 +12,12 @@ package net.sourceforge.texlipse.editor;
 import net.sourceforge.texlipse.TexlipsePlugin;
 import net.sourceforge.texlipse.texparser.LatexParserUtils;
 
-import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.source.ICharacterPairMatcher;
+
+import org.eclipse.jface.text.BadLocationException;
 
 
 /**

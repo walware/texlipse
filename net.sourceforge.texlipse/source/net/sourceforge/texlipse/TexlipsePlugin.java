@@ -1,5 +1,5 @@
 /*
- * $Id: TexlipsePlugin.java,v 1.6 2010/03/21 10:11:28 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -232,6 +232,9 @@ public class TexlipsePlugin extends AbstractUIPlugin {
         if (page.isEditorAreaVisible()
              && page.getActiveEditor() != null) {
             actEditor = page.getActiveEditor();
+        }
+        else {
+            return null;
         }
         IEditorInput editorInput = actEditor.getEditorInput();
         

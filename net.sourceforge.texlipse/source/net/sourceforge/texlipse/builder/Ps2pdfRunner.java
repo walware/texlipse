@@ -1,5 +1,5 @@
 /*
- * $Id: Ps2pdfRunner.java,v 1.2 2006/04/04 22:14:05 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -24,15 +24,15 @@ import org.eclipse.ui.PlatformUI;
 public class Ps2pdfRunner extends AbstractProgramRunner {
 
     public Ps2pdfRunner() {
-		super(BuilderRegistry.PS2PDF_RUNNER_ID);
+        super(BuilderRegistry.PS2PDF_RUNNER_ID);
     }
 
     protected String getWindowsProgramName() {
-		return "ps2pdf.exe"; //$NON-NLS-1$
+        return "ps2pdf.exe";
     }
     
     protected String getUnixProgramName() {
-		return "ps2pdf"; //$NON-NLS-1$
+        return "ps2pdf";
     }
     
     public String getDescription() {

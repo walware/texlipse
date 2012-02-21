@@ -1,5 +1,5 @@
 /*
- * $Id: PartialBuildAction.java,v 1.3 2006/10/21 18:16:36 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -64,11 +64,13 @@ public class PartialBuildAction implements IWorkbenchWindowActionDelegate, IEdit
                     if (res[i].getName().startsWith("tempPartial0000"))
                         res[i].delete(true, null);
                 }
+                
                 IFolder projectTempDir = TexlipseProperties.getProjectTempDir(project);
-                if (projectTempDir != null)
+                if (projectTempDir != null && projectTempDir.exists())
                     res = projectTempDir.members();
                 else
                     res = project.members();
+                
                 for (int i = 0; i < res.length; i++) {
                     if (res[i].getName().startsWith("tempPartial0000"))
                         res[i].delete(true, null);

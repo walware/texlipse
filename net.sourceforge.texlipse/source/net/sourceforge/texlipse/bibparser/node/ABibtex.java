@@ -2,10 +2,7 @@
 
 package net.sourceforge.texlipse.bibparser.node;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-
+import java.util.*;
 import net.sourceforge.texlipse.bibparser.analysis.*;
 
 @SuppressWarnings("nls")

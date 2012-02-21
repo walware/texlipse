@@ -1,5 +1,5 @@
 /*
- * $Id: TexSpellingEngine.java,v 1.6 2010/09/04 09:11:24 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2010 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -192,12 +192,9 @@ public class TexSpellingEngine implements ISpellingEngine, SpellCheckListener {
         }
 
         IProject project = TexlipsePlugin.getCurrentProject();
-        String lang = null;
+        String lang = DEFAULT_LANG;
         if (project != null) {
             lang = TexlipseProperties.getProjectProperty(project, TexlipseProperties.LANGUAGE_PROPERTY);
-        }
-        if (lang == null) {
-        	lang = DEFAULT_LANG;
         }
         //Get spellchecker for the correct language
         SpellChecker spellCheck = getSpellChecker(lang);

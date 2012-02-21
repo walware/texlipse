@@ -1,5 +1,5 @@
 /*
- * $Id: PdflatexRunner.java,v 1.1 2005/03/16 12:21:56 kimmok Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -22,21 +22,28 @@ public class PdflatexRunner extends LatexRunner {
      * Create a new ProgramRunner.
      */
     public PdflatexRunner() {
-		super(BuilderRegistry.PDFLATEX_RUNNER_ID);
+        super(BuilderRegistry.PDFLATEX_RUNNER_ID);
     }
     
     protected String getWindowsProgramName() {
-		return "pdflatex.exe"; //$NON-NLS-1$
+        return "pdflatex.exe";
     }
     
     protected String getUnixProgramName() {
-		return "pdflatex"; //$NON-NLS-1$
+        return "pdflatex";
     }
     
     public String getDescription() {
         return "PdfLatex program";
     }
     
+    /**
+     * Enable SyncTeX
+     */
+    public String getDefaultArguments() {
+        return "-synctex=1 "+super.getDefaultArguments();
+    }
+
     /**
      * @return output file format (pdf)
      */

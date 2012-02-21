@@ -1,5 +1,5 @@
 /*
- * $Id: AbbrevRetriever.java,v 1.3 2006/04/17 16:24:56 oskarojala Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -10,7 +10,6 @@
 package net.sourceforge.texlipse.bibparser;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import net.sourceforge.texlipse.bibparser.analysis.DepthFirstAdapter;
 import net.sourceforge.texlipse.bibparser.node.ABibtex;
@@ -39,12 +38,12 @@ import net.sourceforge.texlipse.model.ReferenceEntry;
  */
 public final class AbbrevRetriever extends DepthFirstAdapter {
 
-    private List<ReferenceEntry> abbrevs = new ArrayList<ReferenceEntry>();
+    private ArrayList abbrevs = new ArrayList(); //type: ReferenceEntry
     
     /**
      * @return The abbreviations as a list of <code>ReferenceEntry</code>s
      */
-    public List<ReferenceEntry> getAbbrevs() {
+    public ArrayList getAbbrevs() {
         return abbrevs;
     }
     

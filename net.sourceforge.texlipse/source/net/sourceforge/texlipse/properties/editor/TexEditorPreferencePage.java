@@ -1,5 +1,5 @@
 /*
- * $Id: TexEditorPreferencePage.java,v 1.3 2007/02/25 10:27:27 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials

@@ -1,5 +1,5 @@
 /*
- * $Id: AbstractEntry.java,v 1.3 2006/10/27 17:08:48 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -58,5 +58,10 @@ public abstract class AbstractEntry implements Comparable {
      */
     public void setPosition(int docOffset, int length) {
         this.position = new Position(docOffset, length);
+    }
+    
+    public String getkey(boolean lowerCase) {
+        if (lowerCase) return key.toLowerCase();
+        return key;
     }
 }

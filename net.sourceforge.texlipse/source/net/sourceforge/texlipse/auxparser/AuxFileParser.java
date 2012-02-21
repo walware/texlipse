@@ -6,6 +6,9 @@ import java.io.StringReader;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+
 import net.sourceforge.texlipse.TexlipsePlugin;
 import net.sourceforge.texlipse.model.ReferenceEntry;
 import net.sourceforge.texlipse.properties.TexlipseProperties;
@@ -17,9 +20,6 @@ import net.sourceforge.texlipse.texparser.node.TCsymbol;
 import net.sourceforge.texlipse.texparser.node.TCword;
 import net.sourceforge.texlipse.texparser.node.TWord;
 import net.sourceforge.texlipse.texparser.node.Token;
-
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 
 /**
  * Extracts information from the .aux file which is created by a latex run. 
@@ -99,7 +99,7 @@ public class AuxFileParser {
             return new LinkedList<String>();
         }
 
-        LatexLexer lexer = new LatexLexer(new PushbackReader(new StringReader(input), 1024));
+        LatexLexer lexer = new LatexLexer(new PushbackReader(new StringReader(input), 4096));
         Token prevCommand = null;
         Token prevSymbol = null;
         Token prevText = null;

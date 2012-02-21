@@ -1,5 +1,5 @@
 /*
- * $Id: MakeindexRunner.java,v 1.3 2006/02/27 17:23:07 oskarojala Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -26,15 +26,15 @@ import org.eclipse.core.resources.IResource;
 public class MakeindexRunner extends AbstractProgramRunner {
 
     public MakeindexRunner() {
-		super(BuilderRegistry.MAKEINDEX_RUNNER_ID);
+        super(BuilderRegistry.MAKEINDEX_RUNNER_ID);
     }
 
     protected String getWindowsProgramName() {
-		return "makeindex.exe"; //$NON-NLS-1$
+        return "makeindex.exe";
     }
     
     protected String getUnixProgramName() {
-		return "makeindex"; //$NON-NLS-1$
+        return "makeindex";
     }
     
     public String getDescription() {
@@ -50,9 +50,9 @@ public class MakeindexRunner extends AbstractProgramRunner {
      * @param resource .tex file to compile
      * @return argument string for latex program
      */
-	protected String getArguments(TexPathConfig pathConfig) {
-		String args = super.getArguments(pathConfig);
-		IFile resource = pathConfig.getTexFile();
+    public String getArguments(TexPathConfig pathConfig) {
+        String args = super.getArguments(pathConfig);
+        IFile resource = pathConfig.getTexFile();
         String style = TexlipseProperties.getProjectProperty(resource.getProject(),
                 TexlipseProperties.MAKEINDEX_STYLEFILE_PROPERTY);
         

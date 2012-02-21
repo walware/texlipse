@@ -2,8 +2,7 @@
 
 package net.sourceforge.texlipse.bibparser.analysis;
 
-import java.util.Hashtable;
-
+import java.util.*;
 import net.sourceforge.texlipse.bibparser.node.*;
 
 public class AnalysisAdapter implements Analysis

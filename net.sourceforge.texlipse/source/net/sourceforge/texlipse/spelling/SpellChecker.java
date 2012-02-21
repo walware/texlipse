@@ -1,5 +1,5 @@
 /*
- * $Id: SpellChecker.java,v 1.21 2010/02/27 20:58:04 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -171,7 +171,8 @@ public class SpellChecker implements IPropertyChangeListener {
         
         BuilderRegistry.printToConsole("aspell> adding word: " + word);
 
-        String[] environp = PathUtils.mergeEnvFromPrefs(SPELL_CHECKER_ENV);
+        String[] environp = PathUtils.mergeEnvFromPrefs(PathUtils.getEnv(),
+                SPELL_CHECKER_ENV);
         try {
             Process p = Runtime.getRuntime().exec(cmd, environp);
             PrintWriter w = new PrintWriter(new
@@ -215,8 +216,7 @@ public class SpellChecker implements IPropertyChangeListener {
         args = args.replaceAll("%language", language);
         
         command = f.getAbsolutePath() + " " + args;
-        
-        envp = PathUtils.mergeEnvFromPrefs(SPELL_CHECKER_ENV);
+        envp = PathUtils.mergeEnvFromPrefs(PathUtils.getEnv(), SPELL_CHECKER_ENV);
     }
 
     /**
@@ -643,7 +643,7 @@ public class SpellChecker implements IPropertyChangeListener {
         // delete all markers with proposals, because there might be something in the other files
         Iterator<IMarker> iter = proposalMap.keySet().iterator();
         while (iter.hasNext()) {
-            IMarker marker = iter.next();
+            IMarker marker = (IMarker) iter.next();
             try {
                 marker.delete();
             } catch (CoreException e) {

@@ -1,5 +1,5 @@
 /*
- * $Id: StringListFieldEditor.java,v 1.2 2006/05/06 14:00:35 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials

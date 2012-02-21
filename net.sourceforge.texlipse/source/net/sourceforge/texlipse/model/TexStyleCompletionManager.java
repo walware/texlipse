@@ -1,5 +1,5 @@
 /*
- * $Id: TexStyleCompletionManager.java,v 1.4 2009/05/04 20:45:55 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2006 by the TeXlipse team.
  * All rights reserved. This program and the accompanying materials

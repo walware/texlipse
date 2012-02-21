@@ -1,5 +1,5 @@
 /*
- * $Id: TexCommentScanner.java,v 1.3 2009/05/20 19:28:17 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials

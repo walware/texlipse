@@ -1,5 +1,5 @@
 /*
- * $Id: ViewerOutputScanner.java,v 1.7 2008/02/24 13:54:19 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -196,7 +196,9 @@ public class ViewerOutputScanner implements Runnable {
             
             new Thread(new Runnable() {
                 public void run() {
-                      ViewerManager.returnFocusToEclipse(true);
+                      ViewerManager.returnFocusToEclipse(
+                    		  TexlipsePlugin.getDefault().getPreferenceStore().getBoolean(
+                          			TexlipseProperties.BUILDER_FORCE_RETURN_FOCUS));
                 }
              }).start();
         }

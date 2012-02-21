@@ -4,7 +4,6 @@
 package net.sourceforge.texlipse.templates;
 
 import java.util.Comparator;
-
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
 /**

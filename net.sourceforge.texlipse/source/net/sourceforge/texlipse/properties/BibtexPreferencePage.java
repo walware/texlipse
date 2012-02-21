@@ -1,5 +1,5 @@
 /*
- * $Id: BibtexPreferencePage.java,v 1.6 2007/10/07 09:05:24 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials

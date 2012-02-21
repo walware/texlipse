@@ -21,21 +21,28 @@ public class XelatexRunner extends LatexRunner {
      * Create a new ProgramRunner.
      */
     public XelatexRunner() {
-		super(BuilderRegistry.XELATEX_RUNNER_ID);
+        super(BuilderRegistry.XELATEX_RUNNER_ID);
     }
     
     protected String getWindowsProgramName() {
-		return "xelatex.exe"; //$NON-NLS-1$
+        return "xelatex.exe";
     }
     
     protected String getUnixProgramName() {
-		return "xelatex"; //$NON-NLS-1$
+        return "xelatex";
     }
     
     public String getDescription() {
         return "XeLatex program";
     }
     
+    /**
+     * Enable SyncTeX
+     */
+    public String getDefaultArguments() {
+        return "-synctex=1 "+super.getDefaultArguments();
+    }
+
     /**
      * @return output file format (pdf)
      */

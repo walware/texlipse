@@ -1,5 +1,5 @@
 /*
- * $Id: RunBibTeXOnNextBuildAction.java,v 1.2 2009/05/31 10:55:39 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2005 by the TeXlipse Project.
  * All rights reserved. This program and the accompanying materials

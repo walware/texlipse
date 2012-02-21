@@ -1,5 +1,5 @@
 /*
- * $Id: TexlipseAnnotationUpdater.java,v 1.5 2008/04/27 09:54:20 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2007-2008 by the TeXlipse team.
  * All rights reserved. This program and the accompanying materials
@@ -176,7 +176,8 @@ public class TexlipseAnnotationUpdater implements ISelectionChangedListener {
             new Job("Update Annotations") {
                 public IStatus run(IProgressMonitor monitor) {
                     String text = document.get();
-                    final String simpleRefRegExp = "\\\\([a-zA-Z]*ref|label)\\s*\\{" + Pattern.quote(refName) + "\\}";
+                    String refNameRegExp = refName.replaceAll("\\*", "\\\\*");
+                    final String simpleRefRegExp = "\\\\([a-zA-Z]*ref|label)\\s*\\{" + refNameRegExp + "\\}";
                     Matcher m = (Pattern.compile(simpleRefRegExp)).matcher(text);
                     while (m.find()) {
                         if (monitor.isCanceled()) return Status.CANCEL_STATUS;
@@ -254,9 +255,12 @@ public class TexlipseAnnotationUpdater implements ISelectionChangedListener {
      * @param model AnnotationModel
      */
     private void removeOldAnnotations(IAnnotationModel model) {
-		for (Annotation annotation : fOldAnnotations) {
-			model.removeAnnotation(annotation);
-		}
+
+        for (Iterator<Annotation> it= fOldAnnotations.iterator(); it.hasNext();) {
+            Annotation annotation= (Annotation) it.next();
+            model.removeAnnotation(annotation);
+        }
+
         fOldAnnotations.clear();
     }
 

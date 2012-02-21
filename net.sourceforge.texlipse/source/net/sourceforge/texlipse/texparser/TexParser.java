@@ -1,13 +1,11 @@
 /*
- * $Id: TexParser.java,v 1.19 2010/02/21 19:20:58 borisvl Exp $
  *
- * Copyright (c) 2004-2005 by the TeXlapse Team.
+ * Copyright (c) 2004-2011 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-
 package net.sourceforge.texlipse.texparser;
 
 import java.io.IOException;
@@ -26,6 +24,7 @@ import net.sourceforge.texlipse.texparser.lexer.LexerException;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
+
 
 
 /**
@@ -55,14 +54,6 @@ public class TexParser {
         this.fatalErrors = false;
     }
 
-//    public LatexLexer getLexer(String str) {
-//        if (llexer == null) {
-//            llexer = new LatexLexer(new PushbackReader(new StringReader(str), 4096));
-//        } else {
-//            llexer.resetState(new PushbackReader(new StringReader(str), 4096));
-//        }
-//        return llexer;
-//    }
     
     /**
      * Removes trailing whitespace from the document. This is needed since
@@ -156,7 +147,7 @@ public class TexParser {
         
         try {
             // start the parse
-            LatexLexer lexer = new LatexLexer(new PushbackReader(new StringReader(input), 1024));
+            LatexLexer lexer = new LatexLexer(new PushbackReader(new StringReader(input), 4096));
             //LatexLexer lexer = this.getLexer(input); 
             if (this.preamble != null) {
                 OutlineNode on = new OutlineNode("Preamble",
@@ -188,7 +179,7 @@ public class TexParser {
     /**
      * @return The outline tree
      */
-    public List<OutlineNode> getOutlineTree() {
+    public ArrayList<OutlineNode> getOutlineTree() {
     	return lparser.getOutlineTree();
     }
 
@@ -232,7 +223,29 @@ public class TexParser {
     public String getBibstyle() {
     	return lparser.getBibstyle();
     }
-    
+
+    /**
+     * @return Whether Biblatex mode is activated
+     */
+    public boolean isBiblatexMode() {
+        return lparser.isBiblatexMode();
+    }
+
+    /**
+     * @return The selected biblatex backend
+     */
+    public String getBiblatexBackend() {
+        return lparser.getBiblatexBackend();
+    }
+
+    /**
+     * @return Whether the parsed file contains a bibliography print command.
+     *  This is only relevant if biblatex mode is enabled.
+     */
+    public boolean isLocalBib() {
+        return lparser.isLocalBib();
+    }
+
     /**
      * @return Returns the preamble.
      */
@@ -264,7 +277,7 @@ public class TexParser {
     /**
      * @return Get user-defined commands
      */
-    public List<TexCommandEntry> getCommands() {
+    public ArrayList<TexCommandEntry> getCommands() {
         return lparser.getCommands();
     }
     

@@ -1,5 +1,5 @@
 /*
- * $Id: ReferenceContainer.java,v 1.5 2010/02/21 19:20:58 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -7,11 +7,10 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-
 package net.sourceforge.texlipse.model;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -19,10 +18,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-
 /**
  * Container for referencing data (BibTeX and labels.) Holds the reference
- * lists of each file as well as a sorted array of all references, so that
+ * lists of each file as well as a (case insensitive) sorted array of all references, so that
  * not all files need to be reparsed when the data changes.
  * 
  * @author Oskar Ojala
@@ -31,7 +29,7 @@ import java.util.Map;
 public class ReferenceContainer {
 
     private Map<String, List<ReferenceEntry>> referenceHash;
-    private ReferenceEntry[] sortedReferences;
+    private List<ReferenceEntry> sortedReferences;
     private int size;
     
     /**
@@ -102,9 +100,10 @@ public class ReferenceContainer {
      */
     public void organize() {
         if (referenceHash.size() == 0) {
-            sortedReferences = new ReferenceEntry[0];
-        	return;        	
+            sortedReferences = new ArrayList<ReferenceEntry>(0);
+        	return;
         }
+        
         List<ReferenceEntry> allRefs = new ArrayList<ReferenceEntry>(size);
         if (referenceHash.size() > 1) {
             for (Iterator<List<ReferenceEntry>> iter = referenceHash.values().iterator(); iter.hasNext();) {
@@ -115,9 +114,14 @@ public class ReferenceContainer {
             Iterator<List<ReferenceEntry>> iter = referenceHash.values().iterator();
             allRefs = iter.next();
         }
-        sortedReferences = new ReferenceEntry[allRefs.size()];
-        allRefs.toArray(sortedReferences);
-        Arrays.sort(sortedReferences);
+        sortedReferences = allRefs;
+        
+        //Sort collections case insensitive
+        Collections.sort(sortedReferences, new Comparator<ReferenceEntry>() {
+            public int compare(ReferenceEntry o1, ReferenceEntry o2) {
+                return o1.getkey(true).compareTo(o2.getkey(true).toLowerCase());
+            }
+        });
     }
     
     /**
@@ -182,15 +186,10 @@ public class ReferenceContainer {
      * @return True if <code>key</code> was found, false if it was not found
      */
     public boolean binTest(String key) {
-        if (sortedReferences == null || sortedReferences.length == 0)
+        if (sortedReferences == null || sortedReferences.size() == 0)
             return false;
-        int s = Arrays.binarySearch(sortedReferences, new ReferenceEntry(key), 
-                new Comparator<ReferenceEntry>() {
-            public int compare(ReferenceEntry o1, ReferenceEntry o2) {
-                return o1.key.compareTo(o2.key);
-            }
-        });
-        return (s >= 0);
+        int nr = PartialRetriever.getEntry(key, sortedReferences, true);
+        return (nr >= 0);
     }
     
     /**
@@ -218,7 +217,7 @@ public class ReferenceContainer {
      * 
      * @return Returns the sortedReferences.
      */
-    public ReferenceEntry[] getSortedReferences() {
+    public List<ReferenceEntry> getSortedReferences() {
         return sortedReferences;
     }
 }

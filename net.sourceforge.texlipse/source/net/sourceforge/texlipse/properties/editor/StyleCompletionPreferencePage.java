@@ -1,5 +1,5 @@
 /*
- * $Id: StyleCompletionPreferencePage.java,v 1.2 2006/05/03 18:23:18 oskarojala Exp $
+ * $Id$
  *
  * Copyright (c) 2006 by the TeXlipse team.
  * All rights reserved. This program and the accompanying materials

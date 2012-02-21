@@ -1,5 +1,5 @@
 /*
- * $Id: TexProjectionAnnotation.java,v 1.3 2005/05/29 09:55:27 oskarojala Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials

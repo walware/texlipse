@@ -1,5 +1,5 @@
 /*
- * $Id: TexWordWrapAction.java,v 1.4 2006/05/14 13:01:00 oskarojala Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials

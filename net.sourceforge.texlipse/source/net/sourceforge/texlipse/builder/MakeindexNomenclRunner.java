@@ -1,5 +1,5 @@
 /*
- * $Id: MakeindexNomenclRunner.java,v 1.1 2005/10/30 15:11:34 kimmok Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -22,15 +22,15 @@ import org.eclipse.core.resources.IResource;
 public class MakeindexNomenclRunner extends AbstractProgramRunner {
 
     public MakeindexNomenclRunner() {
-		super(BuilderRegistry.MAKEINDEX_NOMENCL_RUNNER_ID);
+        super(BuilderRegistry.MAKEINDEX_NOMENCL_RUNNER_ID);
     }
 
     protected String getWindowsProgramName() {
-		return "makeindex.exe"; //$NON-NLS-1$
+        return "makeindex.exe";
     }
     
     protected String getUnixProgramName() {
-		return "makeindex"; //$NON-NLS-1$
+        return "makeindex";
     }
     
     public String getDescription() {

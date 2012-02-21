@@ -1,5 +1,5 @@
 /*
- * $Id: ViewerSettingsPreferencePage.java,v 1.3 2006/04/13 20:19:42 torarnv Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -67,7 +67,8 @@ public class ViewerSettingsPreferencePage extends FieldEditorPreferencePage
         port.setValidRange(MIN_PORT, MAX_PORT);
         addField(port);
         
-        TexlipsePreferencePage.addSpacer(2, getFieldEditorParent());
+        addField(new BooleanFieldEditor(TexlipseProperties.BUILDER_FORCE_RETURN_FOCUS, TexlipsePlugin.getResourceString("forceReturnFocusOnInverseSearch"), getFieldEditorParent()));
+        
         addField(new BooleanFieldEditor(TexlipseProperties.BUILDER_RETURN_FOCUS, TexlipsePlugin.getResourceString("preferenceViewerReturnFocusLabel"), getFieldEditorParent()));
         
         WorkbenchHelp.setHelp(port.getTextControl(getFieldEditorParent()), TexlipseHelpIds.VIEWER_PORT);

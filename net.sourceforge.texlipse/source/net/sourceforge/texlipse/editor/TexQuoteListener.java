@@ -1,5 +1,5 @@
 /*
- * $Id: TexQuoteListener.java,v 1.4 2006/03/20 17:37:54 oskarojala Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -70,9 +70,6 @@ public class TexQuoteListener implements IDocumentListener {
                 // TODO null checks?
                 IProject project = ((FileEditorInput)editor.getEditorInput()).getFile().getProject();
                 String lang = TexlipseProperties.getProjectProperty(project, TexlipseProperties.LANGUAGE_PROPERTY);
-                if (lang == null) {
-                    lang = "en";
-                }
                 if (Character.isWhitespace(prev)) {
                     replacement = (String) quotes.get(lang + "o");
                 } else if (Character.isLetterOrDigit(prev)) {

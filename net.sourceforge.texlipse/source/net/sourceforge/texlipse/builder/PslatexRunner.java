@@ -1,5 +1,5 @@
 /*
- * $Id: PslatexRunner.java,v 1.1 2005/03/16 12:21:56 kimmok Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -22,15 +22,15 @@ public class PslatexRunner extends LatexRunner {
      * Create a new ProgramRunner.
      */
     public PslatexRunner() {
-		super(BuilderRegistry.PSLATEX_RUNNER_ID);
+        super(BuilderRegistry.PSLATEX_RUNNER_ID);
     }
     
     protected String getWindowsProgramName() {
-		return "pslatex.exe"; //$NON-NLS-1$
+        return "pslatex.exe";
     }
     
     protected String getUnixProgramName() {
-		return "pslatex"; //$NON-NLS-1$
+        return "pslatex";
     }
     
     public String getDescription() {

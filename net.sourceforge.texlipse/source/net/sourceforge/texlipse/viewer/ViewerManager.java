@@ -9,6 +9,7 @@
  */
 package net.sourceforge.texlipse.viewer;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -18,7 +19,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.sourceforge.texlipse.DDEClient;
 import net.sourceforge.texlipse.PathUtils;
 import net.sourceforge.texlipse.SelectedResourceManager;
 import net.sourceforge.texlipse.TexlipsePlugin;
@@ -49,6 +49,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 import de.walware.ecommons.debug.ui.LaunchConfigUtil;
+import de.walware.ecommons.io.win.DDEClient;
 
 
 /**
@@ -90,6 +91,9 @@ public class ViewerManager {
     // file name with absolute path
     public static final String FILENAME_FULLPATH_PATTERN = "%fullfile";
     
+    // the source file name variable in the arguments with absolute path
+    public static final String TEX_FILENAME_FULLPATH_PATTERN = "%fulltexfile";
+
     // viewer attributes
     private ViewerAttributeRegistry registry;
 
@@ -387,12 +391,7 @@ public class ViewerManager {
         	String server = registry.getDDEViewServer();
         	String topic = registry.getDDEViewTopic();
 
-        	int error = DDEClient.execute(server, topic, command);
-            if (error != 0) {
-                String errorMessage = "DDE command " + command + " failed! " +
-                "(server: " + server + ", topic: " + topic + ")";
-                TexlipsePlugin.log(errorMessage, new Throwable(errorMessage));
-            }
+        	DDEClient.execute(server, topic, command);
     	}
     }
     
@@ -403,12 +402,7 @@ public class ViewerManager {
 	    	String server = registry.getDDECloseServer();
 	    	String topic = registry.getDDECloseTopic();
 	
-	    	int error = DDEClient.execute(server, topic, command);
-	  		if (error != 0) {
-              String errorMessage = "DDE command " + command + " failed! " +
-              "(server: " + server + ", topic: " + topic + ")";
-              TexlipsePlugin.log(errorMessage, new Throwable(errorMessage));
-            }
+	    	DDEClient.execute(server, topic, command);
     	}
     }
     
@@ -617,6 +611,15 @@ public class ViewerManager {
         	input = input.replaceAll(TEX_FILENAME_PATTERN, escapeBackslashes(texFile));
         }
         
+        if (input.indexOf(TEX_FILENAME_FULLPATH_PATTERN) >= 0) {
+            IResource selectedRes = SelectedResourceManager.getDefault().getSelectedResource();
+            if (selectedRes.getType() != IResource.FOLDER) {
+                selectedRes = SelectedResourceManager.getDefault().getSelectedTexResource();
+            }
+
+            input = input.replaceAll(TEX_FILENAME_FULLPATH_PATTERN, escapeBackslashes(selectedRes.getLocation().toOSString()));
+        }
+        
         return input;
     }
     
@@ -644,13 +647,35 @@ public class ViewerManager {
      * @param in input stream where the output of a viewer program will be available
      * @param viewer the name of the viewer
      */
-    private void startOutputListener(InputStream in, String inverse) {
+    private void startOutputListener(final InputStream in, final String inverse) {
         if (inverse.equals(ViewerConfiguration.INVERSE_SEARCH_RUN)) {
             FileLocationServer server = FileLocationServer.getInstance();
             server.setListener(new FileLocationOpener(project));
             if (!server.isRunning()) {
                 new Thread(server).start();
             }
+            
+            //Read everything from InputStream, otherwise the process will stay open in some cases
+            //happens e.g. with sumatrapdf
+            new Thread(new Runnable(){
+                public void run() {
+                    InputStream st = new BufferedInputStream(in);
+                    try {
+                        
+                        byte[] buf = new byte[1024];
+                        //read as long as the process exists and dump its content
+                        while (st.read(buf) != -1) {
+                            //System.out.println(new String(buf));
+                            try {
+                                Thread.sleep(100);
+                            } catch (InterruptedException e) {}
+                        }
+                        st.close();
+                    } catch (IOException e) {
+                    }
+
+                }
+            }).start();
         } else if (inverse.equals(ViewerConfiguration.INVERSE_SEARCH_STD)) {
             new Thread(new ViewerOutputScanner(project, in)).start();
         }

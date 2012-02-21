@@ -1,5 +1,5 @@
 /*
- * $Id: LatexTempExtsPreferencePage.java,v 1.1 2005/03/16 12:22:11 kimmok Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -38,7 +38,12 @@ public class LatexTempExtsPreferencePage
      * Creates the property editing UI components of this page.
      */
     protected void createFieldEditors() {
-        addField(new StringListFieldEditor(TexlipseProperties.TEMP_FILE_EXTS, TexlipsePlugin.getResourceString("preferenceTempFileExtsLabel"), getFieldEditorParent()));
+        addField(new StringListFieldEditor(TexlipseProperties.TEMP_FILE_EXTS,
+                TexlipsePlugin.getResourceString("preferenceTempFileExtsLabel"),
+                getFieldEditorParent()));
+        addField(new StringListFieldEditor(TexlipseProperties.DERIVED_FILES,
+                TexlipsePlugin.getResourceString("preferenceDerivedFilesLabel"),
+                getFieldEditorParent()));
     }
     
     /**

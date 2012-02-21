@@ -1,5 +1,5 @@
 /*
- * $Id: SpellCheckerEnvPreferencePage.java,v 1.1 2005/04/09 11:29:30 kimmok Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials

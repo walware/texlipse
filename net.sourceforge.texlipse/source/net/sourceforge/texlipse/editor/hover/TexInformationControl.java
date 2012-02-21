@@ -1,5 +1,5 @@
 /*
- * $Id: TexInformationControl.java,v 1.11 2010/02/21 19:20:57 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2006 by the TeXlipse team.
  * All rights reserved. This program and the accompanying materials

@@ -1,5 +1,5 @@
 /*
- * $Id: OpenDeclarationAction.java,v 1.8 2010/04/02 20:42:26 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2006 by the TeXlipse team.
  * All rights reserved. This program and the accompanying materials
@@ -11,6 +11,7 @@ package net.sourceforge.texlipse.actions;
 
 import java.io.File;
 import java.text.MessageFormat;
+import java.util.List;
 
 import net.sourceforge.texlipse.TexlipsePlugin;
 import net.sourceforge.texlipse.bibeditor.BibEditor;
@@ -37,8 +38,8 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorActionDelegate;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
+import org.eclipse.ui.ide.IDE;
 
 /**
  * This action opens the declaration of
@@ -115,10 +116,10 @@ public class OpenDeclarationAction implements IEditorActionDelegate {
         AbstractEntry refEntry = null;
         if (selection.getOffset() < comRegion.getOffset() + comRegion.getLength()) {
             //Cursor is over a command, not the argument, we first try to find the command in the user defined commands
-            AbstractEntry[] entries = editor.getDocumentModel().getRefMana().getCompletionsCom(command.substring(1), TexCommandEntry.NORMAL_CONTEXT); 
-            if (entries != null && entries.length > 0 && entries[0].fileName != null) {
+            List<TexCommandEntry> entries = editor.getDocumentModel().getRefMana().getCompletionsCom(command.substring(1), TexCommandEntry.NORMAL_CONTEXT); 
+            if (entries != null && entries.size() > 0 && entries.get(0).fileName != null) {
                 //the command is defined by the user
-                refEntry = entries[0];
+                refEntry = entries.get(0);
             }
         }
         

@@ -1,5 +1,5 @@
 /*
- * $Id: TexLabelProvider.java,v 1.2 2010/01/30 16:25:22 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -9,10 +9,10 @@
  */
 package net.sourceforge.texlipse.outline;
 
-import java.util.List;
+import java.util.ArrayList;
 
 import net.sourceforge.texlipse.TexlipsePlugin;
-import net.sourceforge.texlipse.editor.TexFastPartitionScanner;
+import net.sourceforge.texlipse.editor.partitioner.FastLaTeXPartitionScanner;
 import net.sourceforge.texlipse.model.OutlineNode;
 
 import org.eclipse.jface.viewers.LabelProvider;
@@ -92,7 +92,7 @@ public class TexLabelProvider extends LabelProvider {
 	    OutlineNode node = (OutlineNode)element;
 	    String text = node.getName();
 	    if (node.hasChildren()) { 
-            List<OutlineNode> childs = node.getChildren();
+            ArrayList<OutlineNode> childs = node.getChildren();
             //If first child is a label, add it to the name of the element
 	        if (childs.get(0).getType() == OutlineNode.TYPE_LABEL) {
 	            text = text + " (L: " + childs.get(0).getName() + ")";
@@ -103,7 +103,7 @@ public class TexLabelProvider extends LabelProvider {
 
     private static Image getEnvImage(String envName) {
         Image image = TexlipsePlugin.getImage(envName);
-        if (image == null && TexFastPartitionScanner.isMathEnv(envName)) {
+        if (image == null && FastLaTeXPartitionScanner.isMathEnv(envName)) {
             //Return formula image if math environment
             image = TexlipsePlugin.getImage("formula");
         }

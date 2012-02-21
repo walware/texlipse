@@ -2,6 +2,7 @@ package net.sourceforge.texlipse.actions;
 
 import net.sourceforge.texlipse.TexlipsePlugin;
 import net.sourceforge.texlipse.editor.TexCompletionProposal;
+import net.sourceforge.texlipse.editor.TexEditor;
 import net.sourceforge.texlipse.model.TexCommandEntry;
 
 import org.eclipse.jface.action.Action;
@@ -9,9 +10,7 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.TextSelection;
-import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
  * Simple action for inserting a Tex command into the current editor
@@ -19,11 +18,8 @@ import org.eclipse.ui.texteditor.ITextEditor;
  *
  */
 public class TexInsertMathSymbolAction extends Action {
-	
-	
-	private TexCommandEntry entry;
-	private ITextEditor editor;
-	
+	TexCommandEntry entry;
+	TexEditor editor;
 	
 	/**
 	 * Creates a new Action from the given entry
@@ -38,16 +34,12 @@ public class TexInsertMathSymbolAction extends Action {
 	}
 	
 	public void run() {
-		if (editor == null) {
-			return;
-		}
-		final ISourceViewer viewer = (ISourceViewer) editor.getAdapter(ISourceViewer.class);
-		if (viewer == null) {
+        if (editor == null)
             return;
-		}
         ITextSelection selection = (ITextSelection) editor.getSelectionProvider().getSelection();
         IDocument doc = editor.getDocumentProvider().getDocument(editor.getEditorInput());
-		TexCompletionProposal prop = new TexCompletionProposal(entry, selection.getOffset() + 1, 0, viewer);
+        TexCompletionProposal prop = new TexCompletionProposal(entry, selection.getOffset() + 1, 0, 
+                editor.getViewer());
         try {
             // insert a backslash first
             doc.replace(selection.getOffset(), 0, "\\");
@@ -61,14 +53,12 @@ public class TexInsertMathSymbolAction extends Action {
             TexlipsePlugin.log("Error while trying to insert command", e);
         }
     }
-	
+
 	public void setActiveEditor(IEditorPart part){
-		if (part instanceof ITextEditor) {
-			editor = (ITextEditor) part;
-		}
-		else {
-			editor = null;
-		}
+		if (part instanceof TexEditor)
+			editor = (TexEditor) part;
+        else
+            editor = null;
 	}
-	
+
 }

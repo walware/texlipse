@@ -2,11 +2,7 @@
 
 package net.sourceforge.texlipse.bibparser.lexer;
 
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.PushbackReader;
-
+import java.io.*;
 import net.sourceforge.texlipse.bibparser.node.*;
 
 @SuppressWarnings("nls")

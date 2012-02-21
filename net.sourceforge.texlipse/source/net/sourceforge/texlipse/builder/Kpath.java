@@ -1,5 +1,5 @@
 /*
- * $Id: Kpath.java,v 1.1 2008/08/03 16:22:00 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2008 by Christopher Hoskin.
  * All rights reserved. This program and the accompanying materials

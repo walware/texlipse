@@ -1,5 +1,5 @@
 /*
- * $Id: TexlipseWordFinder.java,v 1.2 2010/04/10 11:53:34 borisvl Exp $
+ * $Id$
  * 
  * Copyright (c) 2010 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials

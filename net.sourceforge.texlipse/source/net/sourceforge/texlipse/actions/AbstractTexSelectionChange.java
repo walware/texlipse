@@ -1,5 +1,5 @@
 /*
- * $Id: AbstractTexSelectionChange.java,v 1.1 2006/03/11 13:15:16 kimmok Exp $
+ * $Id$
  *
  * Copyright (c) 2005 by the TeXlipse Project.
  * All rights reserved. This program and the accompanying materials

@@ -1,5 +1,5 @@
 /*
- * $Id: OutlineNode.java,v 1.8 2010/01/30 16:25:22 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -7,15 +7,12 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-
 package net.sourceforge.texlipse.model;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.Position;
-
 
 /**
  * Node of the outline tree. Created during parsing of the document.
@@ -47,7 +44,7 @@ public class OutlineNode {
     private int offsetOnLine;
     private int declarationLength;
     private OutlineNode parent;
-    private List<OutlineNode> children;
+    private ArrayList<OutlineNode> children;
     private Position position;
     private IFile file;
 
@@ -126,13 +123,13 @@ public class OutlineNode {
     /**
      * @return Returns the children.
      */
-    public List<OutlineNode> getChildren() {
+    public ArrayList<OutlineNode> getChildren() {
         return children;
     }
     /**
      * @param children The children to set.
      */
-    public void setChildren(List<OutlineNode> children) {
+    public void setChildren(ArrayList<OutlineNode> children) {
         this.children = children;
     }
     
@@ -251,9 +248,15 @@ public class OutlineNode {
      * @return String presentation of the node
      */
     public String toString() {
-    	return this.getType() + " " + this.getName() + " " + 
-        		this.getPosition().getOffset() + " " + this.getPosition().getLength() +
-				super.toString();
+        if (this.position == null) {
+            return this.type + " " + this.name + " (null position) " +
+                super.toString();
+        }
+        else {
+            return this.type + " " + this.name + " " + 
+            this.position.getOffset() + " " + this.position.getLength() +
+            super.toString();
+        }
     }
 
     /**

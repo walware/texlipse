@@ -1,5 +1,5 @@
 /*
- * $Id: BuilderRegistry.java,v 1.5 2008/08/23 15:44:08 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -38,8 +38,10 @@ public class BuilderRegistry {
 	public static final String DVIPDF_RUNNER_ID = "dvipdf";
 	public static final String PS2PDF_RUNNER_ID = "ps2pdf";
 	public static final String XELATEX_RUNNER_ID = "xelatex";
+	public static final String LUALATEX_RUNNER_ID = "lualatex";
 	
 	public static final String BIBTEX_RUNNER_ID = "bibtex";
+	public static final String BIBER_RUNNER_ID = "biber";
 	public static final String MAKEINDEX_RUNNER_ID = "makeindex";
 	public static final String MAKEINDEX_NOMENCL_RUNNER_ID = "makeindex.nomencl";
 	
@@ -53,28 +55,39 @@ public class BuilderRegistry {
     // array of program runners
     private ProgramRunner[] runnerList;
 
+
+    private static final Object consoleLock = new Object();
+    
     // stream to write builder status messages to
-    private MessageConsoleStream consoleStream;
+    private static MessageConsoleStream consoleStream;
 
     // the console for creating console streams
-    private MessageConsole console;
+    private static MessageConsole console;
 
-    
+
     /**
      * Print a message to the console.
      */
     public static void printToConsole(String msg) {
-        instance.getConsoleStream().println(msg);
+        getConsoleStream().println(msg);
     }
-
+    
     /**
      * Clear the console window.
      */
     public static void clearConsole() {
-        instance.consoleStream = null;
+        synchronized (consoleLock) {
+            consoleStream = null;
+        }
         TexlipsePlugin.getDefault().getWorkbench().getDisplay().syncExec(new Runnable() {
             public void run() {
-                instance.getConsole().getDocument().set("");
+                MessageConsole c;
+                synchronized (consoleLock) {
+                    c = console;
+                }
+                if (c != null) {
+                    c.getDocument().set("");
+                }
             }});
     }
     
@@ -82,25 +95,30 @@ public class BuilderRegistry {
      * Return the console. Instantiate if necessary.
      * @return the output console
      */
-    private MessageConsole getConsole() {
-        if (console == null) {
-            console = new MessageConsole("Texlipse", null);
-            IConsoleManager mgr = ConsolePlugin.getDefault().getConsoleManager();
-            mgr.addConsoles(new IConsole[] { console });
+    private static MessageConsole getConsole() {
+        synchronized (consoleLock) {
+            if (console == null) {
+                console = new MessageConsole("Texlipse", null);
+                IConsoleManager mgr = ConsolePlugin.getDefault().getConsoleManager();
+                mgr.addConsoles(new IConsole[] { console });
+            }
+                return console;
         }
-        return console;
     }
     
     /**
      * Return the console output stream. Instantiate if necessary.
      * @return the output stream to console
      */
-    private MessageConsoleStream getConsoleStream() {
-        if (consoleStream == null) {
-            consoleStream = getConsole().newMessageStream();
+    private static MessageConsoleStream getConsoleStream() {
+        synchronized (consoleLock) {
+            if (consoleStream == null) {
+                consoleStream = getConsole().newMessageStream();
+            }
+            return consoleStream;
         }
-        return consoleStream;
     }
+    
     
     /**
      * Get the builder for the given format.
@@ -120,9 +138,6 @@ public class BuilderRegistry {
      * @return references to the builder instances
      */
     public static Builder[] getAll(String format) {
-        if (instance.builderList == null) {
-            instance.initBuilders();
-        }
         return instance.getAllBuilders(format);
     }
 
@@ -132,13 +147,7 @@ public class BuilderRegistry {
      * @return the builder instance, or null if index out of bounds
      */
     public static Builder get(int i) {
-        if (instance.builderList == null) {
-            instance.initBuilders();
-        }
-        if (i >= 0 && i < instance.builderList.length) {
-            return instance.builderList[i];
-        }
-        return null;
+        return instance.getBuilder(i);
     }
     
     /**
@@ -168,7 +177,9 @@ public class BuilderRegistry {
                 new PslatexRunner(),
                 new PdflatexRunner(),
                 new XelatexRunner(),
+                new LualatexRunner(),
                 new BibtexRunner(),
+                new BiberRunner(),
                 new MakeindexRunner(),
                 new DvipsRunner(),
                 new DvipdfRunner(),
@@ -181,20 +192,25 @@ public class BuilderRegistry {
     /**
      * Initializes builders. This cannot be done in constructor,
      * because builders need to use BuilderRegistry to resolve runners.
+     * @return 
      */
-    protected void initBuilders() {
-        builderList = new Builder[8];
-        builderList[0] = new TexBuilder(0, LATEX_RUNNER_ID);
-        builderList[1] = new TexBuilder(1, PSLATEX_RUNNER_ID);
-        builderList[2] = new TexBuilder(2, PDFLATEX_RUNNER_ID);
-        
-        builderList[3] = new DviBuilder(3, DVIPS_RUNNER_ID);
-        builderList[4] = new DviBuilder(4, DVIPDF_RUNNER_ID);
-        
-        builderList[5] = new PsBuilder(5, TexBuilder.class);
-        builderList[6] = new PsBuilder(6, DviBuilder.class);
-        
-        builderList[7] = new TexBuilder(7, XELATEX_RUNNER_ID);
+    protected synchronized Builder[] getBuilders() {
+        if (builderList == null) {
+            builderList = new Builder[9];
+            builderList[0] = new TexBuilder(0, LATEX_RUNNER_ID);
+            builderList[1] = new TexBuilder(1, PSLATEX_RUNNER_ID);
+            builderList[2] = new TexBuilder(2, PDFLATEX_RUNNER_ID);
+            
+            builderList[3] = new DviBuilder(3, DVIPS_RUNNER_ID);
+            builderList[4] = new DviBuilder(4, DVIPDF_RUNNER_ID);
+            
+            builderList[5] = new PsBuilder(5, TexBuilder.class);
+            builderList[6] = new PsBuilder(6, DviBuilder.class);
+            
+            builderList[7] = new TexBuilder(7, XELATEX_RUNNER_ID);
+            builderList[8] = new TexBuilder(8, LUALATEX_RUNNER_ID);
+        }
+        return builderList;
     }
     
     /**
@@ -210,6 +226,7 @@ public class BuilderRegistry {
         }
 
         Builder builder = null;
+        final Builder[] builderList = getBuilders();
         for (int i = 0; i < builderList.length; i++) {
             if (builderList[i] != null
                     && builderList[i].getOutputFormat().equals(outputFormat)
@@ -235,6 +252,7 @@ public class BuilderRegistry {
 
         List<Builder> list = new ArrayList<Builder>();
 
+        final Builder[] builderList = getBuilders();
         for (int i = 0; i < builderList.length; i++) {
             if (builderList[i] != null
                     && builderList[i].getOutputFormat().equals(format)) {
@@ -257,7 +275,15 @@ public class BuilderRegistry {
         }
         return null;
     }
-
+    
+    protected Builder getBuilder(int i) {
+        final Builder[] builderList = getBuilders();
+        if (i >= 0 && i < builderList.length) {
+            return builderList[i];
+        }
+        return null;
+    }
+    
     /**
      * Returns the number of implemented runners.
      * @return the number of implemented runners

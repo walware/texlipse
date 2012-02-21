@@ -1,5 +1,5 @@
 /*
- * $Id: BibtexRunner.java,v 1.7 2009/05/19 16:28:59 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -41,14 +41,14 @@ public class BibtexRunner extends AbstractProgramRunner {
      * @return bibtex program name in windows
      */
     protected String getWindowsProgramName() {
-		return "bibtex.exe"; //$NON-NLS-1$
+        return "bibtex.exe";
     }
     
     /**
      * @return bibtex program name in unix systems
      */
     protected String getUnixProgramName() {
-		return "bibtex"; //$NON-NLS-1$
+        return "bibtex";
     }
     
     /**

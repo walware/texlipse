@@ -1,5 +1,5 @@
 /*
- * $Id: TexOutlineInput.java,v 1.3 2008/09/20 18:04:14 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -7,14 +7,12 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-
 package net.sourceforge.texlipse.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 
 /**
  * Container class for outline input stuff. Includes the outline tree
@@ -24,8 +22,7 @@ import java.util.Map;
  * @author Taavi Hupponen
  */
 public class TexOutlineInput {
-	
-	
+
 	private List<OutlineNode> rootNodes;
 	private int treeDepth;
 	private Map<Integer, List<OutlineNode>> typeLists;

@@ -1,5 +1,5 @@
 /*
- * $Id: BibProjectionAnnotation.java,v 1.2 2005/05/29 14:49:35 oskarojala Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials

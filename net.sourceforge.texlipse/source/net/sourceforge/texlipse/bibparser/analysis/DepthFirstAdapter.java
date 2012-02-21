@@ -2,9 +2,7 @@
 
 package net.sourceforge.texlipse.bibparser.analysis;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import java.util.*;
 import net.sourceforge.texlipse.bibparser.node.*;
 
 public class DepthFirstAdapter extends AnalysisAdapter

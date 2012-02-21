@@ -1,5 +1,5 @@
 /*
- * $Id: TexProjectOutline.java,v 1.15 2009/05/26 17:06:04 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2006 by the TeXlipse team.
  * All rights reserved. This program and the accompanying materials
@@ -7,7 +7,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-
 package net.sourceforge.texlipse.outline;
 
 import java.io.IOException;
@@ -28,7 +27,6 @@ import net.sourceforge.texlipse.properties.TexlipseProperties;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 
-
 /**
  * Container for an outline representing the entire project
  * 
@@ -42,7 +40,6 @@ public class TexProjectOutline {
     private TexProjectParser fileParser;
     private Map<String, List<OutlineNode>> outlines = new HashMap<String, List<OutlineNode>>();
     private Set<String> included = new HashSet<String>();
-	
     
     /**
      * Creates a new project outline
@@ -217,7 +214,7 @@ public class TexProjectOutline {
         if (children == null || children.size() == 0) {
             return null;
         }
-        OutlineNode lastNode = children.get(children.size() - 1);
+        OutlineNode lastNode = (OutlineNode) children.get(children.size() - 1);
         if (lastNode.getType() == level) {
             return lastNode;
         } else if (lastNode.getType() > level) {
@@ -263,9 +260,9 @@ public class TexProjectOutline {
         
         IFile newTexFile = fileParser.findIFile(name, currentTexFile);
         if (newTexFile == null) {
-//            marker.createErrorMarker(referringFile,
-//                    "Could not find file " + name,
-//                    lineNumber);
+/*            marker.createErrorMarker(referringFile,
+                    "Could not find file " + name,
+                    lineNumber);*/
             return null;
         }
         // TODO check that this doesn't get messed up if the same file is included sevral times
@@ -302,7 +299,7 @@ public class TexProjectOutline {
             marker.createErrorMarker(referringFile,
                     "Circular include of " + fullName,
                     lineNumber);
-            return new ArrayList<OutlineNode>();
+            return new ArrayList<OutlineNode>();            
         }
         return nodes;
     }

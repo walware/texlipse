@@ -1,5 +1,5 @@
 /*
- * $Id: TexOutlineNodeComparer.java,v 1.1 2005/03/16 12:22:12 kimmok Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials

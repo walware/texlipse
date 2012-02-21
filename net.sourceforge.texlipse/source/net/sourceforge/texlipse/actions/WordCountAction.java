@@ -1,5 +1,5 @@
 /*
- * $Id: WordCountAction.java,v 1.2 2006/03/04 15:34:11 kimmok Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials

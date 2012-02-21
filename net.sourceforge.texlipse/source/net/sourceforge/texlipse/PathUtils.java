@@ -1,5 +1,5 @@
 /*
- * $Id: PathUtils.java,v 1.7 2008/02/24 21:43:08 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -9,15 +9,18 @@
  */
 package net.sourceforge.texlipse;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.StringTokenizer;
 
 import net.sourceforge.texlipse.properties.StringListFieldEditor;
-
-import org.eclipse.debug.core.DebugPlugin;
 
 /**
  * Helper methods for environment variable handling.
@@ -40,17 +43,37 @@ public class PathUtils {
      * @param prefName preference name where to read additional environment variable map
      * @return merged environment variables as a suitable array for the Process.exec() -method
      */
-    public static String[] mergeEnvFromPrefs(String prefName) {
-    	Map<String, String> envp = DebugPlugin.getDefault().getLaunchManager().getNativeEnvironmentCasePreserved();
+    public static String[] mergeEnvFromPrefs(Properties envProp, String prefName) {
+        
+        HashMap<String, String> environment = new HashMap<String, String>();
+        Enumeration<Object> e = envProp.keys();
+        while (e.hasMoreElements()){
+           String key = (String)e.nextElement();
+           String v = envProp.getProperty(key);
+           environment.put(key, v);
+        }
         Map<String, String> prefsMap = getPreferenceMap(prefName);
         String[] keys = prefsMap.keySet().toArray(new String[0]);
         for (int i = 0; i < keys.length; i++) {
             String value = prefsMap.get(keys[i]);
-            envp.put(keys[i], value);
+            value = replaceVar(envProp, value);
+            environment.put(keys[i], value);
         }
-        return getStrings(envp);
+        return getStrings(environment);
     }
     
+    /**
+     * Replaces environment variable names with their values in the given string.
+     * 
+     * @param envProp environment variables
+     * @param str value for a new environment variable
+     * @return the given value with variables expanded
+     */
+    private static String replaceVar(Properties envProp, String str) {
+        // TODO: perform variable expansion
+        return str;
+    }
+
     /**
      * Convert a Map object to an array of "key=value" -Strings.
      * 
@@ -105,6 +128,26 @@ public class PathUtils {
     }
     
 	/**
+	 * Convert a Properties object to an array of "key=value" -Strings.
+	 * 
+	 * @param prop key/value -mappings as properties
+	 * @return an array of "key=value" -Strings.
+	 */
+	public static String[] getStrings(Properties prop) {
+	    
+	    String[] env = new String[prop.size()];
+	    int i = 0;
+	    
+	    Enumeration<Object> enumeration = prop.keys();
+	    while (enumeration.hasMoreElements()) {
+	        String key = (String) enumeration.nextElement();
+	        env[i++] = key + '=' + prop.getProperty(key);
+	    }
+	    
+	    return env;
+	}
+
+	/**
 	 * Splits the given string into tokens so that 
 	 * sections of the string that are enclosed into quotes will
 	 * form one token (without the quotes).
@@ -149,8 +192,9 @@ public class PathUtils {
      * @return the directory that contains the given file or null if file was not found
      */
     public static String getEnvPath(String bin) {
-        Map<String, String> prop = DebugPlugin.getDefault().getLaunchManager().getNativeEnvironmentCasePreserved();
-        String path = prop.get(findPathKey(prop));
+        
+        Properties prop = getEnv();
+        String path = prop.getProperty(findPathKey(prop));
         if (path == null) {
             return null;
         }
@@ -228,6 +272,74 @@ public class PathUtils {
         return envPath;
     }
 
+    /**
+	 * Read the operating system environment variables.
+	 * 
+	 * @see http://www.rgagnon.com/javadetails/java-0150.html
+	 * @return operating system environment variables and their values in a properties object
+	 *         or empty properties object if an error occurs
+	 */
+	public static Properties getEnv() {
+	    
+	    Properties envVars = new Properties();
+	    try {
+	        
+	        String os = System.getProperty("os.name").toLowerCase();
+	        Process p = null;
+	        Runtime r = Runtime.getRuntime();
+	        
+	        if (os.indexOf("windows 9") > -1) {
+	            p = r.exec("command.com /c set");
+	            PathUtils.loadEscaping(envVars, p.getInputStream());
+	        } else if ((os.indexOf("windows") > -1)) {
+	            p = r.exec("cmd.exe /c set");
+	            PathUtils.loadEscaping(envVars, p.getInputStream());
+	        } else {
+	            p = r.exec("env");
+	            envVars.load(p.getInputStream());
+	        }
+	        
+	        p.waitFor();
+	        
+	    } catch(Exception e) {
+	    }
+	    
+	    return envVars;
+	}
+
+	/**
+	 * Loads the given properties from the given input stream.
+	 * @param prop properties object
+	 * @param stream the stream
+	 * @throws IOException if a read error occurs
+	 */
+	private static void loadEscaping(Properties prop, InputStream stream) throws IOException {
+	    
+	    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+	    while (true) {
+	        int b = stream.read();
+	        if (b == -1) {
+	            break;
+	        } else if (b == '\\') {
+	            // write extra backslash to escape them
+	            //bos.write('\\');
+	        }
+	        
+	        bos.write(b);
+	    }
+	    
+	    StringTokenizer st = new StringTokenizer(bos.toString(), "\r\n");
+	    while (st.hasMoreTokens()) {
+	        String token = st.nextToken();
+	        int index = token.indexOf('=');
+	        if (index > 0) {
+	            String key = token.substring(0, index);
+	            String value = token.substring(index+1);
+	            prop.setProperty(key, value);
+	        }
+	    }
+	}
+
 	/**
 	 * Finds the property that represents the "path" environment variable.
 	 * This has to be done as a search, because environment variables are
@@ -236,13 +348,14 @@ public class PathUtils {
 	 * @param prop the environment variables
 	 * @return the key of path environment variable
 	 */
-	public static String findPathKey(Map<String, String> prop) {
-	    for (String key : prop.keySet()) {
+	public static String findPathKey(Properties prop) {
+	    Enumeration<Object> enumeration = prop.keys();
+	    while (enumeration.hasMoreElements()) {
+	        String key = (String) enumeration.nextElement();
 	        if (key.toLowerCase().equals("path")) {
 	            return key;
 	        }
 	    }
 	    return "PATH";
 	}
-	
 }

@@ -1,5 +1,5 @@
 /*
- * $Id: ViewerConfigDialog.java,v 1.10 2006/05/02 14:47:25 torarnv Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials

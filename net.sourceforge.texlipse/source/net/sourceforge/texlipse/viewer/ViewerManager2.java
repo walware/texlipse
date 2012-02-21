@@ -21,9 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 
-import net.sourceforge.texlipse.DDEClient;
 import net.sourceforge.texlipse.PathUtils;
 import net.sourceforge.texlipse.TexPathConfig;
 import net.sourceforge.texlipse.TexlipsePlugin;
@@ -51,6 +51,8 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 import de.walware.ecommons.debug.ui.LaunchConfigUtil;
+import de.walware.ecommons.io.win.DDE;
+import de.walware.ecommons.io.win.DDEClient;
 
 public class ViewerManager2 implements ILaunchConfigurationListener {
 	
@@ -68,12 +70,10 @@ public class ViewerManager2 implements ILaunchConfigurationListener {
 	private ILaunchConfigurationType fConfigType;
 	private Map<ILaunchConfiguration, ViewerConfiguration> fConfigMap;
 	private List<ViewerConfiguration> fReusableViewerConfigs;
-	private boolean fIsDDEPlatform;
 	
 	
 	public ViewerManager2() {
 		fDebugMode = IStatus.WARNING;
-		fIsDDEPlatform = Platform.getOS().equals(Platform.OS_WIN32);
 		
 		fConfigMap = new HashMap<ILaunchConfiguration, ViewerConfiguration>();
 		fReusableViewerConfigs = new ArrayList<ViewerConfiguration>();
@@ -111,7 +111,7 @@ public class ViewerManager2 implements ILaunchConfigurationListener {
 	private synchronized void load(ILaunchConfiguration launchConfig) throws CoreException {
 		ViewerConfiguration config = new ViewerConfiguration(launchConfig);
 		fConfigMap.put(launchConfig, config);
-		if (fIsDDEPlatform &&
+		if (DDE.isSupported() &&
 				(config.getDdeCloseCommand() != null || config.getDdeViewCommand() != null)) {
 			fReusableViewerConfigs.add(config);
 		}
@@ -211,7 +211,7 @@ public class ViewerManager2 implements ILaunchConfigurationListener {
 		if (configs.length == 0) {
 			return;
 		}
-		if (fIsDDEPlatform) {
+		if (DDE.isSupported()) {
 			searchViewerProcess(configs, new ProcessRunnable() {
 				public boolean check(ViewerConfiguration config) {
 					return (config.getDdeCloseCommand() != null && config.supportsFormat(pathConfig.getOutputFormat()));
@@ -226,19 +226,24 @@ public class ViewerManager2 implements ILaunchConfigurationListener {
 	
 	public boolean openDocInViewer(TexPathConfig pathConfig, final ViewerConfiguration viewerConfig) {
 		try {
-			if (fIsDDEPlatform && viewerConfig.getDdeViewCommand() != null) {
+			if (DDE.isSupported() && viewerConfig.getDdeViewCommand() != null) {
 				final String server = viewerConfig.getDdeViewServer();
 				final String topic = viewerConfig.getDdeViewTopic();
 				final String command = translatePatternForViewer(viewerConfig.getDdeViewCommand(), pathConfig);
 				
 				final AtomicBoolean ok = new AtomicBoolean(false);
+				final AtomicReference<CoreException> error = new AtomicReference<CoreException>();
 				searchViewerProcess(new ViewerConfiguration[] { viewerConfig }, new ProcessRunnable() {
 					public boolean check(ViewerConfiguration config) {
 						return !ok.get();
 					}
 					public void found(ViewerConfiguration config, String name) {
-						if (sendDDECommand(server, topic, command)) {
+						try {
+							DDEClient.execute(server, topic, command);
 							ok.set(true);
+						}
+						catch (final CoreException e) {
+							error.set(e);
 						}
 					}
 				});
@@ -249,16 +254,23 @@ public class ViewerManager2 implements ILaunchConfigurationListener {
 					if (viewerConfig.getProcessCommand().contains(ViewerManager.FILENAME_FULLPATH_PATTERN)) {
 						return true;
 					}
-					for (int i = 0; fIsDDEPlatform && i < 3; i++) {
+					for (int i = 0; DDE.isSupported() && i < 3; i++) {
 						try {
 							Thread.sleep(1000);
 						} catch (InterruptedException e) {
 							Thread.interrupted();
 						}
-						if (sendDDECommand(server, topic, command)) {
+						try {
+							DDEClient.execute(server, topic, command);
 							return true;
 						}
+						catch (final CoreException e) {
+							error.set(e);
+						}
 					}
+				}
+				if (error.get() != null) {
+					throw error.get();
 				}
 				// error
 				return false;
@@ -267,21 +279,21 @@ public class ViewerManager2 implements ILaunchConfigurationListener {
 				startViewerProcess(pathConfig, viewerConfig);
 			}
 		}
-		catch (CoreException e) {
+		catch (final CoreException e) {
 			log(NLS.bind("Error occurred when opening doc using ''{0}''.", viewerConfig.getName()), e); //$NON-NLS-1$
 		}
 		return false;
 	}
 	
 	private void closeDocInViewer(final TexPathConfig pathConfig, final ViewerConfiguration viewerConfig) {
-		if (fIsDDEPlatform && viewerConfig.getDdeCloseCommand() != null) {
+		if (DDE.isSupported() && viewerConfig.getDdeCloseCommand() != null) {
 			// sendDDECloseCommand
 			try {
 				final String server = viewerConfig.getDdeCloseServer();
 				final String topic = viewerConfig.getDdeCloseTopic();
 				final String command = translatePatternForViewer(viewerConfig.getDdeCloseCommand(), pathConfig);
 				
-				sendDDECommand(server, topic, command);
+				DDEClient.execute(server, topic, command);
 			}
 			catch (CoreException e) {
 				log(NLS.bind("Error occurred when closing doc using ''{0}''.", viewerConfig.getName()), e); //$NON-NLS-1$
@@ -416,30 +428,6 @@ public class ViewerManager2 implements ILaunchConfigurationListener {
 //		else if (type.equals(ViewerConfiguration.INVERSE_SEARCH_STD)) {
 //			new Thread(new ViewerOutputScanner(file.getProject(), process.getInputStream())).start();
 //		}
-	}
-	
-	private boolean sendDDECommand(final String server, final String topic, final String command) {
-		Throwable runtimeError = null;
-		int ddeError = -1;
-		try {
-			ddeError = DDEClient.execute(server, topic, command);
-			if (ddeError == 0) {
-				return true;
-			}
-		}
-		catch (Throwable e) {
-			runtimeError = e;
-		}
-		String errorMessage = "DDE command '" + command + "' failed! " +
-				"(server: '" + server + "', topic: '" + topic + "')";
-		if (runtimeError != null) {
-			TexlipsePlugin.log("Runtime error, DDE disabled.", new Exception(errorMessage, runtimeError));
-			fIsDDEPlatform = false;
-		}
-		else {
-			TexlipsePlugin.log("DDE error '" + ddeError + "', check your DDE command.", new Exception(errorMessage));
-		}
-		return false;
 	}
 	
 }

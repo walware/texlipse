@@ -7,7 +7,14 @@
  */
 package net.sourceforge.texlipse.bibparser;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Hashtable;
+
 import org.eclipse.core.resources.IProject;
+
+import net.sourceforge.texlipse.model.ReferenceEntry;
+import net.sourceforge.texlipse.properties.TexlipseProperties;
 
 /**
  * Searches the bibref-directory for files that have the same names

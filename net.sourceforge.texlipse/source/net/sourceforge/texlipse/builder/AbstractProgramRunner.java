@@ -1,5 +1,5 @@
 /*
- * $Id: AbstractProgramRunner.java,v 1.11 2010/02/16 08:15:41 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -250,69 +250,9 @@ public abstract class AbstractProgramRunner implements ProgramRunner {
             extrun.stop();
         }
 
-        //Only rename if no partial build
-        //Check for partial build
-        IFile tmpFile = (IFile)TexlipseProperties.getSessionProperty(resource.getProject(), 
-                TexlipseProperties.PARTIAL_BUILD_FILE);
-        if (tmpFile == null)
-            renameOutputFile(resource);
-        
         if (parseErrors(resource, output)) {
             throw new BuilderCoreException(TexlipsePlugin.stat("Errors during build. See the problems dialog."));
         }
-    }
-
-    /**
-     * Renames the file produced by this program runner into 
-     * project output file name if this program runner produced
-     * a file of the project output format.
-     * 
-     * @param resource input file
-     */
-    private void renameOutputFile(IResource resource) {
-        
-        IProject project = resource.getProject();
-        final String format = TexlipseProperties.getProjectProperty(project, TexlipseProperties.OUTPUT_FORMAT);
-        if (format == null || !format.equals(getOutputFormat())) {
-            return;
-        }
-        
-        String inputFileName = resource.getName();
-        int index = inputFileName.lastIndexOf('.');
-        if (index < 0) {
-            index = inputFileName.length();
-        }
-        String outputFileName = inputFileName.substring(0, index) + '.' + format;
-        
-        String preferredOutputFileName = TexlipseProperties.getProjectProperty(project, TexlipseProperties.OUTPUTFILE_PROPERTY);
-        if (preferredOutputFileName == null || preferredOutputFileName.length() == 0) {
-            return;
-        }
-        
-        if (preferredOutputFileName.equals(outputFileName)) {
-            return;
-        }
-        
-        IContainer sourceDir = resource.getParent();
-        try {
-            sourceDir.refreshLocal(IContainer.DEPTH_ONE, new NullProgressMonitor());
-        } catch (CoreException e) {
-        }
-        
-        IResource outputFile = sourceDir.findMember(outputFileName);
-        if (outputFile == null) {
-            return;
-        }
-
-        File src = outputFile.getLocation().toFile();
-        File dir = sourceDir.getLocation().toFile();
-        
-        File targetFile = new File(dir, preferredOutputFileName);
-        if (targetFile.exists()) {
-            targetFile.delete();
-        }
-        boolean success = src.renameTo(targetFile);
-        //boolean success = src.renameTo(new File(dir, preferredOutputFileName));
     }
 
     /**

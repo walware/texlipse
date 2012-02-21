@@ -1,5 +1,5 @@
 /*
- * $Id: TexCodeFolder.java,v 1.1 2005/03/16 12:22:53 kimmok Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -64,7 +64,7 @@ public class TexCodeFolder {
      * 
      * @param outline The document outline data structure containing the document positions
      */
-    public void update(List<OutlineNode> outline) {
+    public void update(ArrayList outline) {
         model = (ProjectionAnnotationModel)editor.getAdapter(ProjectionAnnotationModel.class);
 
         if (model != null) {
@@ -77,7 +77,7 @@ public class TexCodeFolder {
      * 
      * @param outline The document outline data structure containing the document positions
      */
-    private void addMarks(List<OutlineNode> outline) {
+    private void addMarks(ArrayList outline) {
         if (firstRun) {
             String[] envs = TexlipsePlugin.getPreferenceArray(TexlipseProperties.CODE_FOLDING_ENVS);
             environments = new HashSet(envs.length + 1);
@@ -101,7 +101,7 @@ public class TexCodeFolder {
             // save old nodes
             oldNodes = new ArrayList();
             for (Iterator iter = model.getAnnotationIterator(); iter.hasNext();) {
-                oldNodes.add(iter.next());
+                oldNodes.add((TexProjectionAnnotation) iter.next());
             }
             
             markTreeNodes(outline);
@@ -118,8 +118,10 @@ public class TexCodeFolder {
      * 
      * @param documentTree The document outline data structure containing the document positions
      */
-    private void markTreeNodes(List<OutlineNode> documentTree) {
-        for (OutlineNode on : documentTree) {
+    private void markTreeNodes(ArrayList documentTree) {
+        for (ListIterator iter = documentTree.listIterator(); iter.hasNext();) {
+            OutlineNode on = (OutlineNode) iter.next();
+
             // Here, call the appropriate method on the node
             inspectAndAddMark(on);
             

@@ -1,5 +1,5 @@
 /*
- * $Id: TexMathScanner.java,v 1.7 2009/05/20 19:28:17 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -7,7 +7,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-
 package net.sourceforge.texlipse.editor.scanner;
 
 import java.util.ArrayList;
@@ -41,27 +40,30 @@ public class TexMathScanner extends RuleBasedScanner {
      * @param manager
      */
     public TexMathScanner(ColorManager manager) {
-		IToken defaultToken = new Token(new TextAttribute(
-				manager.getColor(ColorManager.EQUATION),
-				null,
-				manager.getStyle(ColorManager.EQUATION_STYLE)));
-		
-		IToken commentToken = new Token(new TextAttribute(
-				manager.getColor(ColorManager.COMMENT),
-				null,
-				manager.getStyle(ColorManager.COMMENT_STYLE)));
-		
-		//Commands are colored in math color with command styles 
-		IToken commandToken = new Token(new TextAttribute(
-				manager.getColor(ColorManager.EQUATION),
-				null,
-				manager.getStyle(ColorManager.COMMAND_STYLE)));
-		// A token that defines how to color special characters (\_, \&, \~ ...)
-		IToken specialCharToken = new Token(new TextAttribute(
-				manager.getColor(ColorManager.TEX_SPECIAL),
-				null,
-				manager.getStyle(ColorManager.TEX_SPECIAL_STYLE)));
-		
+        IToken defaultToken = new Token(
+                new TextAttribute(
+                        manager.getColor(ColorManager.EQUATION),
+                        null,
+                        manager.getStyle(ColorManager.EQUATION_STYLE)));
+
+        IToken commentToken = new Token(
+                new TextAttribute(
+                        manager.getColor(ColorManager.COMMENT),
+                        null,
+                        manager.getStyle(ColorManager.COMMENT_STYLE)));
+
+        //Commands are colored in math color with command styles 
+        IToken commandToken = new Token(
+                new TextAttribute(
+                        manager.getColor(ColorManager.EQUATION),
+                        null,
+                        manager.getStyle(ColorManager.COMMAND_STYLE)));
+        // A token that defines how to color special characters (\_, \&, \~ ...)
+        IToken specialCharToken = new Token(new TextAttribute(manager
+                .getColor(ColorManager.TEX_SPECIAL),
+                null,
+                manager.getStyle(ColorManager.TEX_SPECIAL_STYLE)));
+        
         List<IRule> rules = new ArrayList<IRule>();
         
         rules.add(new WhitespaceRule(new WhitespaceDetector()));
@@ -78,7 +80,5 @@ public class TexMathScanner extends RuleBasedScanner {
         IRule[] result = new IRule[rules.size()];
         rules.toArray(result);
         setRules(result);		
-        setDefaultReturnToken(defaultToken);
     }
-    
 }

@@ -1,5 +1,5 @@
 /*
- * $Id: TexSourceViewerConfiguration.java,v 1.18 2010/09/04 10:04:36 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -7,13 +7,14 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-
 package net.sourceforge.texlipse.editor;
-
 import net.sourceforge.texlipse.TexlipsePlugin;
 import net.sourceforge.texlipse.editor.hover.TexHover;
+import net.sourceforge.texlipse.editor.partitioner.FastLaTeXPartitionScanner;
+import net.sourceforge.texlipse.editor.scanner.TexArgScanner;
 import net.sourceforge.texlipse.editor.scanner.TexCommentScanner;
 import net.sourceforge.texlipse.editor.scanner.TexMathScanner;
+import net.sourceforge.texlipse.editor.scanner.TexOptArgScanner;
 import net.sourceforge.texlipse.editor.scanner.TexScanner;
 import net.sourceforge.texlipse.properties.TexlipseProperties;
 
@@ -24,7 +25,6 @@ import org.eclipse.jface.text.IAutoEditStrategy;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IInformationControl;
 import org.eclipse.jface.text.IInformationControlCreator;
-import org.eclipse.jface.text.ITextDoubleClickStrategy;
 import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.TextPresentation;
@@ -35,6 +35,7 @@ import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.reconciler.IReconciler;
 import org.eclipse.jface.text.reconciler.IReconcilingStrategy;
 import org.eclipse.jface.text.reconciler.MonoReconciler;
+import org.eclipse.jface.text.reconciler.Reconciler;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
 import org.eclipse.jface.text.rules.RuleBasedScanner;
 import org.eclipse.jface.text.rules.Token;
@@ -64,13 +65,13 @@ public class TexSourceViewerConfiguration extends TextSourceViewerConfiguration 
     private TexMathScanner mathScanner;
     private TexScanner scanner;
     private TexCommentScanner commentScanner;
+    private TexArgScanner argumentScanner;
+    private TexOptArgScanner optArgumentScanner;
     private RuleBasedScanner verbatimScanner;
     private ColorManager colorManager;
     private TexAnnotationHover annotationHover;
     private ContentAssistant assistant;
     private TexHover textHover;
-    private ITextDoubleClickStrategy doubleClickStrategy;
-    private TexAutoIndentStrategy indentStrategy;
 
     // FIXME check this
     private IAutoEditStrategy autoIndentStrategy;
@@ -106,10 +107,10 @@ public class TexSourceViewerConfiguration extends TextSourceViewerConfiguration 
      * 
      * @param te The editor that this configuration is associated to
      */
-    public TexSourceViewerConfiguration(TexEditor editor) {
+    public TexSourceViewerConfiguration(TexEditor editor) {        
         super(EditorsUI.getPreferenceStore());
         this.editor = editor;
-        this.colorManager = TexlipsePlugin.getDefault().getColorManager();
+        this.colorManager = new ColorManager();
         this.annotationHover = new TexAnnotationHover();
 
         // Adds a listener for changing content assistant properties if
@@ -137,13 +138,6 @@ public class TexSourceViewerConfiguration extends TextSourceViewerConfiguration 
         
     }
 
-    public ITextDoubleClickStrategy getDoubleClickStrategy(ISourceViewer sourceViewer, String contentType) {
-    	if (doubleClickStrategy == null) {
-    		doubleClickStrategy = new TexDoubleClickStrategy();
-    	}
-    	return doubleClickStrategy;
-    }
-    
     /**
      * @return the annotation hover text provider for this editor
      */
@@ -151,6 +145,10 @@ public class TexSourceViewerConfiguration extends TextSourceViewerConfiguration 
         return annotationHover;
     }
     
+    
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.text.source.SourceViewerConfiguration#getAutoEditStrategies(org.eclipse.jface.text.source.ISourceViewer, java.lang.String)
+     */
     public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
         //return super.getAutoEditStrategies(sourceViewer, contentType);
         if (autoIndentStrategy == null) {
@@ -169,7 +167,7 @@ public class TexSourceViewerConfiguration extends TextSourceViewerConfiguration 
 	 * @see org.eclipse.jface.text.source.SourceViewerConfiguration#getConfiguredContentTypes(ISourceViewer)
      */
     public String getConfiguredDocumentPartitioning(ISourceViewer sourceViewer) {
-        return ITexDocumentConstants.TEX_PARTITIONING;
+        return TexEditor.TEX_PARTITIONING;
     }
     
     /**
@@ -179,12 +177,7 @@ public class TexSourceViewerConfiguration extends TextSourceViewerConfiguration 
      * @return 				a new String[] array of content types.
      */
     public String[] getConfiguredContentTypes(ISourceViewer sourceViewer) {
-        return new String[] {
-                IDocument.DEFAULT_CONTENT_TYPE,
-                ITexDocumentConstants.TEX_MATH_CONTENT_TYPE,
-                ITexDocumentConstants.TEX_VERBATIM_CONTENT_TYPE,
-                ITexDocumentConstants.TEX_COMMENT_CONTENT_TYPE
-        };
+        return FastLaTeXPartitionScanner.TEX_PARTITION_TYPES;
     }
     
     /* (non-Javadoc)
@@ -204,8 +197,12 @@ public class TexSourceViewerConfiguration extends TextSourceViewerConfiguration 
 //                IDocument.DEFAULT_CONTENT_TYPE);
 
         assistant.setContentAssistProcessor(tcp, IDocument.DEFAULT_CONTENT_TYPE);
-        assistant.setContentAssistProcessor(tmcp, ITexDocumentConstants.TEX_MATH_CONTENT_TYPE);
+        //assistant.setContentAssistProcessor(tcp, TexPartitionScanner.TEX_MATH);
+        assistant.setContentAssistProcessor(tmcp, FastLaTeXPartitionScanner.TEX_MATH);
+        assistant.setContentAssistProcessor(tcp, FastLaTeXPartitionScanner.TEX_CURLY_BRACKETS);
+        assistant.setContentAssistProcessor(tcp, FastLaTeXPartitionScanner.TEX_SQUARE_BRACKETS);
 
+        
         assistant.enableAutoActivation(TexlipsePlugin.getDefault().getPreferenceStore().getBoolean(TexlipseProperties.TEX_COMPLETION));
         assistant.enableAutoInsert(true);
         assistant.setAutoActivationDelay(TexlipsePlugin.getDefault().getPreferenceStore().getInt(TexlipseProperties.TEX_COMPLETION_DELAY));
@@ -224,17 +221,25 @@ public class TexSourceViewerConfiguration extends TextSourceViewerConfiguration 
         DefaultDamagerRepairer dr = null;
         
         dr = new DefaultDamagerRepairer(getTexVerbatimScanner());
-        reconciler.setDamager(dr, ITexDocumentConstants.TEX_VERBATIM_CONTENT_TYPE);
-        reconciler.setRepairer(dr, ITexDocumentConstants.TEX_VERBATIM_CONTENT_TYPE);
+        reconciler.setDamager(dr, FastLaTeXPartitionScanner.TEX_VERBATIM);
+        reconciler.setRepairer(dr, FastLaTeXPartitionScanner.TEX_VERBATIM);
 
         dr = new DefaultDamagerRepairer(getTeXMathScanner());
-        reconciler.setDamager(dr, ITexDocumentConstants.TEX_MATH_CONTENT_TYPE);
-        reconciler.setRepairer(dr, ITexDocumentConstants.TEX_MATH_CONTENT_TYPE);
+        reconciler.setDamager(dr, FastLaTeXPartitionScanner.TEX_MATH);
+        reconciler.setRepairer(dr, FastLaTeXPartitionScanner.TEX_MATH);
             
         dr = new DefaultDamagerRepairer(getTexCommentScanner());
-        reconciler.setDamager(dr, ITexDocumentConstants.TEX_COMMENT_CONTENT_TYPE);
-        reconciler.setRepairer(dr, ITexDocumentConstants.TEX_COMMENT_CONTENT_TYPE);
-        
+        reconciler.setDamager(dr, FastLaTeXPartitionScanner.TEX_COMMENT);
+        reconciler.setRepairer(dr, FastLaTeXPartitionScanner.TEX_COMMENT);
+
+        dr = new DefaultDamagerRepairer(getTexArgScanner());
+        reconciler.setDamager(dr, FastLaTeXPartitionScanner.TEX_CURLY_BRACKETS);
+        reconciler.setRepairer(dr, FastLaTeXPartitionScanner.TEX_CURLY_BRACKETS);
+
+        dr = new DefaultDamagerRepairer(getTexOptArgScanner());
+        reconciler.setDamager(dr, FastLaTeXPartitionScanner.TEX_SQUARE_BRACKETS);
+        reconciler.setRepairer(dr, FastLaTeXPartitionScanner.TEX_SQUARE_BRACKETS);
+
         dr = new DefaultDamagerRepairer(getTexScanner());
         reconciler.setDamager(dr, IDocument.DEFAULT_CONTENT_TYPE);
         reconciler.setRepairer(dr, IDocument.DEFAULT_CONTENT_TYPE);
@@ -251,6 +256,12 @@ public class TexSourceViewerConfiguration extends TextSourceViewerConfiguration 
     protected TexScanner getTexScanner() {
         if (scanner == null) {
             scanner = new TexScanner(colorManager);
+            scanner.setDefaultReturnToken(
+                    new Token(
+                            new TextAttribute(
+                                    colorManager.getColor(ColorManager.DEFAULT),
+                                    null,
+                                    colorManager.getStyle(ColorManager.DEFAULT_STYLE))));
         }
         return scanner;
     }
@@ -263,6 +274,12 @@ public class TexSourceViewerConfiguration extends TextSourceViewerConfiguration 
     protected TexMathScanner getTeXMathScanner() {
         if (mathScanner == null) {
             mathScanner = new TexMathScanner(colorManager);
+            mathScanner.setDefaultReturnToken(
+                    new Token(
+                            new TextAttribute(
+                                    colorManager.getColor(ColorManager.EQUATION),
+                                    null,
+                                    colorManager.getStyle(ColorManager.EQUATION_STYLE))));
         }
         return mathScanner;
     }
@@ -283,7 +300,41 @@ public class TexSourceViewerConfiguration extends TextSourceViewerConfiguration 
         }
         return commentScanner;
     }
-    
+
+    /**
+     * Defines an argument (curly bracket) scanner and sets the default color for it
+     * @return a scanner to detect argument partitions
+     */
+    protected TexArgScanner getTexArgScanner() {
+        if (argumentScanner == null) {
+            argumentScanner = new TexArgScanner(colorManager);
+            argumentScanner.setDefaultReturnToken(
+                    new Token(
+                            new TextAttribute(
+                                    colorManager.getColor(ColorManager.CURLY_BRACKETS),
+                                    null,
+                                    colorManager.getStyle(ColorManager.CURLY_BRACKETS_STYLE))));
+        }
+        return argumentScanner;
+    }
+
+    /**
+     * Defines an optional argument (square bracket) scanner and sets the default color for it
+     * @return a scanner to detect argument partitions
+     */
+    protected TexOptArgScanner getTexOptArgScanner() {
+        if (optArgumentScanner == null) {
+            optArgumentScanner = new TexOptArgScanner(colorManager);
+            optArgumentScanner.setDefaultReturnToken(
+                    new Token(
+                            new TextAttribute(
+                                    colorManager.getColor(ColorManager.SQUARE_BRACKETS),
+                                    null,
+                                    colorManager.getStyle(ColorManager.SQUARE_BRACKETS_STYLE))));
+        }
+        return optArgumentScanner;
+    }
+
     /**
      * Defines a verbatim scanner and sets the default color for it
      * @return a scanner to detect verbatim style partitions

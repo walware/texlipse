@@ -13,6 +13,8 @@
 -->
 
 <plugin>
+   <extension-point id="CiteAutocompleteExtension" name="CiteAutocompleteExtension" schema="schema/CiteAutocompleteExtension.exsd"/>
+   <extension-point id="BibEditorOutlineExtension" name="BibEditorOutlineExtension" schema="schema/BibEditorOutlineExtension.exsd"/>
    <extension
          point="org.eclipse.core.runtime.contentTypes">
       <content-type
@@ -930,6 +932,14 @@ ${cursor}
                icon="icons/bibfile.gif"
                id="net.sourceforge.texlipse.action1"
                label="Run BibTeX on next build"
+               menubarPath="net.sourceforge.texlipse.menus.latex/latexGroup"
+               style="push">
+         </action>
+         <action
+               class="net.sourceforge.texlipse.actions.ForceRebuildAction"
+               icon="icons/build_exec.gif"
+               id="net.sourceforge.texlipse.actions.ForceRebuild"
+               label="Force build"
                menubarPath="net.sourceforge.texlipse.menus.latex/latexGroup"
                style="push">
          </action>

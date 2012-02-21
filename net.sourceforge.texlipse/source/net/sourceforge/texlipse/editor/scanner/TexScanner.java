@@ -1,5 +1,5 @@
 /*
- * $Id: TexScanner.java,v 1.6 2009/05/20 19:28:17 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -7,7 +7,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-
 package net.sourceforge.texlipse.editor.scanner;
 
 import java.util.ArrayList;
@@ -43,59 +42,38 @@ public class TexScanner extends RuleBasedScanner {
      * @param manager
      */
     public TexScanner(ColorManager manager) {
-		IToken defaultToken = new Token(new TextAttribute(
-				manager.getColor(ColorManager.DEFAULT),
-				null,
-				manager.getStyle(ColorManager.DEFAULT_STYLE)));
-		
-		// A token that defines how to color numbers
-		IToken numberToken = new Token(new TextAttribute(
-				manager.getColor(ColorManager.TEX_NUMBER),
-				null,
-				manager.getStyle(ColorManager.TEX_NUMBER_STYLE)));
-		
-		// A token that defines how to color command words (\command_word)
-		IToken commandToken = new Token(new TextAttribute(
-				manager.getColor(ColorManager.COMMAND),
-				null,
-				manager.getStyle(ColorManager.COMMAND_STYLE)));
-		
-		IToken braketToken = new Token(new TextAttribute(
-				manager.getColor(ColorManager.CURLY_BRACKETS),
-				null,
-				manager.getStyle(ColorManager.CURLY_BRACKETS_STYLE)));
-		
-		IToken squareToken = new Token(new TextAttribute(
-				manager.getColor(ColorManager.SQUARE_BRACKETS),
-				null,
-				manager.getStyle(ColorManager.SQUARE_BRACKETS_STYLE)));
-		
-		IToken commentToken = new Token(new TextAttribute(
-				manager.getColor(ColorManager.COMMENT),
-				null,
-				manager.getStyle(ColorManager.COMMENT_STYLE)));
-		
-		// A token that defines how to color special characters (\_, \&, \~ ...)
-		IToken specialCharToken = new Token(new TextAttribute(
-				manager.getColor(ColorManager.TEX_SPECIAL),
-				null,
-				manager.getStyle(ColorManager.TEX_SPECIAL_STYLE)));
-		
-        List<IRule> rules = new ArrayList<IRule>();
+        // A token that defines how to color numbers
+        IToken numberToken = new Token(new TextAttribute(manager
+                .getColor(ColorManager.TEX_NUMBER),
+                null,
+                manager.getStyle(ColorManager.TEX_NUMBER_STYLE)));
+
+        // A token that defines how to color command words (\command_word)
+        IToken commandToken = new Token(new TextAttribute(manager
+                .getColor(ColorManager.COMMAND),
+                null,
+                manager.getStyle(ColorManager.COMMAND_STYLE)));
+
+        IToken commentToken = new Token(new TextAttribute(manager
+                .getColor(ColorManager.COMMENT),
+                null,
+                manager.getStyle(ColorManager.COMMENT_STYLE)));
+
+        // A token that defines how to color special characters (\_, \&, \~ ...)
+        IToken specialCharToken = new Token(new TextAttribute(manager
+                .getColor(ColorManager.TEX_SPECIAL),
+                null,
+                manager.getStyle(ColorManager.TEX_SPECIAL_STYLE)));
         
+        List<IRule> rules = new ArrayList<IRule>();
         rules.add(new TexSpecialCharRule(specialCharToken));
         rules.add(new WordRule(new TexWord(), commandToken));
         rules.add(new NumberRule(numberToken));
-        rules.add(new MultiLineRule("{", "}", braketToken, '\\'));
-        rules.add(new MultiLineRule("[", "]", squareToken, '\\'));
         rules.add(new EndOfLineRule("%", commentToken, '\\'));
         rules.add(new WhitespaceRule(new WhitespaceDetector()));
         
         IRule[] result = new IRule[rules.size()];
         rules.toArray(result);
         setRules(result);
-        
-        setDefaultReturnToken(defaultToken);
     }
-    
 }

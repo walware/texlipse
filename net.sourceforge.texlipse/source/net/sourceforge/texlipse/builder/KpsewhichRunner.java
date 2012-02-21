@@ -1,5 +1,5 @@
 /*
- * $Id: KpsewhichRunner.java,v 1.1 2008/08/03 16:22:00 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2008 by Christopher Hoskin.
  * All rights reserved. This program and the accompanying materials
@@ -44,10 +44,11 @@ public class KpsewhichRunner implements ProgramRunner {
     }
 	
 
+	@Override
 	public String getId() {
 		return "kpsewhich";
 	}
-
+	
 	public String getDescription() {
 		return "Kpsewhich program";
 	}
@@ -104,7 +105,8 @@ public class KpsewhichRunner implements ProgramRunner {
         return f.exists() && f.isFile();
     }
 
-	public void run(IResource resource) throws CoreException {
+	@Override
+	public void run(TexPathConfig pathConfig) throws CoreException {
 		// This method isn't really applicable for kpsewhich
 		
 	}
@@ -140,9 +142,6 @@ public class KpsewhichRunner implements ProgramRunner {
     
     protected String getUnixProgramName() {
         return "kpsewhich";
-    }
-    
-    public void run(TexPathConfig pathConfig) throws CoreException {
     }
     
     /**
@@ -217,5 +216,5 @@ public class KpsewhichRunner implements ProgramRunner {
 			return kpaths;
 		}
 	}
-
+	
 }

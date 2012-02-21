@@ -1,5 +1,5 @@
 /*
- * $Id: SpellingCompletionProposal.java,v 1.5 2006/03/04 15:33:38 kimmok Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials

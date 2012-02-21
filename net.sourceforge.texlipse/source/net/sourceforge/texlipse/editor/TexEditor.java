@@ -1,5 +1,5 @@
 /*
- * $Id: TexEditor.java,v 1.12 2007/02/25 10:27:27 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -9,10 +9,9 @@
  */
 package net.sourceforge.texlipse.editor;
 
-import java.util.List;
+import java.util.ArrayList;
 
 import net.sourceforge.texlipse.TexlipsePlugin;
-import net.sourceforge.texlipse.model.OutlineNode;
 import net.sourceforge.texlipse.model.TexDocumentModel;
 import net.sourceforge.texlipse.outline.TexOutlinePage;
 import net.sourceforge.texlipse.properties.TexlipseProperties;
@@ -32,6 +31,8 @@ import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.jface.viewers.IPostSelectionProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.swt.custom.VerifyKeyListener;
+import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.editors.text.TextEditor;
@@ -50,8 +51,10 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
  */
 public class TexEditor extends TextEditor {
 
+    public final static String TEX_PARTITIONING= "__tex_partitioning";
+
     /** The editor's bracket matcher */
-    private TexPairMatcher2 fBracketMatcher = new TexPairMatcher2();
+    private TexPairMatcher fBracketMatcher = new TexPairMatcher("()[]{}");
     
     private TexOutlinePage outlinePage;
     private TexOutlineTreeView fullOutline;
@@ -192,9 +195,6 @@ public class TexEditor extends TextEditor {
             if (adapter != null)
                 return adapter;
         }
-        if (ISourceViewer.class.equals(required)) {
-        	return getSourceViewer();
-        }
         return super.getAdapter(required);
     }
     
@@ -237,7 +237,7 @@ public class TexEditor extends TextEditor {
      * @param rootNodes The document tree that correspond to folds
      * @param monitor A progress monitor for the job doing the update
      */
-    public void updateCodeFolder(List<OutlineNode> rootNodes, IProgressMonitor monitor) {
+    public void updateCodeFolder(ArrayList rootNodes, IProgressMonitor monitor) {
         this.folder.update(rootNodes);        
     }
 
@@ -334,6 +334,5 @@ public class TexEditor extends TextEditor {
      */
     protected void initializeKeyBindingScopes() {
         setKeyBindingScopes(new String[] { "org.eclipse.ui.textEditorScope", "net.sourceforge.texlipse.texEditorScope" });  //$NON-NLS-1$
-    }
-    
-}
+    }}
+

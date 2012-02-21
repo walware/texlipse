@@ -1,5 +1,5 @@
 /*
- * $Id: MarkerHandler.java,v 1.10 2008/09/20 18:04:14 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -7,7 +7,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-
 package net.sourceforge.texlipse.model;
 
 import java.util.HashMap;
@@ -34,6 +33,9 @@ public class MarkerHandler {
 
     private static MarkerHandler theInstance;
     
+    private MarkerHandler() {
+    }
+
     /**
      * Returns the sole instance of the MarkerHandler
      * 
@@ -46,11 +48,6 @@ public class MarkerHandler {
         return theInstance;
     }
 
-	
-	private MarkerHandler() {
-	}
-	
-	
     /**
      * Create error markers from the given <code>ParseErrorMessage</code>s.
      * 
@@ -153,7 +150,7 @@ public class MarkerHandler {
         if (resource == null) return;
         //IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
         try {
-            Map<String, Object> map = new HashMap<String, Object>();
+            Map<String, ? super Object> map = new HashMap<String, Object>();
             map.put(IMarker.MESSAGE, error);
             map.put(IMarker.SEVERITY, Integer.valueOf(IMarker.SEVERITY_ERROR));
             
@@ -224,7 +221,7 @@ public class MarkerHandler {
      */
     public void createErrorMarker(IResource resource, String message, int lineNumber) {
         try {
-            Map<String, Object> map = new HashMap<String, Object>();
+            Map<String, ? super Object> map = new HashMap<String, Object>();
             map.put(IMarker.LINE_NUMBER, Integer.valueOf(lineNumber));
             map.put(IMarker.MESSAGE, message);
             

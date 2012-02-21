@@ -1,5 +1,5 @@
 /*
- * $Id: ReferenceEntry.java,v 1.6 2010/02/21 19:20:58 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -7,7 +7,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-
 package net.sourceforge.texlipse.model;
 
 import java.io.BufferedReader;
@@ -68,7 +67,7 @@ public final class ReferenceEntry extends AbstractEntry {
      * 
      * @return A copy of this reference
      */
-    public ReferenceEntry copy() {
+    public AbstractEntry copy() {
         ReferenceEntry re = new ReferenceEntry(key, info);
         re.startLine = startLine;
         re.endLine = endLine;

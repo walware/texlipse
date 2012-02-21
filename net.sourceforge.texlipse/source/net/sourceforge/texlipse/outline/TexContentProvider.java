@@ -1,5 +1,5 @@
 /*
- * $Id: TexContentProvider.java,v 1.2 2009/06/09 08:17:13 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials

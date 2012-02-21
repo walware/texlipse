@@ -1,5 +1,5 @@
 /*
- * $Id: SpellUncheckAction.java,v 1.1 2005/04/19 17:08:48 kimmok Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials

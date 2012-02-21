@@ -1,5 +1,5 @@
 /*
- * $Id: TexProjectParser.java,v 1.13 2009/05/26 17:06:04 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2006 by the TeXlipse team.
  * All rights reserved. This program and the accompanying materials
@@ -7,7 +7,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-
 package net.sourceforge.texlipse.model;
 
 import java.io.BufferedReader;
@@ -26,7 +25,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-
 
 /**
  * A parser interface for finding and parsing files in a LaTeX-project.

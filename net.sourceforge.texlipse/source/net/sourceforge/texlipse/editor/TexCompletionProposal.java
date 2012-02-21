@@ -1,5 +1,5 @@
 /*
- * $Id: TexCompletionProposal.java,v 1.6 2006/05/03 18:23:13 oskarojala Exp $
+ * $Id$
  *
  * Copyright (c) 2006 by the TeXlipse team.
  * All rights reserved. This program and the accompanying materials

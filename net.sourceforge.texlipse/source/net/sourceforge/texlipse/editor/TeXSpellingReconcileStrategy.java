@@ -1,5 +1,5 @@
 /*
- * $Id: TeXSpellingReconcileStrategy.java,v 1.4 2010/04/10 11:53:39 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2010 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials

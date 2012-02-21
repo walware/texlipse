@@ -1,5 +1,5 @@
 /*
- * $Id: TexDocumentProvider.java,v 1.3 2006/10/21 18:16:33 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -12,11 +12,13 @@ package net.sourceforge.texlipse.editor;
 import net.sourceforge.texlipse.TexlipsePlugin;
 import net.sourceforge.texlipse.builder.TexlipseNature;
 import net.sourceforge.texlipse.properties.TexlipseProperties;
+import net.sourceforge.texlipse.wizards.TexlipseProjectCreationOperation;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.ui.editors.text.ForwardingDocumentProvider;
 import org.eclipse.ui.editors.text.TextFileDocumentProvider;
@@ -40,7 +42,7 @@ public class TexDocumentProvider extends TextFileDocumentProvider {
      */
     public TexDocumentProvider() {
         IDocumentProvider provider= new TextFileDocumentProvider();
-        provider = new ForwardingDocumentProvider(ITexDocumentConstants.TEX_PARTITIONING,
+        provider= new ForwardingDocumentProvider(TexEditor.TEX_PARTITIONING, 
                 new TexDocumentSetupParticipant(), provider);
         setParentDocumentProvider(provider);    
     }
@@ -80,7 +82,8 @@ public class TexDocumentProvider extends TextFileDocumentProvider {
                 if (format == null || format.length() == 0) {
                     TexlipseProperties.setProjectProperty(project, TexlipseProperties.OUTPUT_FORMAT, TexlipsePlugin.getPreference(TexlipseProperties.OUTPUT_FORMAT));
                     TexlipseProperties.setProjectProperty(project, TexlipseProperties.BUILDER_NUMBER, TexlipsePlugin.getPreference(TexlipseProperties.BUILDER_NUMBER));
-                    TexlipseProperties.setProjectProperty(project, TexlipseProperties.MARK_DERIVED_PROPERTY, "true");
+                    TexlipseProperties.setProjectProperty(project, TexlipseProperties.MARK_TEMP_DERIVED_PROPERTY, "true");
+                    TexlipseProperties.setProjectProperty(project, TexlipseProperties.MARK_OUTPUT_DERIVED_PROPERTY, "true");
                     
                     String name = file.getName();
                     TexlipseProperties.setProjectProperty(project, TexlipseProperties.MAINFILE_PROPERTY, name);

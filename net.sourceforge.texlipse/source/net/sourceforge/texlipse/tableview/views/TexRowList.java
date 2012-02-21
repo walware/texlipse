@@ -1,5 +1,5 @@
 /*
- * $Id: TexRowList.java,v 1.5 2006/02/16 20:49:53 oskarojala Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials

@@ -1,5 +1,5 @@
 /*
- * $Id: KeyValueListFieldEditor.java,v 1.3 2006/03/29 19:27:28 oskarojala Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -13,9 +13,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import net.sourceforge.texlipse.PathUtils;
 import net.sourceforge.texlipse.TexlipsePlugin;
 
-import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -54,8 +54,6 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 
-import de.walware.ecommons.debug.ui.LaunchConfigUtil;
-
 
 /**
  * A FieldEditor that holds a list of key-value-pairs as its value.
@@ -71,7 +69,7 @@ public class KeyValueListFieldEditor extends FieldEditor implements IInputValida
     public static final String SEPARATOR = ",";
 
     // list of invalid characters that can't be in a keyword
-    private static final String INVALID_CHARS = " ,=*()[]{}<>|\\?+/&#%$¤£#@\"!§½";
+    private static final String INVALID_CHARS = " ,=*()[]{}<>|\\?+/&#%$Â¤Â£#@\"!Â§Â½";
 
     private static final String ENV_TABLE_KEY = "key";
     private static final String ENV_TABLE_VALUE = "value";
@@ -727,8 +725,8 @@ public class KeyValueListFieldEditor extends FieldEditor implements IInputValida
      * Handle import-button presses.
      */
     private void handleEnvImportButtonSelected() {
-		String[] items = LaunchConfigUtil.toKeyValueStrings(
-				DebugPlugin.getDefault().getLaunchManager().getNativeEnvironmentCasePreserved());
+        
+        String[] items = PathUtils.getStrings(PathUtils.getEnv());
         
         EnvVarInputDialog dialog =
             new EnvVarInputDialog(getLabelControl().getShell(),

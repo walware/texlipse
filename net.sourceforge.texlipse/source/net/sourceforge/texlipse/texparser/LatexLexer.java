@@ -1,5 +1,5 @@
 /*
- * $Id: LatexLexer.java,v 1.7 2009/05/15 20:04:31 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials

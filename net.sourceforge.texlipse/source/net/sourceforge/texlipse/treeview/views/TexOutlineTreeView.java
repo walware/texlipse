@@ -1,5 +1,5 @@
 /*
- * $Id: TexOutlineTreeView.java,v 1.10 2010/02/08 07:04:25 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2006 by the TeXlipse team.
  * All rights reserved. This program and the accompanying materials

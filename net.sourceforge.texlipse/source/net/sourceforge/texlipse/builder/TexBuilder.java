@@ -1,5 +1,5 @@
 /*
- * $Id: TexBuilder.java,v 1.11 2010/02/28 20:44:16 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -39,8 +39,10 @@ import org.eclipse.swt.widgets.Shell;
  * @author Tor Arne Vestbø
  * @author Boris von Loesch
  */
-public class TexBuilder extends AbstractBuilder {
+public class TexBuilder extends AbstractBuilder implements AdaptableBuilder {
 
+    private boolean biblatexMode;
+    private String biblatexBackend;
     private ProgramRunner latex;
     private ProgramRunner bibtex;
     private ProgramRunner makeIndex;
@@ -51,6 +53,8 @@ public class TexBuilder extends AbstractBuilder {
 	
 	public TexBuilder(int i, String outputRunnerId) {
         super(i);
+        biblatexMode = false;
+        biblatexBackend = null;
 		this.outputRunnerId = outputRunnerId;
         latex = null;
         bibtex = null;
@@ -68,15 +72,20 @@ public class TexBuilder extends AbstractBuilder {
 			latex = BuilderRegistry.getRunner(outputRunnerId);
         }
         if (bibtex == null || !bibtex.isValid()) {
-			bibtex = BuilderRegistry.getRunner(BuilderRegistry.BIBTEX_RUNNER_ID);
+            if (!biblatexMode || biblatexBackend == null || "bibtex".equals(biblatexBackend)) {
+				bibtex = BuilderRegistry.getRunner(BuilderRegistry.BIBTEX_RUNNER_ID);
+            }
+            else if (biblatexMode && "biber".equals(biblatexBackend)) {
+                bibtex = BuilderRegistry.getRunner(BuilderRegistry.BIBER_RUNNER_ID);
+            }
         }
         if (makeIndex == null || !makeIndex.isValid()) {
-			makeIndex = BuilderRegistry.getRunner(BuilderRegistry.MAKEINDEX_RUNNER_ID);
+            makeIndex = BuilderRegistry.getRunner(BuilderRegistry.MAKEINDEX_RUNNER_ID);
         }
         if (makeIndexNomencl == null || !makeIndexNomencl.isValid()) {
-			makeIndexNomencl = BuilderRegistry.getRunner(BuilderRegistry.MAKEINDEX_NOMENCL_RUNNER_ID);
+            makeIndexNomencl = BuilderRegistry.getRunner(BuilderRegistry.MAKEINDEX_NOMENCL_RUNNER_ID);
         }
-         return latex != null && latex.isValid()
+        return latex != null && latex.isValid()
             && bibtex != null && bibtex.isValid()
             && makeIndex != null && makeIndex.isValid();
     }
@@ -160,7 +169,7 @@ public class TexBuilder extends AbstractBuilder {
      * @param project
      * @return
      */
-    private String getAuxFileName(final IProject project) {
+    private String getAuxFileName(IProject project) {
         // evaluate the .aux file
         String auxFileName = TexlipseProperties.getProjectProperty(project, TexlipseProperties.MAINFILE_PROPERTY);
         //Check for partial build
@@ -203,6 +212,20 @@ public class TexBuilder extends AbstractBuilder {
 			labelC.updateRefSource(correctedAuxFileName, afp.getLabels());
 		}
     }
+
+	/**
+	 * Clears errors and warnings from the problem view. If LaTeX runs more than once, this
+	 * makes sure, the view only shows the messages of the last run, which are still valid.
+	 *
+	 * @param project the project
+	 */
+	private void clearMarkers(IProject project) {
+        try {
+            project.deleteMarkers(TexlipseBuilder.MARKER_TYPE, false, IResource.DEPTH_INFINITE);
+            project.deleteMarkers(TexlipseBuilder.LAYOUT_WARNING_TYPE, false, IResource.DEPTH_INFINITE);
+        } catch (CoreException e) {
+        }
+	}
     
     /**
      * Run latex and optionally bibtex to produce a dvi file.
@@ -226,7 +249,7 @@ public class TexBuilder extends AbstractBuilder {
 		final IResource auxFile = (auxFileName != null) ? project.getFile(auxFileName) : null;
 		List<String> oldCitations = null;
 		
-		if (parseAuxFiles && auxFile != null && auxFile.exists()) {
+		if (!biblatexMode && parseAuxFiles && auxFile != null && auxFile.exists()) {
 			// read all citations from the aux-files and save them for later
 			AuxFileParser afp = new AuxFileParser(project, auxFileName);
 			oldCitations = afp.getCitations();
@@ -255,10 +278,12 @@ public class TexBuilder extends AbstractBuilder {
 		if (parseAuxFiles && auxFile != null && auxFile.exists()) {
 			AuxFileParser afp = new AuxFileParser(project, auxFileName);
 
-			// check whether a new bibtex run is required
-			List<String> newCitations = afp.getCitations();
-			if (!newCitations.equals(oldCitations))
-				bibChange = new Boolean(true);
+			if (!biblatexMode) {
+    			// check whether a new bibtex run is required
+    			List<String> newCitations = afp.getCitations();
+    			if (!newCitations.equals(oldCitations))
+    				bibChange = new Boolean(true);
+			}
 
 			// add the labels defined in the .aux-file to the label container
 			extractLabels(afp);
@@ -309,6 +334,7 @@ public class TexBuilder extends AbstractBuilder {
             if (stopped)
                 return;
             monitor.worked(10);
+            clearMarkers(project);
             try {
 				latex.run(pathConfig);
             } catch (BuilderCoreException ex) {
@@ -356,6 +382,22 @@ public class TexBuilder extends AbstractBuilder {
             
 			TexlipseProperties.setSessionProperty(pathConfig.getTexFile().getProject(), TexlipseProperties.SESSION_LATEX_RERUN, null);
         }
+    }
+
+    public void updateBuilder(IProject project) {
+        // Check if runners need to be updated due to changes in BibTeX / BibLaTeX settings
+        Boolean newBiblatexMode = (Boolean) TexlipseProperties.getSessionProperty(project,
+                TexlipseProperties.SESSION_BIBLATEXMODE_PROPERTY);
+        String newBiblatexBackend = (String) TexlipseProperties.getSessionProperty(project,
+                TexlipseProperties.SESSION_BIBLATEXBACKEND_PROPERTY);
+        boolean blModeVal = newBiblatexMode != null;
+        String blBEVal = newBiblatexBackend != null ? newBiblatexBackend : ""; 
+        if (blModeVal != biblatexMode || (biblatexMode && !blBEVal.equals(biblatexBackend))) {
+            bibtex = null;
+            // isValid will later re-assign the runners
+        }
+        biblatexMode = blModeVal;
+        biblatexBackend = newBiblatexBackend;
     }
 
     /**

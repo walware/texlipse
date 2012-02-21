@@ -1,5 +1,5 @@
 /*
- * $Id: BibOutlineContainer.java,v 1.7 2006/05/03 18:23:18 oskarojala Exp $
+ * $Id$
  *
  * Copyright (c) 2006 by the TeXlipse team.
  * All rights reserved. This program and the accompanying materials
@@ -30,7 +30,7 @@ public class BibOutlineContainer {
     private String endName;
     private String sorting; // TODO ENUMs here    
     private List childContainers; // BibOutlineContainer
-    private List<ReferenceEntry> childEntries;
+    private List childEntries; // ReferenceEntry
     private boolean topLevel;
     
     // TODO enums
@@ -48,7 +48,7 @@ public class BibOutlineContainer {
      * @param entries The initial entries
      * @param topLevel Whether or not this represents the top level of the hierarchy
      */
-    public BibOutlineContainer(List<ReferenceEntry> entries, boolean topLevel) {
+    public BibOutlineContainer(List entries, boolean topLevel) {
         this.childEntries = entries;
         this.topLevel = topLevel;
         this.sorting = SORTNATURAL;
@@ -61,7 +61,7 @@ public class BibOutlineContainer {
      * @param sName Name of the first entry
      * @param eName Name of the last entry
      */
-    private BibOutlineContainer(List<ReferenceEntry> entries, String sName, String eName) {
+    private BibOutlineContainer(List entries, String sName, String eName) {
         this.childEntries = entries;
         this.startName = sName;
         this.endName = eName;
@@ -76,10 +76,11 @@ public class BibOutlineContainer {
      * @return A copy of this container
      */
     private BibOutlineContainer childCopy(String sorting) {
-        BibOutlineContainer newboc = new BibOutlineContainer(new ArrayList<ReferenceEntry>(), topLevel);
+        BibOutlineContainer newboc = new BibOutlineContainer(new ArrayList(), topLevel);
         newboc.sorting = sorting;
         
-        for (ReferenceEntry re : childEntries) {
+        for (Iterator iter = childEntries.iterator(); iter.hasNext();) {
+            ReferenceEntry re = (ReferenceEntry) iter.next();
             newboc.childEntries.add(re.copy());
         }
         return newboc;
@@ -97,7 +98,8 @@ public class BibOutlineContainer {
         newboc.authorSort();
         
         // Replace the keys with the names of the authors
-        for (ReferenceEntry re : newboc.childEntries) {
+        for (Iterator iter = newboc.childEntries.iterator(); iter.hasNext();) {
+            ReferenceEntry re = (ReferenceEntry) iter.next();
             re.key = re.author + "; " + re.key;
         }
         // Build a tree structure
@@ -284,7 +286,7 @@ public class BibOutlineContainer {
 //        }
         
         
-        String prevName = (childEntries.get(0)).key;
+        String prevName = ((ReferenceEntry) childEntries.get(0)).key;
         String nextName = "...";
         for (int i = 0; i < totalPartitions; i++) {
             //int partitionEnd = Math.min(childEntries.size(), MAX_PARTITIONSIZE);
@@ -356,7 +358,7 @@ public class BibOutlineContainer {
     /**
      * @return Returns the childEntries.
      */
-    public List<ReferenceEntry> getChildEntries() {
+    public List getChildEntries() {
         return childEntries;
     }
 

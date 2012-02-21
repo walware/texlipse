@@ -1,5 +1,5 @@
 /*
- * $Id: TexDocumentModel.java,v 1.30 2010/04/02 21:11:53 borisvl Exp $
+ * $Id$
  *
  * Copyright (c) 2004-2005 by the TeXlapse Team.
  * All rights reserved. This program and the accompanying materials
@@ -7,7 +7,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-
 package net.sourceforge.texlipse.model;
 
 import java.io.File;
@@ -19,7 +18,6 @@ import java.util.List;
 
 import net.sourceforge.texlipse.TexlipsePlugin;
 import net.sourceforge.texlipse.bibparser.BibParser;
-import net.sourceforge.texlipse.builder.KpsewhichRunner;
 import net.sourceforge.texlipse.editor.TexDocumentParseException;
 import net.sourceforge.texlipse.editor.TexEditor;
 import net.sourceforge.texlipse.outline.TexOutlinePage;
@@ -28,6 +26,7 @@ import net.sourceforge.texlipse.properties.TexlipseProperties;
 import net.sourceforge.texlipse.texparser.LatexRefExtractingParser;
 import net.sourceforge.texlipse.texparser.TexParser;
 import net.sourceforge.texlipse.treeview.views.TexOutlineTreeView;
+import net.sourceforge.texlipse.builder.KpsewhichRunner;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -66,7 +65,9 @@ import org.eclipse.ui.progress.WorkbenchJob;
  * @author Boris von Loesch
  */
 public class TexDocumentModel implements IDocumentListener {
-    
+
+    public static final String PARSER_FAMILY = "TexDocument Parser";
+   
     /**
      * Job for performing the parsing in a background thread.
      * When parsing is done schedules the PostParseJob, which
@@ -98,7 +99,7 @@ public class TexDocumentModel implements IDocumentListener {
                 pollCancel(monitor);
                 
                 // parsing
-                List<OutlineNode> rootNodes;
+                ArrayList<OutlineNode> rootNodes;
                 try {
                     rootNodes = doParse(monitor);
                 } catch (TexDocumentParseException e1) {
@@ -137,6 +138,11 @@ public class TexDocumentModel implements IDocumentListener {
                 return Status.CANCEL_STATUS;
             }
         }
+
+        @Override
+        public boolean belongsTo(Object family) {
+            return family.equals(PARSER_FAMILY);
+        }
     }
     
     /**
@@ -148,7 +154,7 @@ public class TexDocumentModel implements IDocumentListener {
      */
     private class PostParseJob extends WorkbenchJob {
         
-        private List<OutlineNode> rootNodes;
+        private ArrayList<OutlineNode> rootNodes;
         private List<OutlineNode> fullOutlineNodes;
 
         /**
@@ -162,7 +168,7 @@ public class TexDocumentModel implements IDocumentListener {
         /**
          * @param rootNodes 
          */
-        public void setRootNodes(List<OutlineNode> rootNodes) {
+        public void setRootNodes(ArrayList<OutlineNode> rootNodes) {
             this.rootNodes = rootNodes;
         }
         
@@ -417,7 +423,7 @@ public class TexDocumentModel implements IDocumentListener {
      * 
      * @throws TexDocumentParseException
      */
-    private List<OutlineNode> doParse(IProgressMonitor monitor) throws TexDocumentParseException {
+    private ArrayList<OutlineNode> doParse(IProgressMonitor monitor) throws TexDocumentParseException {
         
         if (this.parser == null) {
             this.parser = new TexParser(editor.getDocumentProvider().getDocument(editor.getEditorInput()));
@@ -531,7 +537,8 @@ public class TexDocumentModel implements IDocumentListener {
         
         // add new positions for nodes and their children
         int maxDepth = 0;
-        for (OutlineNode node : rootNodes) {
+        for (Iterator<OutlineNode> iter = rootNodes.iterator(); iter.hasNext(); ) {
+            OutlineNode node = iter.next();
             int localDepth = addNodePosition(node, document, 0, newOutlineInput); 
             
             if (localDepth > maxDepth) {
@@ -595,7 +602,62 @@ public class TexDocumentModel implements IDocumentListener {
         }
         return maxDepth;
     }
-    
+
+    /**
+     * Updates the settings for the BibLaTeX package. If this is not the initial run,
+     * checks if settings have changed from previous parse job and, if applicable, sets a
+     * notification flag for the builder that something has changed.
+     *
+     * @param project the current project
+     * @param biblatexMode true, if biblatex package was found by parser
+     * @param biblatexBackend database backend detected by parser, or null
+     * @param init whether this is the initial run
+     */
+    private void updateBiblatex(IProject project, boolean biblatexMode,
+            String biblatexBackend, boolean init) {
+        if (!init) {
+            Boolean oldBLMode = (Boolean) TexlipseProperties.getSessionProperty(project,
+                    TexlipseProperties.SESSION_BIBLATEXMODE_PROPERTY);
+            String oldBackend = (String) TexlipseProperties.getSessionProperty(project,
+                    TexlipseProperties.SESSION_BIBLATEXBACKEND_PROPERTY);
+            boolean bibChanged;
+            if (biblatexMode) {
+                if (oldBLMode != null) {
+                    if (biblatexBackend != null) {
+                        bibChanged = !biblatexBackend.equals(oldBackend);
+                    }
+                    else {
+                        bibChanged = oldBLMode == null;
+                    }
+                }
+                else {
+                    bibChanged = true;
+                }
+            }
+            else {
+                bibChanged = oldBLMode != null;
+            }
+            if (bibChanged) {
+                TexlipseProperties.setSessionProperty(project,
+                        TexlipseProperties.SESSION_BIBTEX_RERUN,
+                        new String("true"));
+            }
+        }
+        if (biblatexMode) {
+            TexlipseProperties.setSessionProperty(project,
+                    TexlipseProperties.SESSION_BIBLATEXMODE_PROPERTY,
+                    new Boolean(true));
+        }
+        else {
+            TexlipseProperties.setSessionProperty(project,
+                    TexlipseProperties.SESSION_BIBLATEXMODE_PROPERTY,
+                    null);
+        }
+        TexlipseProperties.setSessionProperty(project,
+                TexlipseProperties.SESSION_BIBLATEXBACKEND_PROPERTY,
+                biblatexBackend);
+    }
+
     /**
      * Updates the references and project data based on the data in the
      * parsed document.
@@ -607,38 +669,55 @@ public class TexDocumentModel implements IDocumentListener {
         this.updateCommands(parser.getCommands());
         IProject project = getCurrentProject();
         if (project == null) return;
-        
-        pollCancel(monitor);
-        
-        String[] bibs = parser.getBibs();
-        this.updateBibs(bibs, ((FileEditorInput)editor.getEditorInput()).getFile());
-        // After here we just store those fun properties...
-        
-        pollCancel(monitor);
-        
         IFile cFile = ((FileEditorInput) editor.getEditorInput()).getFile();
+        boolean isMainFile = cFile.equals(TexlipseProperties.getProjectSourceFile(project));
+
+        pollCancel(monitor);
+        
+        // After here we just store those fun properties...
+        if (parser.isLocalBib()) {
+            TexlipseProperties.setSessionProperty(project,
+                    TexlipseProperties.SESSION_BIBLATEXLOCALBIB_PROPERTY,
+                    new Boolean(true));
+        }
+        else {
+            TexlipseProperties.setSessionProperty(project,
+                    TexlipseProperties.SESSION_BIBLATEXLOCALBIB_PROPERTY,
+                    null);
+        }
+        
         //Only update Preamble, Bibstyle if main Document
-        if (cFile.equals(TexlipseProperties.getProjectSourceFile(project))) {
+        if (isMainFile) {
+            boolean biblatexMode = parser.isBiblatexMode();
+            updateBiblatex(project, biblatexMode, parser.getBiblatexBackend(), false);
+
+            String[] bibs = parser.getBibs();
+            this.updateBibs(bibs, biblatexMode, cFile);
+
+            pollCancel(monitor);
+
             String preamble = parser.getPreamble();
             if (preamble != null) {
                 TexlipseProperties.setSessionProperty(project, 
                         TexlipseProperties.PREAMBLE_PROPERTY, 
                         preamble);
             }
-            String bibstyle = parser.getBibstyle();
-            if (bibstyle != null) {
-                String oldStyle = (String) TexlipseProperties.getSessionProperty(project,
-                        TexlipseProperties.BIBSTYLE_PROPERTY);
+            if (!biblatexMode) {
+                String bibstyle = parser.getBibstyle();
+                if (bibstyle != null) {
+                    String oldStyle = (String) TexlipseProperties.getSessionProperty(project,
+                            TexlipseProperties.BIBSTYLE_PROPERTY);
 
-                if (oldStyle == null || !bibstyle.equals(oldStyle)) {
-                    TexlipseProperties.setSessionProperty(project, 
-                            TexlipseProperties.BIBSTYLE_PROPERTY, 
-                            bibstyle);
+                    if (oldStyle == null || !bibstyle.equals(oldStyle)) {
+                        TexlipseProperties.setSessionProperty(project, 
+                                TexlipseProperties.BIBSTYLE_PROPERTY, 
+                                bibstyle);
 
-                    // schedule running bibtex on the next build
-                    TexlipseProperties.setSessionProperty(project, 
-                            TexlipseProperties.BIBFILES_CHANGED, 
-                            new Boolean(true));
+                        // schedule running bibtex on the next build
+                        TexlipseProperties.setSessionProperty(project, 
+                                TexlipseProperties.BIBFILES_CHANGED, 
+                                new Boolean(true));
+                    }
                 }
             }
         }
@@ -650,17 +729,17 @@ public class TexDocumentModel implements IDocumentListener {
      * @param bibNames Names of the BibTeX -files that the document uses
      * @param resource The resource of the document
      */
-    private void updateBibs(String[] bibNames, IResource resource) {        
+    private void updateBibs(String[] bibNames, boolean biblatexMode, IResource resource) {
         IProject project = getCurrentProject();
         if (project == null) return;
-        if (bibNames == null) {
-        	//No BibTeX reference found, do not update Bibs, because then we lost bibliography
-        	//if we have an include file.
-        	//FIXME: Bib entries are not removed from the documentmodel if \bibliography is deleted
-        	return;
+
+        if (!biblatexMode) {
+            for (int i=0; i < bibNames.length; i++) {
+                if (!bibNames[i].endsWith(".bib")) {
+                    bibNames[i] += ".bib";
+                }
+            }
         }
-        for (int i=0; i < bibNames.length; i++)
-            bibNames[i] += ".bib";
         
         if (bibContainer.checkFreshness(bibNames)) {
             return;
@@ -761,7 +840,7 @@ public class TexDocumentModel implements IDocumentListener {
      * Updates the commands.
      * @param commands
      */
-    private void updateCommands(List<TexCommandEntry> commands) {
+    private void updateCommands(ArrayList<TexCommandEntry> commands) {
         IResource resource = getFile();
         if (resource == null) return;
         if (commandContainer.addRefSource(resource.getProjectRelativePath().toString(), commands))
@@ -891,10 +970,11 @@ public class TexDocumentModel implements IDocumentListener {
                         //Only update Preamble, Bibstyle if main Document
                         if (files[i].equals(mainFile)) {
                             String[] bibs = lrep.getBibs();
-                            if (bibs != null) {
-                                this.updateBibs(bibs, files[i]);
-                            }
-                            
+                            boolean biblatexMode = lrep.isBiblatexMode();
+                            String biblatexBackend = lrep.getBiblatexBackend();
+                            this.updateBiblatex(project, biblatexMode, biblatexBackend, true);
+                            this.updateBibs(bibs, biblatexMode, files[i]);
+
                             String preamble = lrep.getPreamble();
                             if (preamble != null) {
                                 TexlipseProperties.setSessionProperty(project, 
