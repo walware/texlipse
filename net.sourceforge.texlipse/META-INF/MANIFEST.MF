@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Vendor: WalWare.de
 Bundle-Name: TeXlipse (patched for StatET)
 Bundle-SymbolicName: net.sourceforge.texlipse;singleton:=true
-Bundle-Version: 10500.0.1.qualifier
+Bundle-Version: 10500.0.2.qualifier
 Bundle-Activator: net.sourceforge.texlipse.TexlipsePlugin
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .,
