@@ -6,9 +6,9 @@
 	
 	<parent>
 		<groupId>de.walware.statet</groupId>
-		<artifactId>statet</artifactId>
-		<version>3.4-SNAPSHOT</version>
-		<relativePath>../../statet/de.walware.statet-build</relativePath>
+		<artifactId>statet-redocs</artifactId>
+		<version>3.5-SNAPSHOT</version>
+		<relativePath>../../statet-redocs/-build</relativePath>
 	</parent>
 	
 	<groupId>net.sourceforge.texlipse</groupId>
