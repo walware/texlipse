@@ -50,7 +50,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.ITextEditor;
 
-import de.walware.ecommons.debug.ui.LaunchConfigUtil;
+import de.walware.ecommons.debug.core.util.LaunchUtils;
 import de.walware.ecommons.io.win.DDE;
 import de.walware.ecommons.io.win.DDEClient;
 
@@ -376,7 +376,7 @@ public class ViewerManager2 implements ILaunchConfigurationListener {
 		
 		final ProcessBuilder pBuilder = new ProcessBuilder(cmds);
 		Map<String, String> prefEnvp = PathUtils.getPreferenceMap(TexlipseProperties.VIEWER_ENV_SETTINGS);
-		LaunchConfigUtil.configureEnvironment(pBuilder.environment(), viewerConfig.getLaunchConfig(), prefEnvp);
+		LaunchUtils.configureEnvironment(pBuilder.environment(), viewerConfig.getLaunchConfig(), prefEnvp);
 		
 		Process process;
 		try {

@@ -23,9 +23,8 @@ import net.sourceforge.texlipse.TexlipsePlugin;
 import net.sourceforge.texlipse.properties.TexlipseProperties;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.debug.core.DebugPlugin;
 
-import de.walware.ecommons.debug.ui.LaunchConfigUtil;
+import de.walware.ecommons.debug.core.util.LaunchUtils;
 
 
 /**
@@ -168,10 +167,10 @@ public class ExternalProgram {
 				String commandPath = command[0].substring(0, index);
 				envAddMap.put("PATH", "${env_var:PATH}" + File.pathSeparatorChar + commandPath);
 			}
-			Map<String, String> envp = LaunchConfigUtil.createEnvironment(null,
+			Map<String, String> envp = LaunchUtils.createEnvironment(null,
 					new Map[] { envPrevMap, envAddMap });
 			
-            process = rt.exec(command, LaunchConfigUtil.toKeyValueStrings(envp), dir);
+            process = rt.exec(command, LaunchUtils.toKeyValueStrings(envp), dir);
             
         } else {
             throw new IllegalStateException();

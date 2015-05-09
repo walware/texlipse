@@ -48,7 +48,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
-import de.walware.ecommons.debug.ui.LaunchConfigUtil;
+import de.walware.ecommons.debug.core.util.LaunchUtils;
 import de.walware.ecommons.io.win.DDEClient;
 
 
@@ -536,8 +536,8 @@ public class ViewerManager {
 		if (envSettings != null) {
 			envAddMap.putAll(envSettings);
 		}
-		LaunchConfigUtil.createEnvironment(null, new Map[] {});
-		Map<String, String> envp = LaunchConfigUtil.createEnvironment(null,
+		LaunchUtils.createEnvironment(null, new Map[] {});
+		Map<String, String> envp = LaunchUtils.createEnvironment(null,
 				new Map[] { envPrevMap, envAddMap });
 		
         // print command
@@ -546,7 +546,7 @@ public class ViewerManager {
 
         // start viewer process
         Runtime runtime = Runtime.getRuntime();
-        Process process = runtime.exec(list.toArray(new String[0]), LaunchConfigUtil.toKeyValueStrings(envp), dir);
+        Process process = runtime.exec(list.toArray(new String[0]), LaunchUtils.toKeyValueStrings(envp), dir);
   
         // save attribute
         HashMap viewerInfo = new HashMap();
