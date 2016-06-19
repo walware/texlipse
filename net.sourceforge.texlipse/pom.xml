@@ -13,7 +13,7 @@
 	
 	<groupId>net.sourceforge.texlipse</groupId>
 	<artifactId>net.sourceforge.texlipse</artifactId>
-	<version>10500.0.2-SNAPSHOT</version>
+	<version>10500.0.3-SNAPSHOT</version>
 	<packaging>eclipse-plugin</packaging>
 	
 </project>
